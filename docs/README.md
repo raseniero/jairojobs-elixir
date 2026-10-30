@@ -39,6 +39,12 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
 `Draft` → `Approved` → `In Progress` → `Done`
 (ADRs use `Proposed` → `Accepted` → `Superseded by NNNN`)
 
+### User story IDs
+Format: `US-<spec#>-<n>`, e.g. `US-001-2` is the second user story of spec 001.
+- Never renumber; mark removed ones as `(dropped)`.
+- Each requirement lists the stories it serves (`**Serves:** US-001-2, US-001-3`).
+- Every spec ends with a traceability table (story → requirements) so gaps are visible.
+
 ### Requirement IDs
 Format: `REQ-<spec#>-<n>`, e.g. `REQ-001-3` is the third requirement of spec 001.
 - Never renumber; mark removed ones as `(dropped)`.
