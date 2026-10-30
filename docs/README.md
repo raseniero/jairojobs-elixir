@@ -51,8 +51,28 @@ Format: `REQ-<spec#>-<n>`, e.g. `REQ-001-3` is the third requirement of spec 001
 - Reference in ExUnit test names: `test "REQ-001-3: user can reset password"`.
 - Reference in commits: `feat(auth): password reset (REQ-001-3)`.
 
-### Acceptance criteria
-Written as Given / When / Then. Each criterion should map to at least one test.
+### Writing style: one clause per line
+For human readability, stories and criteria are written one clause per line as a short
+bullet group, never as a single run-on sentence.
+
+User story:
+```
+**US-001-1**
+- As a Visitor,
+- I want to browse listings without creating an account,
+- so that I can see if the site is useful before committing.
+```
+
+Acceptance criterion (one group per scenario, blank line between groups; each should map to
+at least one test):
+```
+- **Given** I am not logged in,
+- **When** I open a protected page,
+- **Then** I am redirected to the log-in page.
+```
+
+Constraints that aren't scenarios (limits, invariants) go under a **Rules** label inside the
+requirement.
 
 ### Diagrams
 Text sources only; never commit binary-only diagrams.

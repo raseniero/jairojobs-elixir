@@ -25,8 +25,17 @@
 
 ## User stories
 
-- **US-NNN-1** — As a <persona>, I want <goal>, so that <benefit>.
-- **US-NNN-2** — As a <persona>, I want <goal>, so that <benefit>.
+<!-- One clause per line. Keep the three-part shape. -->
+
+**US-NNN-1**
+- As a <persona>,
+- I want <goal>,
+- so that <benefit>.
+
+**US-NNN-2**
+- As a <persona>,
+- I want <goal>,
+- so that <benefit>.
 
 ## Requirements
 
@@ -37,14 +46,30 @@
 <!-- Narrative, one or two sentences. -->
 
 **Acceptance criteria**
-- Given … when … then …
+
+<!-- One bullet group per criterion; blank line between groups. -->
+
+- **Given** <precondition>,
+- **When** <action>,
+- **Then** <observable result>.
+
+- **Given** <precondition>,
+- **When** <action>,
+- **Then** <observable result>.
+
+**Rules**
+<!-- Constraints that aren't a scenario (limits, invariants). Omit if none. -->
+- 
 
 ### REQ-NNN-2: <short title>
 
 **Serves:** US-NNN-1, US-NNN-2
 
 **Acceptance criteria**
-- Given … when … then …
+
+- **Given** <precondition>,
+- **When** <action>,
+- **Then** <observable result>.
 
 ## Non-functional requirements
 
