@@ -3,6 +3,7 @@
 **Last updated:** 2026-10-29 (contexts planned from spec 000; none implemented yet)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
+Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
 
 ## Shape
 

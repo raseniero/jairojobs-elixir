@@ -49,7 +49,18 @@ Format: `REQ-<spec#>-<n>`, e.g. `REQ-001-3` is the third requirement of spec 001
 Written as Given / When / Then. Each criterion should map to at least one test.
 
 ### Diagrams
-Mermaid in markdown. No binary diagram files.
+Text sources only; never commit binary-only diagrams.
+
+| Use | Tool | Location |
+|---|---|---|
+| Simple diagrams (flows, state machines, small ERDs) | **Mermaid**, inline in the `.md` | wherever it's discussed |
+| Richer diagrams (C4, detailed ERD, sequence with notes, deployment) | **PlantUML** `.puml` | `architecture/diagrams/src/` |
+
+PlantUML sources are rendered to **SVG** in `architecture/diagrams/out/` via
+`scripts/render-diagrams.sh` and embedded with `![title](diagrams/out/name.svg)`.
+Regenerate and commit the SVG in the same commit as the `.puml` change.
+SVG (not PNG): vector, small, diffable, text stays searchable. Avoid `skinparam` options
+that embed fonts — GitHub strips them.
 
 ### ADRs
 Short. Status / Context / Decision / Consequences. Once `Accepted`, do not edit —
