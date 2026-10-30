@@ -13,8 +13,8 @@ Change it deliberately, via an ADR.
 | Language / runtime | Elixir 1.20 / OTP 29 | |
 | Web | Phoenix 1.8, LiveView | Server-rendered first; LiveView for interactivity |
 | UI | Stock `CoreComponents` + Tailwind v4 + daisyUI | No third-party component library (ADR-0001) |
-| Database | PostgreSQL 17 via Ecto | (ADR-0002) |
-| Deployment | Fly.io | (ADR-0003) |
+| Database | PostgreSQL 17 via Ecto; UUID v7 primary keys | (ADR-0002, ADR-0004) |
+| Deployment | Fly.io, region Singapore (`sin`) | (ADR-0003) |
 | Background jobs | _TBD_ | |
 | Email | Swoosh | Local dev mailbox at `/dev/mailbox` |
 

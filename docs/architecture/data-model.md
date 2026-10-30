@@ -8,7 +8,8 @@ this page is the readable summary.
 
 ## Conventions
 
-- Primary keys: _TBD_ (bigint default vs UUID — decide via ADR before first domain table)
+- Primary keys: UUID v7 (`:binary_id`), app-generated; all FKs `:binary_id` (ADR-0004)
+- Public listing URLs: UUID + unique slug
 - Timestamps: `inserted_at` / `updated_at` (`utc_datetime_usec`)
 - Soft deletes: not used unless a spec requires it
 - Naming: snake_case, plural table names, singular schema modules
