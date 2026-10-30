@@ -48,14 +48,12 @@ Format: `US-<spec#>-<n>`, e.g. `US-001-2` is the second user story of spec 001.
 ### Requirement IDs
 Format: `REQ-<spec#>-<n>`, e.g. `REQ-001-3` is the third requirement of spec 001.
 - Never renumber; mark removed ones as `(dropped)`.
-- Reference in ExUnit test names: `test "REQ-001-3: user can reset password"`.
+- Reference in ExUnit test names: `test "REQ-001-3: <scenario name>"`.
 - Reference in commits: `feat(auth): password reset (REQ-001-3)`.
 
-### Writing style: one clause per line
-For human readability, stories and criteria are written one clause per line as a short
-bullet group, never as a single run-on sentence.
+### Writing style
 
-User story:
+**User stories** — one clause per line as a bullet triplet:
 ```
 **US-001-1**
 - As a Visitor,
@@ -63,16 +61,21 @@ User story:
 - so that I can see if the site is useful before committing.
 ```
 
-Acceptance criterion (one group per scenario, blank line between groups; each should map to
-at least one test):
+**Acceptance criteria** — Gherkin inside a ```` ```gherkin ```` fenced block (GitHub and
+editors highlight the keywords). One `Scenario:` per case; the scenario name becomes the
+test name. Use `And` / `But` for additional steps.
+```gherkin
+Scenario: Protected page redirects and returns
+  Given I am not logged in
+  When I open a protected page such as Settings
+  Then I am redirected to the log-in page
+  And after logging in I land on the page I originally asked for
 ```
-- **Given** I am not logged in,
-- **When** I open a protected page,
-- **Then** I am redirected to the log-in page.
-```
+Each scenario should map to at least one test:
+`test "REQ-001-1: protected page redirects and returns"`.
 
 Constraints that aren't scenarios (limits, invariants) go under a **Rules** label inside the
-requirement.
+requirement, outside the Gherkin block, so they can use inline code and links.
 
 ### Diagrams
 Text sources only; never commit binary-only diagrams.

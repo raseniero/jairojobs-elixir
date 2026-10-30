@@ -105,16 +105,18 @@ optional convenience added later.
 Unauthenticated visitors can reach all public pages (home, listing index, listing detail, and
 the sign-up / log-in pages). Only protected pages redirect to log-in.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Public pages render without login
+  Given I am not logged in
+  When I open the home page or any public listing page
+  Then it renders without redirecting me to log in
 
-- **Given** I am not logged in,
-- **When** I open the home page or any public listing page,
-- **Then** it renders without redirecting me to log in.
-
-- **Given** I am not logged in,
-- **When** I open a protected page (e.g. Settings),
-- **Then** I am redirected to the log-in page, and after logging in I land on the page I
-  originally asked for.
+Scenario: Protected page redirects and returns
+  Given I am not logged in
+  When I open a protected page such as Settings
+  Then I am redirected to the log-in page
+  And after logging in I land on the page I originally asked for
+```
 
 ### REQ-001-2: Sign up with email and role
 
@@ -123,24 +125,30 @@ the sign-up / log-in pages). Only protected pages redirect to log-in.
 A visitor signs up with an email address and a role (`candidate` or `employer`). No password
 is collected at signup. A login link is emailed.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Successful sign-up
+  Given I am on the sign-up page
+  When I submit a valid email and choose a role
+  Then an account is created with that role
+  And a login link is emailed to that address
 
-- **Given** I am on the sign-up page,
-- **When** I submit a valid email and choose a role,
-- **Then** an account is created with that role and a login link is emailed to that address.
+Scenario: Missing role
+  Given I am on the sign-up page
+  When I submit without choosing a role
+  Then I see a validation error
+  And no account is created
 
-- **Given** I am on the sign-up page,
-- **When** I submit without choosing a role,
-- **Then** I see a validation error and no account is created.
+Scenario: Existing email is not revealed
+  Given an account already exists for an email
+  When I sign up again with that email
+  Then I see the same neutral success message as a new signup
+  And no duplicate account is created
 
-- **Given** an account already exists for an email,
-- **When** I sign up again with that email,
-- **Then** I see the same neutral success message as a new signup and no duplicate is created
-  (no account enumeration).
-
-- **Given** I am on the sign-up page,
-- **When** I submit an invalid email format,
-- **Then** I see a validation error.
+Scenario: Invalid email format
+  Given I am on the sign-up page
+  When I submit an invalid email format
+  Then I see a validation error
+```
 
 **Rules**
 - The role cannot be `admin` from the sign-up form, even if the parameter is forged.
@@ -152,20 +160,25 @@ is collected at signup. A login link is emailed.
 Clicking the emailed link confirms the email address and logs the user in. Until confirmed,
 the account cannot log in by any method.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Unconfirmed account cannot log in
+  Given I signed up and have not yet clicked the link
+  When I try to log in by magic link or password
+  Then I do not get a session
+  And a fresh magic-link email is sent instead of a password login
 
-- **Given** I signed up and have not yet clicked the link,
-- **When** I try to log in by magic link or password,
-- **Then** I do not get a session (a fresh magic-link email is sent instead; password login is
-  refused).
+Scenario: First link confirms and logs in
+  Given I have a valid, unused link from the signup email
+  When I click it
+  Then my account is marked confirmed
+  And I am logged in
 
-- **Given** I have a valid, unused link from the signup email,
-- **When** I click it,
-- **Then** my account is marked confirmed and I am logged in.
-
-- **Given** the link is expired or already used,
-- **When** I click it,
-- **Then** I see an error and am not logged in.
+Scenario: Expired or used link
+  Given the link is expired or already used
+  When I click it
+  Then I see an error
+  And I am not logged in
+```
 
 ### REQ-001-4: Log in via magic link
 
@@ -173,19 +186,24 @@ the account cannot log in by any method.
 
 A confirmed user can request a login link by email at any time.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Request and use a magic link
+  Given I am a confirmed user
+  When I enter my email on the log-in page and request a link
+  Then I receive an email with a single-use link
+  And clicking it logs me in
 
-- **Given** I am a confirmed user,
-- **When** I enter my email on the log-in page and request a link,
-- **Then** I receive an email with a single-use link, and clicking it logs me in.
+Scenario: Unregistered email is not revealed
+  Given an email that is not registered
+  When I request a link for it
+  Then I see the same neutral message
+  And no email is sent
 
-- **Given** an email that is not registered,
-- **When** I request a link for it,
-- **Then** I see the same neutral message and no email is sent (no account enumeration).
-
-- **Given** a link that has been used or has expired,
-- **When** I click it,
-- **Then** it does not log me in.
+Scenario: Used or expired link
+  Given a link that has been used or has expired
+  When I click it
+  Then it does not log me in
+```
 
 ### REQ-001-5: Optional password; log in via email + password
 
@@ -194,19 +212,22 @@ A confirmed user can request a login link by email at any time.
 A logged-in user may set a password in Settings. Once set, email + password login works in
 addition to magic link.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Set a password, then log in with it
+  Given I am logged in and have no password
+  When I set a valid password in Settings
+  Then I can subsequently log in with email and password
 
-- **Given** I am logged in and have no password,
-- **When** I set a valid password in Settings,
-- **Then** I can subsequently log in with email + password.
+Scenario: Wrong password
+  Given I have a password
+  When I log in with the wrong password
+  Then I see a generic "invalid email or password" error
 
-- **Given** I have a password,
-- **When** I log in with the wrong password,
-- **Then** I see a generic "invalid email or password" error.
-
-- **Given** I have a password but my email is unconfirmed (edge case),
-- **When** I try password login,
-- **Then** I am refused (per REQ-001-3).
+Scenario: Password login requires confirmed email
+  Given I have a password but my email is unconfirmed
+  When I try password login
+  Then I am refused
+```
 
 **Rules**
 - Password length: minimum 12 characters, maximum 72 bytes.
@@ -218,44 +239,52 @@ addition to magic link.
 A logged-in user can change their email; the change takes effect only after the new address
 is confirmed via a link.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Request email change
+  Given I am logged in
+  When I submit a new email in Settings
+  Then a confirmation link is sent to the new address
+  And my current email stays unchanged
 
-- **Given** I am logged in,
-- **When** I submit a new email in Settings,
-- **Then** a confirmation link is sent to the **new** address and my current email stays
-  unchanged.
+Scenario: Confirm new email
+  Given a confirmation link was sent to my new address
+  When I click it
+  Then my account email is updated
 
-- **Given** a confirmation link was sent to my new address,
-- **When** I click it,
-- **Then** my account email is updated.
-
-- **Given** the new email is already used by another account,
-- **When** I submit it,
-- **Then** I see a validation error.
+Scenario: New email already taken
+  Given the new email is already used by another account
+  When I submit it
+  Then I see a validation error
+```
 
 ### REQ-001-7: Change password
 
 **Serves:** US-001-5
 
-**Acceptance criteria**
+```gherkin
+Scenario: Change password
+  Given I am logged in and have a password
+  When I enter my current password and a valid new password
+  Then my password is updated
+  And my other sessions are logged out
 
-- **Given** I am logged in and have a password,
-- **When** I enter my current password and a valid new password,
-- **Then** my password is updated and my other sessions are logged out.
-
-- **Given** I am logged in and have a password,
-- **When** I enter the wrong current password,
-- **Then** the change is rejected.
+Scenario: Wrong current password
+  Given I am logged in and have a password
+  When I enter the wrong current password
+  Then the change is rejected
+```
 
 ### REQ-001-8: Log out
 
 **Serves:** US-001-6
 
-**Acceptance criteria**
-
-- **Given** I am logged in,
-- **When** I log out,
-- **Then** my session is invalidated and protected pages redirect me to log in again.
+```gherkin
+Scenario: Log out
+  Given I am logged in
+  When I log out
+  Then my session is invalidated
+  And protected pages redirect me to log in again
+```
 
 ### REQ-001-9: Role is fixed and exposed via Scope
 
@@ -264,19 +293,22 @@ is confirmed via a link.
 Each user has exactly one role: `candidate`, `employer`, or `admin`. The current user and
 role are available to every LiveView/controller and passed to contexts as a `Scope`.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Role available in scope
+  Given a user with role candidate
+  When they make any authenticated request
+  Then scope.user.role == :candidate is available to the LiveView and contexts
 
-- **Given** a user with role `candidate`,
-- **When** they make any authenticated request,
-- **Then** `scope.user.role == :candidate` is available to the LiveView/controller and contexts.
+Scenario: Role shown in Settings
+  Given I am logged in
+  When I open Settings
+  Then I see my role as a read-only label ("Candidate" / "Employer" / "Admin")
 
-- **Given** I am logged in,
-- **When** I open Settings,
-- **Then** I see my role as a read-only label ("Candidate" / "Employer" / "Admin").
-
-- **Given** my role was changed by the operator (REQ-001-10),
-- **When** I make my next request,
-- **Then** the new role is in effect.
+Scenario: Role change takes effect on next request
+  Given my role was changed by the operator
+  When I make my next request
+  Then the new role is in effect
+```
 
 **Rules**
 - Users cannot change their own role through any user-facing form.
@@ -290,23 +322,29 @@ server access (a `mix` task locally; a release command in production). There is 
 sign-up page and no promote/demote web UI in this spec — that arrives with the admin
 dashboard (spec 008) and will call the same context functions.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Promote a user
+  Given a registered, confirmed user's email
+  When the operator runs the promote command with that email
+  Then the user's role becomes admin
 
-- **Given** a registered, confirmed user's email,
-- **When** the operator runs the promote command with that email,
-- **Then** the user's role becomes `admin`.
+Scenario: Demote an admin
+  Given an admin's email
+  When the operator runs the demote command
+  Then the role reverts to the role held before promotion
+  But falls back to candidate if the previous role is unknown
 
-- **Given** an admin's email,
-- **When** the operator runs the demote command,
-- **Then** the role reverts to the role held before promotion (or `candidate` if unknown).
+Scenario: Unknown email
+  Given an email that does not exist
+  When the operator runs either command
+  Then it fails with a clear message
+  And nothing changes
 
-- **Given** an email that does not exist,
-- **When** the operator runs either command,
-- **Then** it fails with a clear message and changes nothing.
-
-- **Given** the target is the only admin,
-- **When** the operator runs demote,
-- **Then** it is refused.
+Scenario: Cannot demote the only admin
+  Given the target is the only admin
+  When the operator runs demote
+  Then it is refused
+```
 
 **Rules**
 - The command is documented in `plan.md` and the project `README.md`.
@@ -318,23 +356,30 @@ dashboard (spec 008) and will call the same context functions.
 The rules behind REQ-001-10 are implemented as context functions taking a `Scope`, so the
 command now and the admin UI later (spec 008) share one tested implementation.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Admin promotes a user
+  Given an admin scope
+  When promoting a candidate or employer
+  Then their role becomes admin
+  And their previous role is remembered
 
-- **Given** an admin scope,
-- **When** promoting a candidate or employer,
-- **Then** their role becomes `admin` and their previous role is remembered.
+Scenario: Admin demotes another admin
+  Given an admin scope
+  When demoting another admin
+  Then their role reverts to the remembered role
+  But falls back to candidate if unknown
 
-- **Given** an admin scope,
-- **When** demoting another admin,
-- **Then** their role reverts to the remembered role (or `candidate` if unknown).
+Scenario: Last admin is protected
+  Given the target is the last remaining admin
+  When demoting
+  Then it is refused
 
-- **Given** the target is the last remaining admin,
-- **When** demoting,
-- **Then** it is refused (no lock-out).
-
-- **Given** a non-admin scope,
-- **When** calling promote or demote,
-- **Then** it is refused and nothing changes.
+Scenario: Non-admin cannot promote or demote
+  Given a non-admin scope
+  When calling promote or demote
+  Then it is refused
+  And nothing changes
+```
 
 **Rules**
 - The privileged command runs with a system/operator scope that is treated as admin.
@@ -345,23 +390,29 @@ command now and the admin UI later (spec 008) share one tested implementation.
 
 The layout shows the right entry points for the current role.
 
-**Acceptance criteria**
+```gherkin
+Scenario: Visitor navigation
+  Given I am a Visitor
+  When I view any page
+  Then I see "Log in" and "Sign up"
 
-- **Given** I am a Visitor,
-- **When** I view any page,
-- **Then** I see "Log in" and "Sign up".
+Scenario: Candidate navigation
+  Given I am a Candidate
+  When I view any page
+  Then I see links to my applications and profile (placeholders until specs 006/007)
+  And I see Settings
 
-- **Given** I am a Candidate,
-- **When** I view any page,
-- **Then** I see links to my applications/profile (placeholders until specs 006/007) and Settings.
+Scenario: Employer navigation
+  Given I am an Employer
+  When I view any page
+  Then I see a link to my listings (placeholder until spec 003)
+  And I see Settings
 
-- **Given** I am an Employer,
-- **When** I view any page,
-- **Then** I see a link to my listings (placeholder until spec 003) and Settings.
-
-- **Given** I am an Admin,
-- **When** I view any page,
-- **Then** I additionally see an Admin link.
+Scenario: Admin navigation
+  Given I am an Admin
+  When I view any page
+  Then I additionally see an Admin link
+```
 
 ## Non-functional requirements
 
@@ -407,4 +458,4 @@ The layout shows the right entry points for the current role.
 | 2026-10-29 | Created |
 | 2026-10-29 | Resolved open questions: role label in Settings; command-only admin management |
 | 2026-10-29 | Numbered user stories (US-001-n), added Serves: links and traceability table |
-| 2026-10-29 | Reformatted stories and acceptance criteria into one-clause-per-line layout |
+| 2026-10-29 | Reformatted stories one clause per line; acceptance criteria as Gherkin scenarios |

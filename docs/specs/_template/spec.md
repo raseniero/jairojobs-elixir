@@ -45,17 +45,18 @@
 
 <!-- Narrative, one or two sentences. -->
 
-**Acceptance criteria**
+```gherkin
+Scenario: <short name — becomes the test name>
+  Given <precondition>
+  When <action>
+  Then <observable result>
+  And <additional result>
 
-<!-- One bullet group per criterion; blank line between groups. -->
-
-- **Given** <precondition>,
-- **When** <action>,
-- **Then** <observable result>.
-
-- **Given** <precondition>,
-- **When** <action>,
-- **Then** <observable result>.
+Scenario: <failure or edge case>
+  Given <precondition>
+  When <action>
+  Then <observable result>
+```
 
 **Rules**
 <!-- Constraints that aren't a scenario (limits, invariants). Omit if none. -->
@@ -65,11 +66,12 @@
 
 **Serves:** US-NNN-1, US-NNN-2
 
-**Acceptance criteria**
-
-- **Given** <precondition>,
-- **When** <action>,
-- **Then** <observable result>.
+```gherkin
+Scenario: <short name>
+  Given <precondition>
+  When <action>
+  Then <observable result>
+```
 
 ## Non-functional requirements
 
