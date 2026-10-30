@@ -1,7 +1,8 @@
 # 000 — Product Overview
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-10-29
+**Approved:** 2026-10-29
 
 The root spec. Every feature spec refers back to the personas and glossary defined here.
 
