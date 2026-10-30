@@ -35,3 +35,6 @@ jairojobs-*.tar
 npm-debug.log
 /assets/node_modules/
 
+
+# Local planning notes
+/scratchpad/
