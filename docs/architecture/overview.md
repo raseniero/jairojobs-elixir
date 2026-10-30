@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-10-29 (bootstrap — no domain contexts yet)
+**Last updated:** 2026-10-29 (contexts planned from spec 000; none implemented yet)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 
@@ -30,18 +30,48 @@ flowchart LR
 
 ## Contexts
 
-<!-- One row per context as specs land. -->
+Names come from the glossary in [spec 000](../specs/000-product-overview/spec.md).
+Status becomes *Implemented* when the introducing spec is Done.
 
-| Context | Responsibility | Introduced by spec |
-|---|---|---|
-| _none yet_ | | |
+| Context | Responsibility | Introduced by spec | Status |
+|---|---|---|---|
+| `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope` | 001 | Planned |
+| `Jairojobs.Regions` | Admin-managed list of PH regions/cities | 002 | Planned |
+| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed), approval, slugs, salary range | 003, 004, 005 | Planned |
+| `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |
+| `Jairojobs.Applications` | Candidate applies to listing; email delivery (phase 1), on-platform tracking (phase 2) | 007, 009 | Planned |
+| `Jairojobs.Billing` | Employer subscriptions, free-tier limits | 011 | Future |
+| `Jairojobs.Gigs` (name TBD) | Freelance gig marketplace | 012 | Future |
+
+### Context dependencies
+
+Arrows mean "depends on / references". Keep this acyclic.
+
+```mermaid
+flowchart TD
+    Accounts
+    Regions
+    Listings --> Accounts
+    Listings --> Regions
+    Profiles --> Accounts
+    Applications --> Listings
+    Applications --> Profiles
+    Applications --> Accounts
+    Billing -.future.-> Accounts
+    Billing -.future.-> Listings
+```
 
 ## Cross-cutting
 
-- **Auth:** _TBD_ (likely `mix phx.gen.auth` → `Jairojobs.Accounts` + scopes)
-- **Background jobs:** _TBD_
-- **Email:** Swoosh; local adapter in dev (`/dev/mailbox`)
-- **Observability:** Phoenix LiveDashboard at `/dev/dashboard` (dev only)
+- **Auth:** `mix phx.gen.auth` (`Jairojobs.Accounts`) with the `Scope` pattern; email + password
+  **and** magic link; roles `candidate` / `employer` / `admin`. Admin created via privileged
+  mechanism only. Details in spec 001.
+- **Authorization:** every context function touching private data takes the current `Scope`
+  first (constitution §4.3).
+- **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
+- **Email:** Swoosh; local adapter in dev (`/dev/mailbox`). Production adapter TBD at deploy time.
+- **File storage (CVs):** TBD in spec 006 (local disk vs object storage).
+- **Observability:** Phoenix LiveDashboard at `/dev/dashboard` (dev only).
 
 ## Request flow (typical LiveView page)
 
