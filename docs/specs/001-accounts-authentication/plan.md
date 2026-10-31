@@ -206,7 +206,7 @@ relevant generated tests to the `REQ-001-n: <scenario>` convention.
 | 7 | Change password; wrong current password | `accounts_test.exs`, `controllers/user_session_controller_test.exs` | context + controller |
 | 8 | Log out | `controllers/user_session_controller_test.exs` | controller |
 | 9 | Role in scope; role label in settings; role change next request | `accounts/scope_test.exs` (new), `settings_test.exs` | unit + LiveView |
-| 10 | Promote; demote; unknown email; last admin | `test/mix/tasks/jairojobs.admin_test.exs` (new) | mix task |
+| 10 | Promote; demote; unknown email; unconfirmed user; last admin | `test/mix/tasks/jairojobs.admin_test.exs` (new) | mix task |
 | 11 | Admin promotes; admin demotes; last admin protected; non-admin refused | `accounts_test.exs` | context (authorization) |
 | 12 | Visitor / Candidate / Employer / Admin navigation | `test/jairojobs_web/components/layouts_test.exs` (new) | component |
 
