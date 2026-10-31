@@ -106,6 +106,36 @@ The scenarios in REQ-001-2, -3, -9, -10 and -11 must agree with this diagram.
 
 *Source: `diagrams/account-states.puml`.*
 
+## Flows (activity diagrams)
+
+Every requirement is covered by one of these five flows. Each diagram must agree with the
+Gherkin scenarios of the requirements it covers.
+
+| Flow | Covers | Diagram |
+|---|---|---|
+| Sign up and confirm email | REQ-001-2, -3 | [activity-signup](diagrams/activity-signup.svg) |
+| Log in (magic link / password) | REQ-001-4, -5 | [activity-login](diagrams/activity-login.svg) |
+| Settings: change email / password, log out | REQ-001-6, -7, -8 | [activity-settings](diagrams/activity-settings.svg) |
+| Promote / demote admin via command | REQ-001-10, -11 | [activity-admin-command](diagrams/activity-admin-command.svg) |
+| Request access and role-aware navigation | REQ-001-1, -9, -12 | [activity-request-access](diagrams/activity-request-access.svg) |
+
+### Sign up and confirm email
+![Sign up](diagrams/activity-signup.svg)
+
+### Log in
+![Log in](diagrams/activity-login.svg)
+
+### Settings and log out
+![Settings](diagrams/activity-settings.svg)
+
+### Promote / demote admin
+![Admin command](diagrams/activity-admin-command.svg)
+
+### Request access and navigation
+![Request access](diagrams/activity-request-access.svg)
+
+*Sources: `diagrams/activity-*.puml`.*
+
 ## Requirements
 
 ### REQ-001-1: Public browsing requires no account
@@ -476,3 +506,4 @@ Scenario: Admin navigation
 | 2026-10-29 | Reformatted stories one clause per line; acceptance criteria as Gherkin scenarios |
 | 2026-10-30 | Added account lifecycle state diagram and nav wireframe; magic-link and change-email sequences drafted for plan.md |
 | 2026-10-30 | Approved |
+| 2026-10-30 | Added five activity diagrams covering all requirements (rule 5 change) |

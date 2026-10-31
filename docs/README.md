@@ -104,8 +104,11 @@ that embed fonts — GitHub strips them.
    change.
 4. **Prefer ER (`entity`) over Class** for persisted data; Class only for in-memory structures
    (e.g. `Scope`).
-5. **Activity and Object diagrams are opt-in**, used only when prose or Gherkin becomes hard to
-   follow (e.g. a branching approval workflow).
+5. **Every requirement is covered by an activity diagram.** Group related requirements into
+   one flow per diagram (e.g. "sign up and confirm", "settings") rather than one per REQ;
+   aim for 3–6 diagrams per spec. They live in `spec.md` under a "Flows" section with a
+   table mapping each diagram to the REQs it covers. No swimlanes — name the actor in the
+   step text instead; they tangle once a flow branches. Object diagrams remain opt-in.
 6. **Wireframes (Salt) are optional in `spec.md`** for a new screen; sketch the 375 px layout
    before building when it isn't obvious. Not a substitute for the real UI.
 

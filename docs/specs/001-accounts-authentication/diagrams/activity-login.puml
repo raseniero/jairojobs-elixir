@@ -1,0 +1,55 @@
+@startuml activity-login
+' Spec 001 — log in by magic link or password (REQ-001-4, REQ-001-5)
+title Log in (REQ-001-4 magic link, REQ-001-5 password)
+
+start
+:Open log-in page;
+if (Has a password and
+wants to use it?) then (password)
+  :Enter email + password;
+  if (Email known AND
+  password matches?) then (no)
+    :Show generic
+    "invalid email or password";
+    stop
+  else (yes)
+  endif
+  if (Email confirmed?) then (no)
+    :Refuse login;
+    :Send magic-link email
+    (so they can confirm);
+    stop
+  else (yes)
+  endif
+  :Create session;
+  :Logged in;
+  stop
+else (magic link)
+  :Enter email, request link;
+  if (Email registered?) then (no)
+    :Send nothing;
+  else (yes)
+    :Create login token
+    (expires 15 min);
+    :Send magic-link email;
+  endif
+  :Show same neutral message
+  (no account enumeration);
+  :Open email, click link;
+  if (Token valid, unused,
+  not expired?) then (no)
+    :Show "link invalid or expired";
+    stop
+  else (yes)
+  endif
+  if (User unconfirmed?) then (yes)
+    :Confirm now;
+    :Revoke all tokens;
+  else (no)
+    :Consume this token;
+  endif
+  :Create session;
+  :Logged in;
+  stop
+endif
+@enduml

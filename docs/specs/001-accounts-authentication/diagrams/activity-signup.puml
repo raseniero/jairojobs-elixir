@@ -1,0 +1,46 @@
+@startuml activity-signup
+' Spec 001 — sign up and confirm (REQ-001-2, REQ-001-3)
+title Sign up and confirm email (REQ-001-2, REQ-001-3)
+
+start
+:Open sign-up page;
+:Enter email, choose role
+(Candidate / Employer);
+if (Email format valid?) then (no)
+  :Show validation error;
+  stop
+else (yes)
+endif
+if (Role chosen and
+not "admin"?) then (no)
+  :Show validation error
+  (forged "admin" rejected);
+  stop
+else (yes)
+endif
+if (Email already registered?) then (yes)
+  :Do nothing
+  (no duplicate, no email);
+else (no)
+  :Create user
+  confirmed_at = nil;
+  :Create login token
+  (expires 15 min);
+  :Send magic-link email;
+endif
+:Show neutral message
+"If your email is in our system,
+you'll receive instructions";
+:Open email, click link;
+if (Token valid, unused,
+not expired?) then (no)
+  :Show "link invalid or expired";
+  stop
+else (yes)
+endif
+:Set confirmed_at = now;
+:Revoke ALL tokens for user;
+:Create session;
+:Logged in;
+stop
+@enduml

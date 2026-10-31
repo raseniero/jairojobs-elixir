@@ -1,0 +1,61 @@
+@startuml activity-admin-command
+' Spec 001 — operator promotes / demotes an admin (REQ-001-10, REQ-001-11)
+title Promote / demote admin via privileged command (REQ-001-10/11)
+
+start
+:Run command
+mix jairojobs.admin <promote|demote> EMAIL
+(prod: bin/jairojobs eval ...);
+:Look up user by email;
+if (User exists?) then (no)
+  :Fail: "no user with that email";
+  :Exit non-zero;
+  stop
+else (yes)
+endif
+if (Email confirmed?) then (no)
+  :Fail: "user has not confirmed email";
+  :Exit non-zero;
+  stop
+else (yes)
+endif
+switch (Command)
+case (promote)
+  if (Already admin?) then (yes)
+    :No-op: "already an admin";
+  else (no)
+    :previous_role = current role;
+    :role = admin;
+  endif
+case (demote)
+  if (Is admin?) then (no)
+    :Fail: "user is not an admin";
+    :Exit non-zero;
+    stop
+  else (yes)
+  endif
+  if (Is the only admin?) then (yes)
+    :Fail: "cannot demote the last admin";
+    :Exit non-zero;
+    stop
+  else (no)
+  endif
+  if (previous_role known?) then (yes)
+    :role = previous_role;
+  else (no)
+    :role = candidate;
+  endif
+  :previous_role = nil;
+endswitch
+:Save (takes effect on
+the user's next request);
+:Print result, exit 0;
+stop
+
+note right
+  Same context functions
+  (promote_to_admin/2, demote_admin/2)
+  will back the admin UI in spec 008.
+  A non-admin scope is always refused.
+end note
+@enduml

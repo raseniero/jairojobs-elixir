@@ -1,0 +1,56 @@
+@startuml activity-request-access
+' Spec 001 — every request: mount scope, decide access, render role-aware nav (REQ-001-1, -9, -12)
+title Request access and role-aware navigation (REQ-001-1, REQ-001-9, REQ-001-12)
+
+start
+:HTTP / LiveView request arrives;
+:Read session cookie;
+if (Valid session token?) then (yes)
+  :Load user;
+  :scope = %Scope{user: user}
+  (role available: candidate / employer / admin);
+else (no)
+  :scope = nil (Visitor);
+endif
+if (Route requires login?) then (yes)
+  if (scope present?) then (no)
+    :Store requested path;
+    :Redirect to log-in;
+    note right
+      After login, return to
+      the requested path.
+    end note
+    stop
+  else (yes)
+  endif
+  if (Route requires admin?) then (yes)
+    if (scope.user.role == admin?) then (no)
+      :403 / not found;
+      stop
+    else (yes)
+    endif
+  else (no)
+  endif
+else (no)
+  note right
+    Public pages: home, listing index,
+    listing detail, sign-up, log-in.
+    Never redirect a Visitor here.
+  end note
+endif
+:Render page with layout;
+switch (scope role)
+case (none / Visitor)
+  :Nav: Browse jobs · Sign up · Log in;
+case (candidate)
+  :Nav: Browse jobs · My applications ·
+  My profile · Settings · Log out;
+case (employer)
+  :Nav: Browse jobs · My listings ·
+  Post a job · Settings · Log out;
+case (admin)
+  :Nav: Browse jobs · Admin ·
+  Settings · Log out;
+endswitch
+stop
+@enduml

@@ -37,6 +37,17 @@
 - I want <goal>,
 - so that <benefit>.
 
+## Flows (activity diagrams)
+
+<!-- Every REQ must appear in exactly one row. 3–6 flows per spec. Sources in ./diagrams/ -->
+
+| Flow | Covers | Diagram |
+|---|---|---|
+| <flow name> | REQ-NNN-1, REQ-NNN-2 | [activity-<name>](diagrams/activity-<name>.svg) |
+
+### <Flow name>
+![<Flow name>](diagrams/activity-<name>.svg)
+
 ## Requirements
 
 ### REQ-NNN-1: <short title>
