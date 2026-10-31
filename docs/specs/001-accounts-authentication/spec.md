@@ -397,7 +397,12 @@ Scenario: Non-admin cannot promote or demote
 
 **Serves:** US-001-7
 
-The layout shows the right entry points for the current role.
+The layout shows the right entry points for the current role. Wireframe of the header and
+drawer at 375 px (layout only, not visual design):
+
+![Navigation wireframe](diagrams/nav-wireframe.svg)
+
+*Source: `diagrams/nav-wireframe.puml`.*
 
 ```gherkin
 Scenario: Visitor navigation
@@ -468,4 +473,4 @@ Scenario: Admin navigation
 | 2026-10-29 | Resolved open questions: role label in Settings; command-only admin management |
 | 2026-10-29 | Numbered user stories (US-001-n), added Serves: links and traceability table |
 | 2026-10-29 | Reformatted stories one clause per line; acceptance criteria as Gherkin scenarios |
-| 2026-10-30 | Added account lifecycle state diagram; sequence diagram drafted for plan.md |
+| 2026-10-30 | Added account lifecycle state diagram and nav wireframe; magic-link and change-email sequences drafted for plan.md |
