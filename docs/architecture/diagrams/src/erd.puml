@@ -1,0 +1,55 @@
+@startuml erd
+' Project-wide entity-relationship diagram. Canonical picture of the data model.
+' Authoritative sources: priv/repo/migrations/ and Ecto schemas; this is the readable summary.
+' Update as part of each spec's Definition of Done when tables change.
+'
+' Legend:  PK  primary key (UUID v7, ADR-0004)   FK foreign key   UK unique
+'          *   not null
+
+title jairojobs — Entity-Relationship (after spec 001)
+
+skinparam linetype ortho
+hide circle
+
+entity "users" as users {
+  * id : uuid <<PK>>
+  --
+  * email : citext <<UK>>
+    hashed_password : string
+  * role : string  {candidate | employer | admin}
+    previous_role : string
+    confirmed_at : utc_datetime_usec
+  * inserted_at : utc_datetime_usec
+  * updated_at : utc_datetime_usec
+}
+
+entity "users_tokens" as users_tokens {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>> {on_delete: delete_all}
+  * token : binary  {hashed}
+  * context : string  {session | login | change:<old_email>}
+    sent_to : string
+    authenticated_at : utc_datetime_usec  {sudo-mode marker}
+  * inserted_at : utc_datetime_usec
+}
+
+users ||--o{ users_tokens : "has"
+
+note bottom of users
+  Spec 001. Indexes: unique(email), index(role).
+  CHECK role IN ('candidate','employer','admin').
+end note
+
+note bottom of users_tokens
+  Spec 001. Indexes: index(user_id), unique(context, token).
+end note
+
+' --- Planned (not yet designed; added by their specs) ---
+' 002 regions
+' 003 listings  (-> users [employer], -> regions)
+' 006 profiles  (-> users [candidate]), cv files
+' 007 applications (-> listings, -> users/profiles)
+' 011 subscriptions (-> users)
+
+@enduml

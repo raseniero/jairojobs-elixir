@@ -122,8 +122,9 @@ erDiagram
 Role is stored as a string, exposed as `Ecto.Enum` (`values: [:candidate, :employer, :admin]`)
 on the schema. The DB check constraint is the hard guarantee; `Ecto.Enum` gives atoms in code.
 
-The full ERD lives in `docs/architecture/data-model.md` and is updated with these tables as
-part of this spec's DoD.
+The canonical PlantUML ERD (`docs/architecture/diagrams/src/erd.puml`, embedded in
+`docs/architecture/data-model.md`) already includes these two tables; the Mermaid above is
+the inline convenience copy.
 
 ## Routes & LiveViews / Controllers
 

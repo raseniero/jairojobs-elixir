@@ -1,6 +1,6 @@
 # Data Model
 
-**Last updated:** 2026-10-29 (bootstrap — no tables yet)
+**Last updated:** 2026-10-30 (users / users_tokens planned by spec 001)
 
 Living document. Update the ERD and table list when a spec adds or changes schemas.
 The authoritative source is `priv/repo/migrations/` + the `Ecto.Schema` modules;
@@ -16,13 +16,16 @@ this page is the readable summary.
 
 ## ERD
 
-```mermaid
-erDiagram
-    %% no entities yet
-```
+![ERD](diagrams/out/erd.svg)
+
+*Source: `diagrams/src/erd.puml`. Status: reflects spec 001's plan (not yet migrated).*
 
 ## Tables
 
-| Table | Schema module | Context | Introduced by spec |
-|---|---|---|---|
-| _none yet_ | | | |
+| Table | Schema module | Context | Introduced by spec | Status |
+|---|---|---|---|---|
+| `users` | `Jairojobs.Accounts.User` | Accounts | 001 | Planned |
+| `users_tokens` | `Jairojobs.Accounts.UserToken` | Accounts | 001 | Planned |
+
+Planned, not yet designed: `regions` (002), `listings` (003), `profiles` + CV files (006),
+`applications` (007), `subscriptions` (011).
