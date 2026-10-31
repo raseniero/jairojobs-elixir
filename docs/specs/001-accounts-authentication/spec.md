@@ -1,7 +1,8 @@
 # 001 — Accounts & Authentication
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-10-29
+**Approved:** 2026-10-30
 **Owner:** Jairo
 **Related ADRs:** 0004 (UUID v7 keys)
 **Depends on:** 000 (product overview)
@@ -474,3 +475,4 @@ Scenario: Admin navigation
 | 2026-10-29 | Numbered user stories (US-001-n), added Serves: links and traceability table |
 | 2026-10-29 | Reformatted stories one clause per line; acceptance criteria as Gherkin scenarios |
 | 2026-10-30 | Added account lifecycle state diagram and nav wireframe; magic-link and change-email sequences drafted for plan.md |
+| 2026-10-30 | Approved |
