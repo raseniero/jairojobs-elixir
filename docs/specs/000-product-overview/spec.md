@@ -63,6 +63,11 @@ as volume grows.
 
 ### Persona → access summary
 
+![Use case diagram](../../architecture/diagrams/out/use-cases.svg)
+
+*Source: `docs/architecture/diagrams/src/use-cases.puml`. Shading marks phase; dashed arrows are `<<include>>` dependencies (e.g. posting a listing includes admin approval).*
+
+
 | Capability | Visitor | Candidate | Employer | Admin |
 |---|---|---|---|---|
 | Browse / search listings | ✅ | ✅ | ✅ | ✅ |
