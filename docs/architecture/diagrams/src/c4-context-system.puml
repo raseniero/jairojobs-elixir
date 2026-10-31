@@ -1,4 +1,4 @@
-@startuml c4-context
+@startuml c4-context-system
 ' C4 Level 1 — System Context. Who uses jairojobs and what it talks to.
 ' Source of truth: docs/specs/000-product-overview/spec.md
 !include <C4/C4_Context>

@@ -25,13 +25,13 @@ flowchart LR
 
 **Level 1 — System context**
 
-![System context](diagrams/out/c4-context.svg)
+![System context](diagrams/out/c4-context-system.svg)
 
 **Level 2 — Containers** (planned deployment; CV storage and email provider still TBD)
 
-![Containers](diagrams/out/c4-container.svg)
+![Containers](diagrams/out/c4-container-system.svg)
 
-*Sources: `diagrams/src/c4-context.puml`, `diagrams/src/c4-container.puml`.*
+*Sources: `diagrams/src/c4-context-system.puml`, `diagrams/src/c4-container-system.puml`.*
 
 ## Layers
 

@@ -102,9 +102,9 @@ optional convenience added later.
 A user has two independent aspects: a **confirmation state** and exactly one **role**.
 The scenarios in REQ-001-2, -3, -9, -10 and -11 must agree with this diagram.
 
-![Account states](diagrams/account-states.svg)
+![Account states](diagrams/state-account.svg)
 
-*Source: `diagrams/account-states.puml`.*
+*Source: `diagrams/state-account.puml`.*
 
 ## Flows (activity diagrams)
 
@@ -431,9 +431,9 @@ Scenario: Non-admin cannot promote or demote
 The layout shows the right entry points for the current role. Wireframe of the header and
 drawer at 375 px (layout only, not visual design):
 
-![Navigation wireframe](diagrams/nav-wireframe.svg)
+![Navigation wireframe](diagrams/wireframe-nav.svg)
 
-*Source: `diagrams/nav-wireframe.puml`.*
+*Source: `diagrams/wireframe-nav.puml`.*
 
 ```gherkin
 Scenario: Visitor navigation

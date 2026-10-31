@@ -122,7 +122,7 @@ erDiagram
 Role is stored as a string, exposed as `Ecto.Enum` (`values: [:candidate, :employer, :admin]`)
 on the schema. The DB check constraint is the hard guarantee; `Ecto.Enum` gives atoms in code.
 
-The canonical PlantUML ERD (`docs/architecture/diagrams/src/erd.puml`, embedded in
+The canonical PlantUML ERD (`docs/architecture/diagrams/src/erd-jairojobs.puml`, embedded in
 `docs/architecture/data-model.md`) already includes these two tables; the Mermaid above is
 the inline convenience copy.
 
@@ -148,13 +148,13 @@ spec 004).
 
 **Sign up and first login via magic link** (REQ-001-2, -3, -4)
 
-![Magic-link sign-up](diagrams/magic-link-signup.svg)
+![Magic-link sign-up](diagrams/sequence-magic-link-signup.svg)
 
 **Change email with confirmation of the new address** (REQ-001-6)
 
-![Change email](diagrams/change-email.svg)
+![Change email](diagrams/sequence-change-email.svg)
 
-*Sources: `diagrams/magic-link-signup.puml`, `diagrams/change-email.puml`.*
+*Sources: `diagrams/sequence-magic-link-signup.puml`, `diagrams/sequence-change-email.puml`.*
 
 ## Authorization
 

@@ -1,4 +1,4 @@
-@startuml change-email
+@startuml sequence-change-email
 ' Spec 001 — change email with confirmation of the new address (REQ-001-6).
 ' Parties: Browser, JairojobsWeb (Settings LiveView), Jairojobs.Accounts, Postgres, Mailer, new inbox.
 

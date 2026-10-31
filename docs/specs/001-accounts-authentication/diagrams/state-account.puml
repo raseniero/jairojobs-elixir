@@ -1,4 +1,4 @@
-@startuml account-states
+@startuml state-account
 ' Spec 001 — account lifecycle. Two independent aspects of a user:
 '   (1) confirmation state   (2) role
 ' Must agree with REQ-001-2, REQ-001-3, REQ-001-9, REQ-001-10, REQ-001-11.

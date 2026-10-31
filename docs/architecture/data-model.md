@@ -16,9 +16,9 @@ this page is the readable summary.
 
 ## ERD
 
-![ERD](diagrams/out/erd.svg)
+![ERD](diagrams/out/erd-jairojobs.svg)
 
-*Source: `diagrams/src/erd.puml`. Status: reflects spec 001's plan (not yet migrated).*
+*Source: `diagrams/src/erd-jairojobs.puml`. Status: reflects spec 001's plan (not yet migrated).*
 
 ## Tables
 

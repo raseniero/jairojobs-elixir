@@ -93,6 +93,23 @@ Regenerate and commit the SVG in the same commit as the `.puml` change.
 SVG (not PNG): vector, small, diffable, text stays searchable. Avoid `skinparam` options
 that embed fonts — GitHub strips them.
 
+**File naming:** `<type>-<subject>.puml`, lowercase kebab-case; the `.svg` shares the name and
+`@startuml <name>` (or `@startsalt <name>`) matches the filename.
+
+| Type prefix | Diagram |
+|---|---|
+| `usecase-` | use case |
+| `c4-context-`, `c4-container-`, `c4-component-` | C4 levels |
+| `erd-` | entity-relationship |
+| `state-` | state machine |
+| `sequence-` | sequence |
+| `activity-` | activity |
+| `wireframe-` | Salt wireframe |
+| `deployment-` | deployment |
+
+Subject is what the diagram is about (`signup`, `account`, `nav`); the single project-wide
+instance uses `-product`, `-system`, or `-jairojobs` (e.g. `usecase-product`, `erd-jairojobs`).
+
 **Which diagram, when** (keep this lean — a diagram must earn its place):
 
 1. **State diagrams are mandatory** for any entity with a lifecycle (Listing, Application).

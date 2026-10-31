@@ -1,4 +1,4 @@
-@startuml magic-link-signup
+@startuml sequence-magic-link-signup
 ' Spec 001 — sign up and first login via magic link (REQ-001-2, REQ-001-3).
 ' Parties: Browser, JairojobsWeb (LiveView), Jairojobs.Accounts, Mailer, user's inbox.
 

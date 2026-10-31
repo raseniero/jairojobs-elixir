@@ -1,4 +1,4 @@
-@startuml c4-container
+@startuml c4-container-system
 ' C4 Level 2 — Containers. The deployable pieces and how they talk.
 ' Source of truth: docs/architecture/overview.md, ADR-0002, ADR-0003
 !include <C4/C4_Container>

@@ -1,4 +1,4 @@
-@startsalt nav-wireframe
+@startsalt wireframe-nav
 ' Spec 001 — role-aware navigation at phone width (REQ-001-12).
 ' Four variants of the same header; the drawer opens from the ☰ button.
 ' Wireframe only — not a visual design.

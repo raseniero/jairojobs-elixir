@@ -1,4 +1,4 @@
-@startuml use-cases
+@startuml usecase-product
 ' Product-level use case diagram — who can do what.
 ' Source of truth: docs/specs/000-product-overview/spec.md (personas + access matrix + feature map)
 ' Render: scripts/render-diagrams.sh
