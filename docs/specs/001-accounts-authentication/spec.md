@@ -380,6 +380,12 @@ Scenario: Unknown email
   Then it fails with a clear message
   And nothing changes
 
+Scenario: Unconfirmed user cannot be promoted
+  Given a registered user whose email is not yet confirmed
+  When the operator runs the promote command with that email
+  Then it fails with a clear message
+  And nothing changes
+
 Scenario: Cannot demote the only admin
   Given the target is the only admin
   When the operator runs demote
@@ -507,3 +513,4 @@ Scenario: Admin navigation
 | 2026-10-30 | Added account lifecycle state diagram and nav wireframe; magic-link and change-email sequences drafted for plan.md |
 | 2026-10-30 | Approved |
 | 2026-10-30 | Added five activity diagrams covering all requirements (rule 5 change) |
+| 2026-10-30 | REQ-001-10: added scenario "Unconfirmed user cannot be promoted" (was only in the activity diagram) |
