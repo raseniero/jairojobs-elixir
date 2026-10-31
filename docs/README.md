@@ -83,10 +83,12 @@ Text sources only; never commit binary-only diagrams.
 | Use | Tool | Location |
 |---|---|---|
 | Simple diagrams (flows, state machines, small ERDs) | **Mermaid**, inline in the `.md` | wherever it's discussed |
-| Richer diagrams (C4, detailed ERD, sequence with notes, deployment) | **PlantUML** `.puml` | `architecture/diagrams/src/` |
+| Richer diagrams (C4, detailed ERD, sequence with notes, deployment) | **PlantUML** `.puml` | architecture-level: `architecture/diagrams/src/`; spec-level: `specs/NNN-name/diagrams/` |
 
-PlantUML sources are rendered to **SVG** in `architecture/diagrams/out/` via
-`scripts/render-diagrams.sh` and embedded with `![title](diagrams/out/name.svg)`.
+PlantUML sources are rendered to **SVG** by `scripts/render-diagrams.sh`:
+architecture diagrams go to `architecture/diagrams/out/`; spec diagrams render in place next
+to their `.puml`. Embed with `![title](diagrams/name.svg)` (spec) or
+`![title](diagrams/out/name.svg)` (architecture).
 Regenerate and commit the SVG in the same commit as the `.puml` change.
 SVG (not PNG): vector, small, diffable, text stays searchable. Avoid `skinparam` options
 that embed fonts — GitHub strips them.

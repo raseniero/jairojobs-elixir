@@ -1,0 +1,30 @@
+@startuml c4-context
+' C4 Level 1 — System Context. Who uses jairojobs and what it talks to.
+' Source of truth: docs/specs/000-product-overview/spec.md
+!include <C4/C4_Context>
+
+LAYOUT_WITH_LEGEND()
+
+title jairojobs — System Context
+
+Person(visitor, "Visitor", "Browses and searches listings without an account. Mobile-first.")
+Person(candidate, "Candidate", "Job seeker in the Philippines. Owns a profile + CV, applies to listings.")
+Person(employer, "Employer", "Local business hiring in a PH region. Posts listings, receives applications.")
+Person(admin, "Admin", "Approves listings, manages regions. Operator-appointed.")
+
+System(jairojobs, "jairojobs", "National job board for the Philippines, organized by region. Phoenix / LiveView web app.")
+
+System_Ext(email, "Email provider", "Delivers magic links, confirmations, and application emails. (Provider chosen at deploy.)")
+System_Ext(inbox, "User inbox", "Where magic links and application emails arrive.")
+
+Rel(visitor, jairojobs, "Browses, searches, signs up", "HTTPS")
+Rel(candidate, jairojobs, "Logs in, manages profile, applies", "HTTPS")
+Rel(employer, jairojobs, "Logs in, posts listings", "HTTPS")
+Rel(admin, jairojobs, "Moderates listings, manages regions", "HTTPS")
+
+Rel(jairojobs, email, "Sends email via", "SMTP / API")
+Rel(email, inbox, "Delivers to")
+Rel(inbox, jairojobs, "Magic-link click", "HTTPS")
+Rel(employer, inbox, "Reads applications (phase 1)")
+
+@enduml

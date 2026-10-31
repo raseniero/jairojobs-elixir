@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-10-29 (contexts planned from spec 000; none implemented yet)
+**Last updated:** 2026-10-30 (C4 context + container views added; contexts planned, none implemented)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -20,6 +20,18 @@ flowchart LR
     Repo --> PG[(PostgreSQL)]
     Contexts --> Mailer[Jairojobs.Mailer / Swoosh]
 ```
+
+## C4 views
+
+**Level 1 — System context**
+
+![System context](diagrams/out/c4-context.svg)
+
+**Level 2 — Containers** (planned deployment; CV storage and email provider still TBD)
+
+![Containers](diagrams/out/c4-container.svg)
+
+*Sources: `diagrams/src/c4-context.puml`, `diagrams/src/c4-container.puml`.*
 
 ## Layers
 

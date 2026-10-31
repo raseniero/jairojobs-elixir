@@ -1,0 +1,44 @@
+@startuml account-states
+' Spec 001 — account lifecycle. Two independent aspects of a user:
+'   (1) confirmation state   (2) role
+' Must agree with REQ-001-2, REQ-001-3, REQ-001-9, REQ-001-10, REQ-001-11.
+
+hide empty description
+skinparam state {
+  BackgroundColor<<admin>> #E8E8E8
+}
+
+state "User account" as Account {
+  state "Confirmation" as Conf {
+    [*] --> Unconfirmed : sign up (email + role)
+    Unconfirmed : cannot log in by any method
+    Unconfirmed : login attempt re-sends magic link
+    Unconfirmed --> Confirmed : click first magic link\n(all tokens revoked)
+    Confirmed : magic-link login
+    Confirmed : + password login once a password is set
+    Confirmed : email change requires confirming new address
+  }
+  --
+  state "Role (exactly one)" as Role {
+    state Candidate
+    state Employer
+    state Admin <<admin>>
+
+    [*] --> Candidate : chosen at sign-up
+    [*] --> Employer : chosen at sign-up
+
+    Candidate --> Admin : operator promotes
+    Employer --> Admin : operator promotes
+    Admin --> Candidate : operator demotes\n(previous role, or fallback)
+    Admin --> Employer : operator demotes\n(previous role)
+
+    note right of Admin
+      Never reachable from the sign-up form.
+      Demotion refused for the last remaining admin.
+      Users cannot change their own role;
+      changes take effect on next request.
+    end note
+  }
+}
+
+@enduml

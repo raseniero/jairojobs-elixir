@@ -96,6 +96,15 @@ optional convenience added later.
 - I want to promote a trusted user to Admin (and demote them later),
 - so that moderation can be shared as the community grows.
 
+## Account lifecycle
+
+A user has two independent aspects: a **confirmation state** and exactly one **role**.
+The scenarios in REQ-001-2, -3, -9, -10 and -11 must agree with this diagram.
+
+![Account states](diagrams/account-states.svg)
+
+*Source: `diagrams/account-states.puml`.*
+
 ## Requirements
 
 ### REQ-001-1: Public browsing requires no account
@@ -459,3 +468,4 @@ Scenario: Admin navigation
 | 2026-10-29 | Resolved open questions: role label in Settings; command-only admin management |
 | 2026-10-29 | Numbered user stories (US-001-n), added Serves: links and traceability table |
 | 2026-10-29 | Reformatted stories one clause per line; acceptance criteria as Gherkin scenarios |
+| 2026-10-30 | Added account lifecycle state diagram; sequence diagram drafted for plan.md |

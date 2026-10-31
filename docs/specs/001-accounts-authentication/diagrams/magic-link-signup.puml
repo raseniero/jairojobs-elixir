@@ -1,0 +1,62 @@
+@startuml magic-link-signup
+' Spec 001 — sign up and first login via magic link (REQ-001-2, REQ-001-3).
+' Parties: Browser, JairojobsWeb (LiveView), Jairojobs.Accounts, Mailer, user's inbox.
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor Visitor
+participant "Browser" as B
+participant "JairojobsWeb\n(LiveView)" as W
+participant "Jairojobs.Accounts" as ACC
+database "Postgres" as DB
+participant "Jairojobs.Mailer\n(Swoosh)" as M
+participant "Visitor's inbox" as INBOX
+
+== Sign up ==
+Visitor -> B : open /users/register
+B -> W : mount
+W --> B : form (email, role)
+Visitor -> B : submit email + role
+B -> W : submit
+W -> ACC : register_user(%{email, role})
+ACC -> DB : insert user\n(confirmed_at: nil, role)
+alt new email
+  DB --> ACC : {:ok, user}
+  ACC -> ACC : build login token\n(hashed, expires 15 min)
+  ACC -> DB : insert user_token
+  ACC -> M : deliver_login_instructions(user, url)
+  M -> INBOX : email with magic link
+else email already registered
+  DB --> ACC : unique violation
+  note right of ACC : no email sent, no duplicate
+end
+ACC --> W : {:ok, ...}
+W --> B : neutral message:\n"If your email is in our system,\nyou'll receive instructions"
+
+== Confirm + first login ==
+Visitor -> INBOX : open email
+INBOX -> B : click link /users/log-in/:token
+B -> W : GET with token
+W -> ACC : login_user_by_magic_link(token)
+ACC -> DB : lookup token (hash),\ncheck expiry
+alt valid, unused, user unconfirmed
+  ACC -> DB : set confirmed_at = now
+  ACC -> DB : delete ALL tokens for user
+  note right of ACC : revoking everything on first\nconfirmation blocks pre-stuffing
+  ACC --> W : {:ok, user}
+  W -> W : create session token
+  W --> B : redirect, logged in
+else expired / used / unknown
+  ACC --> W : :error
+  W --> B : "link is invalid or expired"
+end
+
+== Later logins ==
+note over B, INBOX
+  Same flow from /users/log-in without the sign-up step.
+  Once a password is set in Settings, email + password login is also accepted
+  (REQ-001-5). Unconfirmed users are always refused (REQ-001-3).
+end note
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml c4-container
+' C4 Level 2 — Containers. The deployable pieces and how they talk.
+' Source of truth: docs/architecture/overview.md, ADR-0002, ADR-0003
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+
+title jairojobs — Containers (planned deployment on Fly.io, region sin)
+
+Person(user, "Visitor / Candidate / Employer / Admin", "Mobile-first browser user")
+
+System_Boundary(fly, "Fly.io (Singapore)") {
+  Container(app, "Phoenix application", "Elixir 1.20 / Phoenix 1.8 release in Docker", "Serves HTML + LiveView over HTTPS/WebSocket. Contexts: Accounts, Regions, Listings, Profiles, Applications.")
+  ContainerDb(db, "PostgreSQL 17", "Fly Postgres", "All application data. UUID v7 keys (ADR-0004).")
+  Container(files, "CV storage", "TBD — spec 006", "Uploaded CV files (local volume or object storage).")
+}
+
+System_Ext(email, "Email provider", "Transactional email (provider TBD at deploy)")
+
+Rel(user, app, "Uses", "HTTPS, WebSocket (LiveView)")
+Rel(app, db, "Reads / writes", "Ecto / Postgrex")
+Rel(app, files, "Stores / serves CVs")
+Rel(app, email, "Sends email", "Swoosh adapter")
+Rel(email, user, "Delivers magic links and application emails")
+
+@enduml
