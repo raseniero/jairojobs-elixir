@@ -91,6 +91,24 @@ Regenerate and commit the SVG in the same commit as the `.puml` change.
 SVG (not PNG): vector, small, diffable, text stays searchable. Avoid `skinparam` options
 that embed fonts — GitHub strips them.
 
+**Which diagram, when** (keep this lean — a diagram must earn its place):
+
+1. **State diagrams are mandatory** for any entity with a lifecycle (Listing, Application).
+   They live in the owning `spec.md`; the Gherkin scenarios must agree with the diagram.
+2. **Sequence diagrams only for flows touching ≥ 3 parties** (e.g. anything involving email or
+   an external service). Live in `plan.md`. Simple LiveView → context → DB flows need none.
+3. **Architecture-level diagrams** — use case, C4 / component, deployment, ER — live in
+   `architecture/diagrams/` and are updated as part of a spec's Definition of Done when they
+   change.
+4. **Prefer ER (`entity`) over Class** for persisted data; Class only for in-memory structures
+   (e.g. `Scope`).
+5. **Activity and Object diagrams are opt-in**, used only when prose or Gherkin becomes hard to
+   follow (e.g. a branching approval workflow).
+6. **Wireframes (Salt) are optional in `spec.md`** for a new screen; sketch the 375 px layout
+   before building when it isn't obvious. Not a substitute for the real UI.
+
+Not used: timing, composite structure, Gantt, mind map / WBS, JSON/YAML renders.
+
 ### ADRs
 Short. Status / Context / Decision / Consequences. Once `Accepted`, do not edit —
 write a new ADR that supersedes it.
