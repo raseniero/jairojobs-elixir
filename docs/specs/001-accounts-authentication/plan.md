@@ -234,6 +234,21 @@ Emails asserted with `Swoosh.TestAssertions` where a scenario sends mail (consti
 | Forgotten `previous_role` on promote of an already-admin user | `promote_to_admin/2` is a no-op `{:ok, user}` when already admin |
 | Role-aware nav tested only via components | Add one LiveView smoke test per role that renders the home page and checks drawer links by DOM id |
 
+## Decisions confirmed (2026-10-30)
+
+| # | Decision | Choice | Hard to change later? |
+|---|---|---|---|
+| 1 | Password hashing | bcrypt (generator default) | medium — rehash on next login if switched |
+| 2 | Role storage | string + CHECK constraint; `Ecto.Enum` in code | yes — first migration |
+| 3 | Previous role on demote | `previous_role` column on `users` | yes — first migration |
+| 4 | Production admin command | `bin/jairojobs eval 'Jairojobs.Release.promote_admin(…)'` | no |
+| 5 | Timestamp precision | `utc_datetime_usec` everywhere | yes — first migration |
+| 6 | Sudo mode in Settings | keep generator default | no |
+| 7 | `require_admin` hook | add now, first used in spec 004 | no |
+| 8 | Shared `Jairojobs.Schema` macro | yes | low |
+| 9 | CI before first code commit | yes | no |
+| 10 | Generated tests renamed to `REQ-001-n: <scenario>` | yes | no |
+
 ## Alternatives considered
 
 - **Hand-rolled auth** — rejected; the generator is the reference implementation and covers
