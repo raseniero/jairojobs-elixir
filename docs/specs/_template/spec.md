@@ -37,6 +37,16 @@
 - I want <goal>,
 - so that <benefit>.
 
+## Screen flow
+
+<!-- Required if the spec has user-facing screens. Every user story must have a row. -->
+
+![Screen flow](diagrams/screenflow-<subject>.svg)
+
+| Story | Path through the screen flow |
+|---|---|
+| US-NNN-1 | <screen> → <screen> → … |
+
 ## Flows (activity diagrams)
 
 <!-- Every REQ must appear in exactly one row. 3–6 flows per spec. Sources in ./diagrams/ -->

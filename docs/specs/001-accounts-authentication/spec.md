@@ -106,6 +106,27 @@ The scenarios in REQ-001-2, -3, -9, -10 and -11 must agree with this diagram.
 
 *Source: `diagrams/state-account.puml`.*
 
+## Screen flow
+
+Every screen in this spec with its key elements; arrows are user actions. Each user story is
+a path through it.
+
+![Screen flow](diagrams/screenflow-auth.svg)
+
+| Story | Path through the screen flow |
+|---|---|
+| US-001-1 browse without account | start → Home ⇄ Listing detail |
+| US-001-2 sign up with email + role | Home/Drawer → Sign up → Check your email → Email → Link landing → Home (logged in) |
+| US-001-3 log in by magic link | Log in → Check your email → Email → Link landing → Home |
+| US-001-4 set an optional password | Drawer → Settings → set password; later Log in (password) → Home |
+| US-001-5 change email / password | Drawer → Settings → Email: confirm new address → Settings; Settings → change password |
+| US-001-6 log out | Drawer → Log out → Home (logged out) |
+| US-001-7 role-aware menu | Drawer (four variants); detail in `wireframe-nav` |
+| US-001-8 create first admin | Operator terminal → (user's) Settings shows Admin on next request |
+| US-001-9 promote / demote | Operator terminal → Settings / Drawer reflect new role |
+
+*Source: `diagrams/screenflow-auth.puml`.*
+
 ## Flows (activity diagrams)
 
 Every requirement is covered by one of these five flows. Each diagram must agree with the
@@ -515,3 +536,4 @@ Scenario: Admin navigation
 | 2026-10-30 | Approved |
 | 2026-10-30 | Added five activity diagrams covering all requirements (rule 5 change) |
 | 2026-10-30 | REQ-001-10: added scenario "Unconfirmed user cannot be promoted" (was only in the activity diagram) |
+| 2026-10-31 | Added screen-flow diagram with story → path table |

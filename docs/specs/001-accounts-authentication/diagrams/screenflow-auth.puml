@@ -1,0 +1,111 @@
+@startuml screenflow-auth
+' Spec 001 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
+' Every user story US-001-1..9 is a path through this diagram (see table in spec.md).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #f8fafc
+  BackgroundColor<<email>> #fffbeb
+  BackgroundColor<<terminal>> #f1f5f9
+  BorderColor #94a3b8
+  FontSize 12
+}
+skinparam arrowFontSize 11
+
+title Spec 001 — screen flow (375 px)
+
+state "Public pages" as Public <<public>> {
+  state "Home / Browse jobs" as Home
+  Home : ☰  jairojobs  [Log in]
+  Home : region chips
+  Home : listing rows (salary · date · ✓)
+  state "Listing detail" as Detail
+  Detail : facts box, sections
+  Detail : [Apply for this job]
+  Detail : "You'll need an account —\nwe'll email you a sign-in link"
+  Home --> Detail : tap a listing
+  Detail --> Home : back
+}
+
+state "Drawer (☰)" as Drawer
+Drawer : Visitor: Browse · Sign up · Log in
+Drawer : Candidate: Browse · My applications · My profile · Settings · Log out
+Drawer : Employer: Browse · My listings · Post a job · Settings · Log out
+Drawer : Admin: Browse · Admin · Settings · Log out
+
+state "Sign up" as Signup
+Signup : Email ______________
+Signup : (•) I'm looking for work
+Signup : ( ) I'm hiring
+Signup : [ Send me a sign-in link ]
+Signup : "Already have an account? Log in"
+
+state "Check your email" as CheckEmail
+CheckEmail : "If your email is in our system,\nyou'll receive a sign-in link."
+CheckEmail : "It expires in 15 minutes."
+
+state "Email: your sign-in link" as Email <<email>>
+Email : From: jairojobs <hello@jairojobs.com>
+Email : [ Sign in to jairojobs ]
+Email : expires in 15 min
+
+state "Link landing" as Landing
+Landing : valid → confirm (first time) + log in
+Landing : invalid/expired → error + link to Log in
+
+state "Log in" as Login
+Login : Email ______________
+Login : [ Email me a sign-in link ]
+Login : — or —
+Login : Password ___________
+Login : [ Log in with password ]
+Login : "New here? Sign up"
+
+state "Settings" as Settings
+Settings : Account type: Candidate (read-only)
+Settings : Email: you@…  [Change]
+Settings : Password: set / not set  [Set / Change]
+Settings : (sudo: re-auth if session is old)
+
+state "Email: confirm new address" as EmailChange <<email>>
+EmailChange : [ Confirm new email ]
+EmailChange : expires in 1 day
+
+state "Operator terminal" as Terminal <<terminal>>
+Terminal : mix jairojobs.admin promote EMAIL
+Terminal : mix jairojobs.admin demote EMAIL
+Terminal : (prod: bin/jairojobs eval …)
+
+[*] --> Home : open site\n(no account needed)
+Home --> Drawer : ☰
+Drawer --> Home : Browse jobs
+Drawer --> Signup : Sign up
+Drawer --> Login : Log in
+Home --> Login : [Log in]
+Detail --> Login : [Apply] while\nlogged out
+Signup --> CheckEmail : submit
+Signup --> Login : "Log in" link
+Login --> CheckEmail : request link
+Login --> Home : password OK\n(logged in)
+Login --> Login : wrong password\n(generic error)
+CheckEmail --> Email : open inbox
+Email --> Landing : tap link
+Landing --> Home : valid\n(logged in)
+Landing --> Login : invalid /\nexpired
+Drawer --> Settings : Settings\n(logged in)
+Settings --> EmailChange : change email →\nlink sent to NEW address
+EmailChange --> Settings : tap link →\nemail updated
+Settings --> Settings : set / change password
+Drawer --> Home : Log out\n(session cleared)
+Terminal --> Settings : role changes;\nuser sees new role\non next request
+Terminal -[hidden]-> Drawer
+
+legend right
+  |= Shade |= Meaning |
+  | light grey | public, no account |
+  | amber | email, outside the app |
+  | slate | operator only, not a screen |
+endlegend
+
+@enduml

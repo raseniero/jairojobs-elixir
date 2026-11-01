@@ -105,7 +105,8 @@ that embed fonts — GitHub strips them.
 | `state-` | state machine |
 | `sequence-` | sequence |
 | `activity-` | activity |
-| `wireframe-` | Salt wireframe |
+| `wireframe-` | Salt wireframe (single screen layout) |
+| `screenflow-` | screen flow: screens as states, user actions as arrows |
 | `deployment-` | deployment |
 
 Subject is what the diagram is about (`signup`, `account`, `nav`); the single project-wide
@@ -129,6 +130,11 @@ instance uses `-product`, `-system`, or `-jairojobs` (e.g. `usecase-product`, `e
    step text instead; they tangle once a flow branches. Object diagrams remain opt-in.
 6. **Wireframes (Salt) are optional in `spec.md`** for a new screen; sketch the 375 px layout
    before building when it isn't obvious. Not a substitute for the real UI.
+7. **Every spec with user-facing screens has one screen-flow diagram** (`screenflow-<subject>`):
+   a state diagram where each state is a screen listing its key elements and each arrow is a
+   user action. It sits in `spec.md` with a table mapping every user story to its path. Shade
+   public screens, emails, and operator/terminal steps differently. Keep per-screen layout
+   detail in Salt wireframes, not in the flow.
 
 Not used: timing, composite structure, Gantt, mind map / WBS, JSON/YAML renders.
 
