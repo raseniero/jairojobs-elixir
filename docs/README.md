@@ -112,6 +112,19 @@ that embed fonts — GitHub strips them.
 Subject is what the diagram is about (`signup`, `account`, `nav`); the single project-wide
 instance uses `-product`, `-system`, or `-jairojobs` (e.g. `usecase-product`, `erd-jairojobs`).
 
+**What each diagram visualizes.** The spec text is the source of truth; diagrams make a
+specific part of it visible and must agree with it.
+
+| Spec content | Visualized by | Required? |
+|---|---|---|
+| User stories (`US-NNN-n`) | **Screen flow** — one per spec, every story is a path | yes, if the spec has screens |
+| Requirements + Gherkin scenarios (`REQ-NNN-n`) | **Activity diagrams** — every REQ covered, grouped 3–6 per spec | yes |
+| Entity lifecycle (status fields) | **State diagram** | yes, if an entity has a lifecycle |
+| Flows touching ≥ 3 parties (email, external services) | **Sequence diagram** in `plan.md` | yes, when it applies |
+| Individual screen layout at 375 px | **Salt wireframe** | optional |
+| Personas → capabilities (product level) | **Use case** (spec 000) | once |
+| System boundaries, containers, data model | **C4, ERD** in `architecture/` | kept current via DoD |
+
 **Which diagram, when** (keep this lean — a diagram must earn its place):
 
 1. **State diagrams are mandatory** for any entity with a lifecycle (Listing, Application).

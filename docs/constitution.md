@@ -102,6 +102,9 @@ Change it deliberately, via an ADR.
 - User stories in the form: _As a \<persona\>, I want \<goal\>, so that \<benefit\>._
 - Every user story has an ID (`US-NNN-n`); every requirement has an ID (`REQ-NNN-n`), a
   `Serves:` line, and Gherkin acceptance scenarios (see `docs/README.md` → Writing style).
+- Diagrams visualize the spec, never replace it: a screen flow for the user stories, activity
+  diagrams for the requirements/Gherkin, a state diagram for any lifecycle (see
+  `docs/README.md` → Diagrams). Spec text and diagrams must agree.
 - "Out of scope" and "Open questions" sections are mandatory, even if empty.
 - A spec must be `Approved` before a plan is written.
 
