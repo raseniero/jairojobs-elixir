@@ -16,7 +16,7 @@ Change it deliberately, via an ADR.
 | Database | PostgreSQL 17 via Ecto; UUID v7 primary keys | (ADR-0002, ADR-0004) |
 | Deployment | Fly.io, region Singapore (`sin`) | (ADR-0003) |
 | Background jobs | None yet | Evaluate Oban via ADR when a spec needs it |
-| Email | Swoosh | Local dev mailbox at `/dev/mailbox` |
+| Email | Swoosh; Resend in production, sender `hello@jairojobs.com` | Local dev mailbox at `/dev/mailbox` (ADR-0005) |
 
 ## 2. Principles
 

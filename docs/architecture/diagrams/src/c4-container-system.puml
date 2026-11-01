@@ -15,7 +15,7 @@ System_Boundary(fly, "Fly.io (Singapore)") {
   Container(files, "CV storage", "TBD — spec 006", "Uploaded CV files (local volume or object storage).")
 }
 
-System_Ext(email, "Email provider", "Transactional email (provider TBD at deploy)")
+System_Ext(email, "Resend", "Transactional email from hello@jairojobs.com (ADR-0005)")
 
 Rel(user, app, "Uses", "HTTPS, WebSocket (LiveView)")
 Rel(app, db, "Reads / writes", "Ecto / Postgrex")

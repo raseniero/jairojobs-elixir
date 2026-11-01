@@ -82,7 +82,8 @@ flowchart TD
 - **Authorization:** every context function touching private data takes the current `Scope`
   first (constitution §4.3).
 - **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
-- **Email:** Swoosh; local adapter in dev (`/dev/mailbox`). Production adapter TBD at deploy time.
+- **Email:** Swoosh; local adapter in dev (`/dev/mailbox`); Resend in production from
+  `hello@jairojobs.com` (ADR-0005).
 - **File storage (CVs):** TBD in spec 006 (local disk vs object storage).
 - **Observability:** Phoenix LiveDashboard at `/dev/dashboard` (dev only).
 

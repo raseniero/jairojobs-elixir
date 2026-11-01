@@ -4,7 +4,7 @@
 **Created:** 2026-10-29
 **Approved:** 2026-10-30
 **Owner:** Jairo
-**Related ADRs:** 0004 (UUID v7 keys)
+**Related ADRs:** 0004 (UUID v7 keys), 0005 (transactional email via Resend)
 **Depends on:** 000 (product overview)
 
 ## Problem / Why
@@ -473,7 +473,8 @@ Scenario: Admin navigation
   magic-link request.
 - **Mobile-first:** sign-up and log-in forms are usable one-handed at 375 px; email input uses
   `type="email"` + `autocomplete`; no CAPTCHA in phase 1.
-- **Email delivery:** dev uses the local Swoosh mailbox; production adapter chosen at deploy.
+- **Email delivery:** dev uses the local Swoosh mailbox; production sends via Resend from
+  `hello@jairojobs.com` (ADR-0005). Magic-link emails must state the 15-minute expiry.
 - **Privacy:** no PII in logs (constitution §4.12).
 
 ## Resolved questions

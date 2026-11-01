@@ -161,6 +161,7 @@ Initial, community-scale targets; revise as data comes in.
 | Free tier | Limits apply from day one so a later subscription is meaningful (exact limits in spec 003 / 011) |
 | Fly.io region | Singapore (`sin`) |
 | Primary keys | UUID v7 everywhere + slugs for public listing URLs (ADR-0004) |
+| Domain / email | `jairojobs.com`; transactional email via Resend from `hello@jairojobs.com` (ADR-0005) |
 
 ## Open questions
 

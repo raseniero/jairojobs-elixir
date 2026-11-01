@@ -185,9 +185,20 @@ Documented in the project `README.md`.
 
 ## Background jobs / emails / external services
 
-- Emails: `UserNotifier` via Swoosh — login instructions, update-email instructions. Dev:
-  `Swoosh.Adapters.Local` (`/dev/mailbox`). Test: `Swoosh.Adapters.Test`. Prod adapter: deferred
-  to the Fly.io deployment step (will need an ADR: Resend / Postmark / SES).
+- Emails: `UserNotifier` via Swoosh — login instructions, update-email instructions.
+  - Dev: `Swoosh.Adapters.Local` (`/dev/mailbox`). Test: `Swoosh.Adapters.Test`.
+  - Prod: `Swoosh.Adapters.Resend` (built into Swoosh 1.29, no new dep) — ADR-0005.
+    `config/runtime.exs` (prod block):
+    ```elixir
+    config :jairojobs, Jairojobs.Mailer,
+      adapter: Swoosh.Adapters.Resend,
+      api_key: System.fetch_env!("RESEND_API_KEY")
+    ```
+  - Sender is configurable, not hard-coded: `config :jairojobs, :mailer_from,
+    {"jairojobs", "hello@jairojobs.com"}` read by `UserNotifier` (replaces the generated
+    `contact@example.com`).
+  - Domain verification (DKIM/SPF/DMARC on `jairojobs.com`) and `fly secrets set RESEND_API_KEY`
+    happen in the deployment step, not in this spec.
 - No background jobs.
 
 ## Test strategy
