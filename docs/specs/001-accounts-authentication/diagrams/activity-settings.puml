@@ -5,8 +5,8 @@ title Settings: change email, change password, log out (REQ-001-6/7/8)
 start
 :Open Settings
 (must be logged in);
-if (Session recently
-authenticated?) then (no)
+if (Authenticated within
+last 10 min (sudo)?) then (no)
   :Require re-authentication
   (sudo mode);
   :Re-authenticate;
@@ -24,7 +24,7 @@ case (Change email)
   else (yes)
   endif
   :Create change-email token
-  (carries new email, expires 1 day);
+  (carries new email, expires 7 days);
   :Send confirmation link
   to NEW address;
   :Current email unchanged;

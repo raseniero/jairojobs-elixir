@@ -23,7 +23,7 @@ W -> ACC : change_user_email(scope, new_email)
 ACC -> ACC : validate format
 ACC -> DB : check uniqueness
 alt new email available
-  ACC -> ACC : build "change:<old>" token\n(hashed, carries new email, expires 1 day)
+  ACC -> ACC : build "change:<old>" token\n(hashed, carries new email, expires 7 days)
   ACC -> DB : insert user_token
   ACC -> M : deliver_update_email_instructions(user, new_email, url)
   M -> NEW : email with confirm link

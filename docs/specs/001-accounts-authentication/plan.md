@@ -136,7 +136,7 @@ the inline convenience copy.
 | live | `/users/log-in/:token` | `UserLive.Confirmation` | public | 3, 4 |
 | post | `/users/log-in` | `UserSessionController.create` | public | 3, 4, 5 |
 | delete | `/users/log-out` | `UserSessionController.delete` | any | 8 |
-| live | `/users/settings` | `UserLive.Settings` | `require_authenticated` + sudo mode | 5, 6, 7, 9 |
+| live | `/users/settings` | `UserLive.Settings` | `require_authenticated` + sudo mode (10 min) | 5, 6, 7, 9 |
 | live | `/users/settings/confirm-email/:token` | `UserLive.Settings` | `require_authenticated` | 6 |
 | post | `/users/update-password` | `UserSessionController.update_password` | authenticated | 7 |
 | get | `/` and public listing routes | existing / future | `mount_current_scope` only | 1 |
@@ -176,7 +176,8 @@ Local / dev:
 mix jairojobs.admin promote someone@example.com
 mix jairojobs.admin demote  someone@example.com
 ```
-Production (after `phx.gen.release` lands with the Fly.io deploy):
+Production (after `phx.gen.release` lands with the Fly.io deploy — the `Release` functions are
+created in that step, not in this spec's tasks):
 ```bash
 fly ssh console -C "/app/bin/jairojobs eval 'Jairojobs.Release.promote_admin(\"someone@example.com\")'"
 ```

@@ -66,11 +66,11 @@ state "Settings" as Settings
 Settings : Account type: Candidate (read-only)
 Settings : Email: you@…  [Change]
 Settings : Password: set / not set  [Set / Change]
-Settings : (sudo: re-auth if session is old)
+Settings : (sudo: re-auth if last login > 10 min)
 
 state "Email: confirm new address" as EmailChange <<email>>
 EmailChange : [ Confirm new email ]
-EmailChange : expires in 1 day
+EmailChange : expires in 7 days
 
 state "Operator terminal" as Terminal <<terminal>>
 Terminal : mix jairojobs.admin promote EMAIL

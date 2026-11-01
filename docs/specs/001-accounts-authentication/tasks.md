@@ -82,6 +82,9 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - Tests: `test/mix/tasks/jairojobs.admin_test.exs` — promote, demote, unknown email,
     unconfirmed user, last admin (assert output + `Mix.raise`)
   - Document usage in project `README.md`
+  - `Jairojobs.Release.promote_admin/1` / `demote_admin/1` (production entry points) are
+    **deferred** to the Fly.io deployment task, when `phx.gen.release` creates the module.
+    Until then the mix task is the only entry point.
   - Commit: `feat(accounts): mix jairojobs.admin promote|demote (REQ-001-10)`
 
 - [ ] **T10** — `require_admin` hook/plug (plan decision 7)

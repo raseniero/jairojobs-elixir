@@ -477,7 +477,7 @@ Scenario: Candidate navigation
 Scenario: Employer navigation
   Given I am an Employer
   When I view any page
-  Then I see a link to my listings (placeholder until spec 003)
+  Then I see links to my listings and "Post a job" (placeholders until spec 003)
   And I see Settings
 
 Scenario: Admin navigation
@@ -488,8 +488,9 @@ Scenario: Admin navigation
 
 ## Non-functional requirements
 
-- **Security:** tokens are single-use and expire (magic link ≤ 15 min, email-change ≤ 1 day,
-  session ≤ 60 days with sudo-mode re-auth for sensitive settings, as generated); all tokens
+- **Security:** tokens are single-use and expire — generator defaults accepted: magic link
+  15 min, email-change link 7 days, session 14 days, sudo-mode re-auth after 10 min for
+  sensitive settings changes; all tokens
   revoked on first confirmation (generator default); no account enumeration on sign-up or
   magic-link request.
 - **Mobile-first:** sign-up and log-in forms are usable one-handed at 375 px; email input uses
@@ -537,3 +538,4 @@ Scenario: Admin navigation
 | 2026-10-30 | Added five activity diagrams covering all requirements (rule 5 change) |
 | 2026-10-30 | REQ-001-10: added scenario "Unconfirmed user cannot be promoted" (was only in the activity diagram) |
 | 2026-10-31 | Added screen-flow diagram with story → path table |
+| 2026-10-31 | Consistency pass: token lifetimes aligned to generator defaults (7 d email-change, 14 d session, 10 min sudo); Employer nav includes "Post a job" |
