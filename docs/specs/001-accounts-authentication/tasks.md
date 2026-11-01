@@ -5,6 +5,8 @@
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
 Commit messages reference REQ IDs; test names follow `REQ-001-n: <scenario>`.
+Scenario-first (constitution §3.12): write the tests listed under a task first, see them fail,
+then implement. T4 (generated) and T11 (markup) are the allowed exceptions.
 
 ## Phase A — Prerequisites (no auth code yet)
 

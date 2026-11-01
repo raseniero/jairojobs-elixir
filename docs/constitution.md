@@ -56,6 +56,11 @@ Change it deliberately, via an ADR.
     non-product paths (`docs/**`, `scratchpad/**`, `*.md`, `.github/**` except the workflow
     itself). Use `paths-ignore` in the workflow; keep that list in sync with this rule.
 11. **Coverage** — no numeric threshold; REQ-coverage (rule 2) is the measure that matters.
+12. **Scenario-first (TDD).** For each task, write the ExUnit tests for its Gherkin scenarios
+    *before* the implementation, run them to confirm they fail, then make them pass.
+    Exceptions: generated code (tests arrive with it) and pure markup/layout tasks, where
+    tests may follow in the same commit. Decide DOM ids up front so LiveView tests can be
+    written first.
 
 ## 4. Code conventions
 
