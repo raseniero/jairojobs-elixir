@@ -2,7 +2,7 @@ This is a web application written using the Phoenix web framework.
 
 ## Project guidelines
 
-- **Read `docs/README.md` and `docs/constitution.md` before implementing anything.** Feature work is spec-driven: `docs/specs/NNN-name/` holds `spec.md` (what/why) → `plan.md` (how) → `tasks.md` (steps). Do not write code for a feature without an `Approved` spec and a plan. Reference requirement IDs (`REQ-NNN-n`) in test names and commit messages. Architecture decisions go in `docs/decisions/` as ADRs.
+- **Read `docs/README.md`, `docs/constitution.md`, and `docs/design.md` before implementing anything.** Feature work is spec-driven: `docs/specs/NNN-name/` holds `spec.md` (what/why) → `plan.md` (how) → `tasks.md` (steps). Do not write code for a feature without an `Approved` spec and a plan. Reference requirement IDs (`REQ-NNN-n`) in test names and commit messages. Architecture decisions go in `docs/decisions/` as ADRs.
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
 
@@ -31,7 +31,7 @@ custom classes must fully style the input
 
 - **Always use and maintain this import syntax** in the app.css file for projects generated with `phx.new`
 - **Never** use `@apply` when writing raw css
-- **Always** manually write your own tailwind-based components instead of using daisyUI for a unique, world-class design
+- **Follow `docs/design.md`** (tokens, daisyUI `jairojobs` theme, patterns, do/don't). Use the stock `core_components.ex` and daisyUI classes from that theme (ADR-0001); do not introduce other component libraries or hand-roll replacements for components that already exist
 - Out of the box **only the app.js and app.css bundles are supported**
   - You cannot reference an external vendor'd script `src` or link `href` in the layouts
   - You must import the vendor deps into app.js and app.css to use them

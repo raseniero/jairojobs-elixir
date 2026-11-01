@@ -6,7 +6,7 @@
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
 Commit messages reference REQ IDs; test names follow `REQ-001-n: <scenario>`.
 Scenario-first (constitution §3.12): write the tests listed under a task first, see them fail,
-then implement. T4 (generated) and T11 (markup) are the allowed exceptions.
+then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions.
 
 ## Phase A — Prerequisites (no auth code yet)
 
@@ -91,7 +91,17 @@ then implement. T4 (generated) and T11 (markup) are the allowed exceptions.
     visitor redirected
   - Commit: `feat(web): require_admin auth hook (prep for spec 004)`
 
-## Phase D — Navigation
+## Phase D — Design foundation and navigation
+
+- [ ] **T10b** — Apply the design guide theme (`docs/design.md` §3)
+  - `assets/css/app.css`: replace generated `light` + `dark` theme blocks with the single
+    `jairojobs` theme; remove the theme toggle from `layouts.ex` / `root.html.heex`
+  - `core_components.ex`: adjust button/input defaults only where they conflict with the
+    tokens (radius, sizes); keep the component API unchanged
+  - Wordmark component per design.md §4
+  - No tests beyond compile + existing suite (markup task); check at 375 px in the browser
+  - Commit: `feat(ui): jairojobs daisyUI theme and wordmark (design.md)`
+
 
 - [ ] **T11** — Role-aware navigation (REQ-001-12, REQ-001-1)
   - `Layouts`: header + drawer per `wireframe-nav`; items per role; placeholders for 003/006/007

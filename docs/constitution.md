@@ -12,7 +12,7 @@ Change it deliberately, via an ADR.
 |---|---|---|
 | Language / runtime | Elixir 1.20 / OTP 29 | |
 | Web | Phoenix 1.8, LiveView | Server-rendered first; LiveView for interactivity |
-| UI | Stock `CoreComponents` + Tailwind v4 + daisyUI | No third-party component library (ADR-0001) |
+| UI | Stock `CoreComponents` + Tailwind v4 + daisyUI `jairojobs` theme | No third-party component library (ADR-0001); look & feel per `docs/design.md` |
 | Database | PostgreSQL 17 via Ecto; UUID v7 primary keys | (ADR-0002, ADR-0004) |
 | Deployment | Fly.io, region Singapore (`sin`) | (ADR-0003) |
 | Background jobs | None yet | Evaluate Oban via ADR when a spec needs it |

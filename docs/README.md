@@ -8,6 +8,7 @@ Code lives in `lib/`; intent lives here.
 | Path | Purpose |
 |---|---|
 | `constitution.md` | Non-negotiable project principles: stack, testing, conventions, how specs are written |
+| `design.md` | Design guide: principles, tokens, daisyUI theme, UI patterns, do/don't. Reference render in `design/` |
 | `specs/NNN-name/` | One folder per feature: `spec.md` (what/why) → `plan.md` (how) → `tasks.md` (steps) |
 | `specs/_template/` | Copy this to start a new feature |
 | `specs/000-product-overview/` | Root spec: vision, personas, glossary, feature map |

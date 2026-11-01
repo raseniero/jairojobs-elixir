@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>jairojobs — mock</title>
+<style>
+  :root{
+    --bg:#ffffff;--bg2:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+    --primary:#1d4ed8;--accent:#d97706;--ok:#059669;--r:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--text);background:#e5e7eb;font-size:16px;line-height:1.45}
+  .phones{display:flex;gap:32px;padding:32px;justify-content:center}
+  .phone{width:375px;background:var(--bg);border:1px solid #cbd5e1;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+  .cap{font-size:12px;color:#475569;text-align:center;margin-top:8px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
+  .brand{font-weight:700;font-size:18px;color:var(--text);letter-spacing:-.01em}
+  .brand span{color:var(--primary)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:var(--r);font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent}
+  .btn-ghost{color:var(--primary);border-color:var(--border);background:var(--bg);min-height:36px;font-size:14px}
+  .btn-accent{background:var(--accent);color:#fff;width:100%}
+  .btn-primary{background:var(--primary);color:#fff}
+  .burger{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--r);color:var(--text)}
+  .filters{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto}
+  .chip{white-space:nowrap;font-size:14px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text)}
+  .chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .count{padding:10px 16px;font-size:13px;color:var(--muted)}
+  .row{display:block;padding:12px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit}
+  .row h3{font-size:17px;font-weight:600;line-height:1.3;color:var(--primary)}
+  .row .co{font-size:15px;margin-top:2px}
+  .row .meta{font-size:14px;color:var(--muted);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+  .sal{color:var(--text);font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--ok);background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;padding:2px 8px}
+  .tag{font-size:12px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+  /* detail */
+  .detail{padding:16px}
+  .detail h1{font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.01em}
+  .detail .co{font-size:16px;margin-top:4px}
+  .facts{margin-top:14px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;font-size:14px}
+  .facts dt{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .facts dd{font-weight:600;margin-top:2px}
+  .detail h2{font-size:15px;font-weight:700;margin:18px 0 6px;color:var(--text)}
+  .detail p,.detail li{font-size:15px;color:#1e293b}
+  .detail ul{padding-left:18px}
+  .cta{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:12px 16px}
+  .cta small{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+  .trust{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
+  footer{padding:14px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:var(--bg2)}
+</style></head><body>
+<div class="phones">
+
+<div>
+<div class="phone">
+  <header>
+    <div class="burger">☰</div>
+    <div class="brand">jairo<span>jobs</span></div>
+    <a class="btn btn-ghost" href="#">Log in</a>
+  </header>
+  <div class="filters">
+    <span class="chip on">Davao City</span><span class="chip">Cebu</span><span class="chip">Metro Manila</span><span class="chip">All regions</span>
+  </div>
+  <div class="count">142 jobs in Davao City · newest first</div>
+
+  <a class="row" href="#">
+    <h3>Barista (full-time)</h3>
+    <div class="co">Kape Isla · Matina</div>
+    <div class="meta"><span class="sal">₱14,000–16,000/mo</span><span>2 h ago</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <a class="row" href="#">
+    <h3>Customer Service Representative — Night shift</h3>
+    <div class="co">Sutherland Global · Lanang</div>
+    <div class="meta"><span class="sal">₱18,000–22,000/mo</span><span>5 h ago</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <a class="row" href="#">
+    <h3>Delivery Rider (own motorcycle)</h3>
+    <div class="co">Juan's Lechon · Toril</div>
+    <div class="meta"><span class="sal">₱13,500–15,000/mo</span><span>Yesterday</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <a class="row" href="#">
+    <h3>Junior Elixir Developer (remote, PH)</h3>
+    <div class="co">Tala Software · Remote</div>
+    <div class="meta"><span class="sal">₱45,000–60,000/mo</span><span>Yesterday</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <a class="row" href="#">
+    <h3>Bookkeeper, part-time</h3>
+    <div class="co">Dela Cruz Hardware · Bajada</div>
+    <div class="meta"><span class="sal">₱8,000–10,000/mo</span><span>2 d ago</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <a class="row" href="#">
+    <h3>Registered Nurse — Clinic</h3>
+    <div class="co">Buhangin Family Clinic · Buhangin</div>
+    <div class="meta"><span class="sal">₱25,000–30,000/mo</span><span>3 d ago</span><span class="badge">✓ Approved</span></div>
+  </a>
+  <footer>Every listing shows salary and is checked by jairojobs before it goes live.</footer>
+</div>
+<div class="cap">Listing index — Visitor, 375 px</div>
+</div>
+
+<div>
+<div class="phone">
+  <header>
+    <div class="burger">☰</div>
+    <div class="brand">jairo<span>jobs</span></div>
+    <a class="btn btn-ghost" href="#">Log in</a>
+  </header>
+  <div class="detail">
+    <h1>Barista (full-time)</h1>
+    <div class="co">Kape Isla</div>
+    <div class="trust"><span class="badge">✓ Approved</span><span>Posted 2 h ago · Davao City</span></div>
+    <dl class="facts">
+      <div><dt>Salary</dt><dd>₱14,000–16,000 / month</dd></div>
+      <div><dt>Location</dt><dd>Matina, Davao City</dd></div>
+      <div><dt>Type</dt><dd>Full-time</dd></div>
+      <div><dt>Schedule</dt><dd>Shifting, 6 days</dd></div>
+    </dl>
+    <h2>About the job</h2>
+    <p>We're a neighbourhood café in Matina looking for a barista who enjoys talking to regulars. Training provided; experience with espresso machines is a plus.</p>
+    <h2>Requirements</h2>
+    <ul><li>At least 18 years old</li><li>Willing to work weekends</li><li>Lives in or near Matina</li></ul>
+    <h2>Benefits</h2>
+    <ul><li>Free meals on shift</li><li>SSS, PhilHealth, Pag-IBIG</li></ul>
+    <h2>About Kape Isla</h2>
+    <p>Family-run café since 2019. 12 staff. Member since Oct 2026.</p>
+  </div>
+  <div class="cta">
+    <a class="btn btn-accent" href="#">Apply for this job</a>
+    <small>You'll need an account — we'll email you a sign-in link.</small>
+  </div>
+</div>
+<div class="cap">Listing detail — Visitor, 375 px</div>
+</div>
+
+</div>
+</body></html>
