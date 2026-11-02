@@ -10,7 +10,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 ## Phase A — Prerequisites (no auth code yet)
 
-- [ ] **T1** — CI workflow (constitution §3.9–10)
+- [x] **T1** — CI workflow (constitution §3.9–10) — done 2026-11-02, run 41370888866 green
   - `.github/workflows/ci.yml`: Elixir 1.20 / OTP 29, Postgres 17 service, deps cache,
     `mix precommit`; `paths-ignore: [docs/**, scratchpad/**, "**/*.md"]`
   - Commit: `ci: run mix precommit on push and PR`
@@ -128,4 +128,5 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 <!-- Record anything that changed during implementation and why. -->
 
-- 
+- T1: first run failed — `mix deps.get --only test` omitted dev-only deps, so `deps.unlock --unused`
+  pruned `mix.lock` and the no-diff check failed. Fixed by fetching all deps.
