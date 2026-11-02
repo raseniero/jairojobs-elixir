@@ -43,6 +43,10 @@ config :phoenix_live_view,
 # at the `config/runtime.exs`.
 config :jairojobs, Jairojobs.Mailer, adapter: Swoosh.Adapters.Local
 
+# ADR-0005: all transactional email is sent from this address. Read via
+# `Application.fetch_env!(:jairojobs, :mailer_from)` in notifiers; never hard-code a sender.
+config :jairojobs, :mailer_from, {"jairojobs", "hello@jairojobs.com"}
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

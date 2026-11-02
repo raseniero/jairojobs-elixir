@@ -25,7 +25,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     a version-7 UUID (check the version nibble)
   - Commit: `feat: UUID v7 schema foundation (ADR-0004)`
 
-- [ ] **T3** — Configurable mailer sender (ADR-0005)
+- [x] **T3** — Configurable mailer sender (ADR-0005) — done 2026-11-02
   - `config/config.exs`: `config :jairojobs, :mailer_from, {"jairojobs", "hello@jairojobs.com"}`
   - `config/runtime.exs` prod block: `Swoosh.Adapters.Resend` + `RESEND_API_KEY`
   - Commit: `feat: configurable mailer sender; Resend adapter in prod (ADR-0005)`

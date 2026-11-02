@@ -117,21 +117,19 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
+  # ## Mailer (ADR-0005)
   #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
+  # Production sends via Resend (adapter built into Swoosh). The API client is set at
+  # compile time in config/prod.exs (`Swoosh.ApiClient.Req`). Set the key with:
   #
-  #     config :jairojobs, Jairojobs.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
+  #     fly secrets set RESEND_API_KEY=re_...
   #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
+  config :jairojobs, Jairojobs.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key:
+      System.get_env("RESEND_API_KEY") ||
+        raise("""
+        environment variable RESEND_API_KEY is missing.
+        Create a sending-only key for jairojobs.com at https://resend.com/api-keys
+        """)
 end
