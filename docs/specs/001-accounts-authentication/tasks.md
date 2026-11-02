@@ -16,7 +16,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - Commit: `ci: run mix precommit on push and PR`
   - Verify: push a branch, see green check
 
-- [ ] **T2** — UUID v7 + usec timestamps foundation (ADR-0004; plan decisions 5, 8)
+- [x] **T2** — UUID v7 + usec timestamps foundation (ADR-0004; plan decisions 5, 8) — done 2026-11-02
   - `config/config.exs`: `:generators` → `binary_id: true, timestamp_type: :utc_datetime_usec`;
     `Jairojobs.Repo` → `migration_primary_key`, `migration_foreign_key`, `migration_timestamps`
   - `lib/jairojobs/schema.ex`: `Jairojobs.Schema` macro (`Ecto.UUID` v7 PK, `Ecto.UUID` FK type,

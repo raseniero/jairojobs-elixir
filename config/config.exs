@@ -9,7 +9,14 @@ import Config
 
 config :jairojobs,
   ecto_repos: [Jairojobs.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [binary_id: true, timestamp_type: :utc_datetime_usec]
+
+# ADR-0004: UUID v7 primary keys, binary_id foreign keys, usec timestamps in every migration.
+# Schemas get the matching defaults from `use Jairojobs.Schema`.
+config :jairojobs, Jairojobs.Repo,
+  migration_primary_key: [type: :binary_id],
+  migration_foreign_key: [type: :binary_id],
+  migration_timestamps: [type: :utc_datetime_usec]
 
 # Configure the endpoint
 config :jairojobs, JairojobsWeb.Endpoint,
