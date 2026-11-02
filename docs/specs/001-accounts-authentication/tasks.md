@@ -1,6 +1,6 @@
 # 001 — Accounts & Authentication — Tasks
 
-**Status:** Approved
+**Status:** Approved (2026-10-31)
 **Plan:** [plan.md](./plan.md) (Approved 2026-10-30)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.

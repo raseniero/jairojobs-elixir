@@ -1,6 +1,6 @@
 # 001 — Accounts & Authentication
 
-**Status:** Approved
+**Status:** In Progress
 **Created:** 2026-10-29
 **Approved:** 2026-10-30
 **Owner:** Jairo

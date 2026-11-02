@@ -117,7 +117,7 @@ Phase 1 (001–007) is the minimum launchable product. Each row becomes `docs/sp
 
 | # | Feature | Phase | Status | Spec |
 |---|---|---|---|---|
-| 001 | **Accounts & authentication** — signup/login; role chosen at signup (Candidate / Employer); **admin user creation** via a privileged mechanism (mix task / release command / seed — never public signup); admin can promote/demote users | 1 | Spec approved; planning | [001](../001-accounts-authentication/spec.md) |
+| 001 | **Accounts & authentication** — signup/login; role chosen at signup (Candidate / Employer); **admin user creation** via a privileged mechanism (mix task / release command / seed — never public signup); admin can promote/demote users | 1 | In progress | [001](../001-accounts-authentication/spec.md) |
 | 002 | **Regions** — admin-managed list; seed Davao City, Cebu, Metro Manila | 1 | Not started | |
 | 003 | **Listings — employer posting** — create/edit listing with required salary range (PHP), submit for approval, close | 1 | Not started | |
 | 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit | 1 | Not started | |
