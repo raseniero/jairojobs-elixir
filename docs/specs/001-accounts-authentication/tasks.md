@@ -46,6 +46,25 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     "Expired or used link") as new tests
   - Commit: `test(accounts): align generated tests with REQ-001 scenarios`
 
+- [ ] **T5b** — Neutral sign-up response for existing emails (REQ-001-2 "Existing email is not revealed")
+  - `UserLive.Registration`: when `register_user/1` fails **only** on the email uniqueness
+    constraint, behave exactly like a successful sign-up — redirect to `/users/log-in` with the
+    same "An email was sent to …" flash; do not surface "has already been taken". Other
+    validation errors (format, length, missing role) still render inline
+  - Do **not** email the existing account (no unsolicited login link); no new account is created
+  - Tests (`registration_test.exs`): rewrite `REQ-001-2: existing email does not create a duplicate
+    account` to assert the neutral redirect + flash, no second user, and no email delivered
+    (`refute_email_sent` via `Swoosh.TestAssertions`); keep the context-level uniqueness test
+  - Commit: `feat(accounts): neutral sign-up response for existing emails (REQ-001-2)`
+
+- [ ] **T5c** — Password login requires a confirmed email (REQ-001-5 "Password login requires confirmed email")
+  - `Accounts.get_user_by_email_and_password/2`: return `nil` unless `user.confirmed_at` is set
+    (still run `Bcrypt.no_user_verify/0` path for timing parity)
+  - Tests: context `REQ-001-5: unconfirmed user cannot log in with a password`; controller
+    `REQ-001-5: password login is refused for an unconfirmed email` (generic
+    "Invalid email or password" flash, no session)
+  - Commit: `feat(accounts): password login requires confirmed email (REQ-001-5)`
+
 - [ ] **T6** — Role column and sign-up selection (REQ-001-2, REQ-001-9)
   - Migration `add_role_to_users`: `role :string, null: false` + CHECK constraint,
     `previous_role :string`, `create index(:users, [:role])`
@@ -128,15 +147,14 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 <!-- Record anything that changed during implementation and why. -->
 
-- T5: two spec scenarios differ from generator behaviour and were **not** changed (rename-only task);
-  they need a decision before T12:
+- T5: two spec scenarios differ from generator behaviour and were **not** changed (rename-only task).
+  Decision 2026-11-04: keep the spec, fix the code — added **T5b** (neutral sign-up response,
+  REQ-001-2) and **T5c** (confirmed-email guard on password login, REQ-001-5).
   - REQ-001-2 "Existing email is not revealed" — the generated sign-up form shows
-    "has already been taken" (enumeration). Options: accept as a spec change, or add a task to
-    show the neutral "check your email" message for existing emails.
+    "has already been taken" (enumeration).
   - REQ-001-5 "Password login requires confirmed email" — `get_user_by_email_and_password/2`
-    does not check `confirmed_at`. The state is unreachable through the UI (a password can only
-    be set in Settings, which requires a confirmed login); the generator raises instead if it is
-    ever hit via magic link. Options: accept as-is with that note, or add a guard + test.
+    does not check `confirmed_at`. The state is unreachable through the UI today (a password can
+    only be set in Settings, which requires a confirmed login), but the guard is defence in depth.
   Added tests beyond the generator: `REQ-001-1` public home page, protected-page round trip,
   `REQ-001-3` expired link, `REQ-001-4` used link.
 - T4: the migration already came out with `:utc_datetime_usec` timestamps and `:binary_id` keys
