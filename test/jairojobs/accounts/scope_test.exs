@@ -26,6 +26,16 @@ defmodule Jairojobs.Accounts.ScopeTest do
       assert Scope.admin?(Scope.for_user(user))
     end
 
+    test "REQ-001-11: the system scope has no user and is not a web admin" do
+      scope = Scope.system()
+      assert scope.system
+      assert is_nil(scope.user)
+      assert Scope.role(scope) == nil
+      refute Scope.admin?(scope)
+      refute Scope.system?(Scope.for_user(user_fixture()))
+      refute Scope.system?(nil)
+    end
+
     test "REQ-001-9: a visitor scope has no role and is not admin" do
       assert Scope.role(nil) == nil
       refute Scope.admin?(nil)

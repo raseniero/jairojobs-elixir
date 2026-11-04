@@ -18,7 +18,7 @@ defmodule Jairojobs.Accounts.Scope do
 
   alias Jairojobs.Accounts.User
 
-  defstruct user: nil
+  defstruct user: nil, system: false
 
   @doc """
   Creates a scope for the given user.
@@ -41,6 +41,21 @@ defmodule Jairojobs.Accounts.Scope do
 
   @doc """
   `true` when the scoped user is an admin.
+
+  The system scope is **not** an admin here: it is only honoured by the
+  promote/demote functions in `Jairojobs.Accounts`.
   """
   def admin?(scope), do: role(scope) == :admin
+
+  @doc """
+  The operator scope used by privileged commands (REQ-001-10). It carries no
+  user and must never be mounted from a web request.
+  """
+  def system, do: %__MODULE__{user: nil, system: true}
+
+  @doc """
+  `true` for the scope returned by `system/0`.
+  """
+  def system?(%__MODULE__{system: true}), do: true
+  def system?(_scope), do: false
 end

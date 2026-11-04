@@ -6,7 +6,7 @@ defmodule Jairojobs.Accounts do
   import Ecto.Query, warn: false
   alias Jairojobs.Repo
 
-  alias Jairojobs.Accounts.{User, UserToken, UserNotifier}
+  alias Jairojobs.Accounts.{Scope, User, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -180,6 +180,73 @@ defmodule Jairojobs.Accounts do
     |> User.password_changeset(attrs)
     |> update_user_and_delete_all_tokens()
   end
+
+  ## Admin promotion / demotion (spec 001 — REQ-001-10, REQ-001-11)
+
+  @doc """
+  Promotes `user` to admin, remembering the role held before promotion.
+
+  Only an admin scope or `Scope.system/0` may promote. Returns:
+
+    * `{:ok, user}` — promoted (or already an admin; no-op)
+    * `{:error, :unauthorized}` — the scope may not manage admins
+    * `{:error, :unconfirmed}` — the target has not confirmed their email (REQ-001-10)
+  """
+  def promote_to_admin(scope, %User{} = user) do
+    cond do
+      not can_manage_admins?(scope) -> {:error, :unauthorized}
+      not User.confirmed?(user) -> {:error, :unconfirmed}
+      user.role == :admin -> {:ok, user}
+      true -> user |> User.role_changeset(:admin, user.role) |> Repo.update()
+    end
+  end
+
+  @doc """
+  Demotes an admin back to the role held before promotion, falling back to
+  `:candidate` when unknown. Refuses to remove the last admin.
+
+  Runs in a transaction that locks every admin row (`FOR UPDATE`) so two
+  concurrent demotions cannot leave the site without an admin. Returns:
+
+    * `{:ok, user}` — demoted
+    * `{:error, :unauthorized}` — the scope may not manage admins
+    * `{:error, :not_admin}` — the target is not an admin
+    * `{:error, :last_admin}` — the target is the only admin (REQ-001-11)
+  """
+  def demote_admin(scope, %User{} = user) do
+    if can_manage_admins?(scope) do
+      Repo.transaction(fn ->
+        admins = Repo.all(from u in User, where: u.role == :admin, lock: "FOR UPDATE")
+        target = Enum.find(admins, &(&1.id == user.id))
+
+        cond do
+          is_nil(target) ->
+            Repo.rollback(:not_admin)
+
+          length(admins) == 1 ->
+            Repo.rollback(:last_admin)
+
+          true ->
+            case Repo.update(User.role_changeset(target, target.previous_role || :candidate, nil)) do
+              {:ok, demoted} -> demoted
+              {:error, changeset} -> Repo.rollback(changeset)
+            end
+        end
+      end)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Number of users holding the admin role.
+  """
+  def count_admins do
+    Repo.aggregate(from(u in User, where: u.role == :admin), :count)
+  end
+
+  # The system scope is honoured here and nowhere else (plan §Authorization).
+  defp can_manage_admins?(scope), do: Scope.admin?(scope) or Scope.system?(scope)
 
   ## Session
 

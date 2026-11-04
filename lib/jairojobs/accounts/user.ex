@@ -83,6 +83,19 @@ defmodule Jairojobs.Accounts.User do
   end
 
   @doc """
+  Sets the role and remembered previous role. Used only by the Accounts
+  promote/demote functions (REQ-001-11); never cast from user input.
+  """
+  def role_changeset(user, role, previous_role)
+      when role in [:candidate, :employer, :admin] and
+             previous_role in [nil, :candidate, :employer] do
+    user
+    |> change(role: role, previous_role: previous_role)
+    |> check_constraint(:role, name: :users_role_check)
+    |> check_constraint(:previous_role, name: :users_previous_role_check)
+  end
+
+  @doc """
   A user changeset for changing the password.
 
   It is important to validate the length of the password, as long passwords may

@@ -51,6 +51,18 @@ defmodule Jairojobs.AccountsFixtures do
     Scope.for_user(user)
   end
 
+  @doc """
+  A confirmed user promoted to admin through the real context function (spec 001).
+  """
+  def admin_fixture(attrs \\ %{}) do
+    {:ok, admin} = Accounts.promote_to_admin(Scope.system(), user_fixture(attrs))
+    admin
+  end
+
+  def admin_scope_fixture do
+    Scope.for_user(admin_fixture())
+  end
+
   def set_password(user) do
     {:ok, {user, _expired_tokens}} =
       Accounts.update_user_password(user, %{password: valid_user_password()})

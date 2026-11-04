@@ -4,7 +4,7 @@ defmodule Jairojobs.AccountsTest do
   alias Jairojobs.Accounts
 
   import Jairojobs.AccountsFixtures
-  alias Jairojobs.Accounts.{User, UserToken}
+  alias Jairojobs.Accounts.{Scope, User, UserToken}
 
   describe "get_user_by_email/1" do
     test "REQ-001-4: unregistered email returns no user" do
@@ -419,6 +419,112 @@ defmodule Jairojobs.AccountsTest do
       assert user_token.user_id == user.id
       assert user_token.sent_to == user.email
       assert user_token.context == "login"
+    end
+  end
+
+  ## spec 001 — admin promotion / demotion (REQ-001-10, REQ-001-11)
+
+  describe "promote_to_admin/2" do
+    test "REQ-001-11: admin promotes a user and the previous role is remembered" do
+      admin_scope = admin_scope_fixture()
+
+      for role <- [:candidate, :employer] do
+        user = user_fixture(role: to_string(role))
+        assert {:ok, promoted} = Accounts.promote_to_admin(admin_scope, user)
+        assert promoted.role == :admin
+        assert promoted.previous_role == role
+
+        reloaded = Accounts.get_user!(user.id)
+        assert reloaded.role == :admin
+        assert reloaded.previous_role == role
+      end
+    end
+
+    test "REQ-001-11: the system scope may promote" do
+      user = user_fixture()
+      assert {:ok, %User{role: :admin}} = Accounts.promote_to_admin(Scope.system(), user)
+    end
+
+    test "REQ-001-11: promoting an admin is a no-op" do
+      admin = admin_fixture(role: "employer")
+      assert {:ok, same} = Accounts.promote_to_admin(Scope.system(), admin)
+      assert same.role == :admin
+      assert same.previous_role == :employer
+    end
+
+    test "REQ-001-11: non-admin cannot promote" do
+      target = user_fixture()
+
+      for scope <- [
+            user_scope_fixture(user_fixture(role: "candidate")),
+            user_scope_fixture(user_fixture(role: "employer")),
+            nil
+          ] do
+        assert {:error, :unauthorized} = Accounts.promote_to_admin(scope, target)
+      end
+
+      assert Accounts.get_user!(target.id).role == :candidate
+    end
+
+    test "REQ-001-10: unconfirmed user cannot be promoted" do
+      user = unconfirmed_user_fixture()
+      assert {:error, :unconfirmed} = Accounts.promote_to_admin(Scope.system(), user)
+      assert Accounts.get_user!(user.id).role == :candidate
+    end
+  end
+
+  describe "demote_admin/2" do
+    test "REQ-001-11: admin demotes another admin back to the remembered role" do
+      admin_scope = admin_scope_fixture()
+      target = admin_fixture(role: "employer")
+
+      assert {:ok, demoted} = Accounts.demote_admin(admin_scope, target)
+      assert demoted.role == :employer
+      assert is_nil(demoted.previous_role)
+      assert Accounts.get_user!(target.id).role == :employer
+    end
+
+    test "REQ-001-11: demote falls back to candidate if the previous role is unknown" do
+      _other_admin = admin_fixture()
+      target = admin_fixture()
+      {:ok, target} = target |> Ecto.Changeset.change(previous_role: nil) |> Repo.update()
+
+      assert {:ok, %User{role: :candidate}} = Accounts.demote_admin(Scope.system(), target)
+    end
+
+    test "REQ-001-11: last admin is protected" do
+      only_admin = admin_fixture()
+      assert Accounts.count_admins() == 1
+
+      assert {:error, :last_admin} = Accounts.demote_admin(Scope.system(), only_admin)
+      assert {:error, :last_admin} = Accounts.demote_admin(Scope.for_user(only_admin), only_admin)
+      assert Accounts.get_user!(only_admin.id).role == :admin
+    end
+
+    test "REQ-001-11: non-admin cannot demote" do
+      _other_admin = admin_fixture()
+      target = admin_fixture()
+
+      for scope <- [user_scope_fixture(user_fixture()), nil] do
+        assert {:error, :unauthorized} = Accounts.demote_admin(scope, target)
+      end
+
+      assert Accounts.get_user!(target.id).role == :admin
+    end
+
+    test "REQ-001-11: demoting a non-admin is refused" do
+      user = user_fixture()
+      assert {:error, :not_admin} = Accounts.demote_admin(Scope.system(), user)
+    end
+  end
+
+  describe "count_admins/0" do
+    test "REQ-001-11: counts only admins" do
+      assert Accounts.count_admins() == 0
+      _candidate = user_fixture()
+      admin_fixture()
+      admin_fixture()
+      assert Accounts.count_admins() == 2
     end
   end
 
