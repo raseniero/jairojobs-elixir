@@ -106,7 +106,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     Until then the mix task is the only entry point.
   - Commit: `feat(accounts): mix jairojobs.admin promote|demote (REQ-001-10)`
 
-- [ ] **T10** — `require_admin` hook/plug (plan decision 7)
+- [x] **T10** — `require_admin` hook/plug (plan decision 7) — done 2026-11-04
   - `UserAuth`: `on_mount(:require_admin, …)` and `require_admin/2` plug → 403 or redirect
     with flash for non-admins; `live_session :require_admin` scaffold in router (no routes yet)
   - Tests: `test/jairojobs_web/user_auth_test.exs` — admin passes, candidate/employer refused,
