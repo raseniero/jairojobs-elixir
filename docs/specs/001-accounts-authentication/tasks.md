@@ -32,7 +32,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 ## Phase B — Generate and adapt auth
 
-- [ ] **T4** — Run `mix phx.gen.auth Accounts User users --live` (REQ-001-1…8)
+- [x] **T4** — Run `mix phx.gen.auth Accounts User users --live` (REQ-001-1…8) — done 2026-11-04
   - Run generator; `mix deps.get`; **do not** run the migration yet
   - Edit migration: timestamps → `:utc_datetime_usec`; keep citext, indexes
   - Switch `User` and `UserToken` to `use Jairojobs.Schema`
@@ -128,5 +128,8 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 <!-- Record anything that changed during implementation and why. -->
 
+- T4: the migration already came out with `:utc_datetime_usec` timestamps and `:binary_id` keys
+  thanks to the T2 generator config — no manual migration edits were needed. The generator also
+  appended an "Authentication" section to `AGENTS.md` (kept).
 - T1: first run failed — `mix deps.get --only test` omitted dev-only deps, so `deps.unlock --unused`
   pruned `mix.lock` and the no-diff check failed. Fixed by fetching all deps.
