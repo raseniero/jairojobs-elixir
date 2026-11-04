@@ -95,7 +95,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - Tests (context): all four REQ-001-11 scenarios + `REQ-001-10: unconfirmed user cannot be promoted`
   - Commit: `feat(accounts): promote/demote admin rules (REQ-001-11)`
 
-- [ ] **T9** — Mix task `jairojobs.admin` (REQ-001-10)
+- [x] **T9** — Mix task `jairojobs.admin` (REQ-001-10) — done 2026-11-04
   - `lib/mix/tasks/jairojobs.admin.ex`: `promote EMAIL` | `demote EMAIL`; starts the app,
     calls T8 with `Scope.system()`; prints one line; non-zero exit on error
   - Tests: `test/mix/tasks/jairojobs.admin_test.exs` — promote, demote, unknown email,
