@@ -94,18 +94,26 @@ defmodule JairojobsWeb.CoreComponents do
       <.button>Send!</.button>
       <.button phx-click="go" variant="primary">Send!</.button>
       <.button navigate={~p"/"}>Home</.button>
+
+  Variants follow docs/design.md §3: `accent` for the one primary action on a
+  screen, `primary` for secondary actions, and the default (no variant) is a
+  bordered ghost button for tertiary actions. Tap targets are at least 44 px.
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :any
-  attr :variant, :string, values: ~w(primary)
+  attr :variant, :string, values: ~w(primary accent)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    variants = %{
+      "accent" => "btn-accent",
+      "primary" => "btn-primary",
+      nil => "btn-ghost border border-base-300"
+    }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        ["btn min-h-11", Map.fetch!(variants, assigns[:variant])]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
