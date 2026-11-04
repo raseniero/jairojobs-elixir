@@ -46,7 +46,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     "Expired or used link") as new tests
   - Commit: `test(accounts): align generated tests with REQ-001 scenarios`
 
-- [ ] **T5b** — Neutral sign-up response for existing emails (REQ-001-2 "Existing email is not revealed")
+- [x] **T5b** — Neutral sign-up response for existing emails (REQ-001-2 "Existing email is not revealed") — done 2026-11-04
   - `UserLive.Registration`: when `register_user/1` fails **only** on the email uniqueness
     constraint, behave exactly like a successful sign-up — redirect to `/users/log-in` with the
     same "An email was sent to …" flash; do not surface "has already been taken". Other
