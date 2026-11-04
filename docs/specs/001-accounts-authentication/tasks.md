@@ -85,7 +85,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 ## Phase C — Admin promotion
 
-- [ ] **T8** — Promote / demote context functions (REQ-001-11)
+- [x] **T8** — Promote / demote context functions (REQ-001-11) — done 2026-11-04
   - `Accounts.promote_to_admin(scope, user)`, `Accounts.demote_admin(scope, user)`,
     `Accounts.count_admins/0`; `Scope.system/0`
   - Rules: non-admin scope → `{:error, :unauthorized}`; unconfirmed → `{:error, :unconfirmed}`;
@@ -162,3 +162,6 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   appended an "Authentication" section to `AGENTS.md` (kept).
 - T1: first run failed — `mix deps.get --only test` omitted dev-only deps, so `deps.unlock --unused`
   pruned `mix.lock` and the no-diff check failed. Fixed by fetching all deps.
+- T8: `demote_admin/2` locks **all** admin rows (`FOR UPDATE`) rather than only the target, so two
+  concurrent demotions cannot both pass the last-admin check. Demoting a non-admin returns
+  `{:error, :not_admin}` (not in the plan; needed for a clear mix-task message in T9).
