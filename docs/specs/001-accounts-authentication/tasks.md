@@ -125,7 +125,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - Commit: `feat(ui): jairojobs daisyUI theme and wordmark (design.md)`
 
 
-- [ ] **T11** — Role-aware navigation (REQ-001-12, REQ-001-1)
+- [x] **T11** — Role-aware navigation (REQ-001-12, REQ-001-1) — done 2026-11-04
   - `Layouts`: header + drawer per `wireframe-nav`; items per role; placeholders for 003/006/007
     link to `#` with a `data-placeholder` attribute; mobile-first, checked at 375 px
   - Tests: `test/jairojobs_web/components/layouts_test.exs` (4 role variants by DOM id) and
@@ -165,3 +165,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 - T8: `demote_admin/2` locks **all** admin rows (`FOR UPDATE`) rather than only the target, so two
   concurrent demotions cannot both pass the last-admin check. Demoting a non-admin returns
   `{:error, :not_admin}` (not in the plan; needed for a clear mix-task message in T9).
+- T11: the generated Phoenix home page did not use `Layouts.app`, so it had no nav. Replaced it
+  with a minimal jairojobs placeholder (`#home`) inside `Layouts.app` until spec 003 ships
+  listings; the generated nav strip in `root.html.heex` was removed. Nav items are rendered
+  twice (drawer `nav-*`, inline `inline-*` at `md+`); tests target the drawer ids.
