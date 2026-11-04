@@ -7,6 +7,26 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
+In development, every email the app sends (sign-up and login links, email-change
+confirmations) is viewable at [`localhost:4000/dev/mailbox`](http://localhost:4000/dev/mailbox).
+
+## Admin accounts
+
+There is no admin sign-up. Admins are created and removed by the operator from the command
+line (spec 001, REQ-001-10):
+
+```bash
+mix jairojobs.admin promote someone@example.com
+mix jairojobs.admin demote  someone@example.com
+```
+
+Rules: the account must exist and have confirmed its email; demoting restores the role the
+user had before promotion (candidate by default); the last remaining admin cannot be
+demoted. The task prints one line and exits non-zero on failure.
+
+In production the same functions will be exposed through `Jairojobs.Release` once the
+release tooling lands (see `docs/specs/001-accounts-authentication/plan.md`).
+
 Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
 
 ## Learn more
