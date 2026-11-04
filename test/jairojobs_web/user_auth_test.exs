@@ -403,6 +403,90 @@ defmodule JairojobsWeb.UserAuthTest do
     end
   end
 
+  ## spec 001 — require_admin (plan decision 7; consumed by specs 004/008)
+
+  describe "on_mount :require_admin" do
+    defp live_socket do
+      %LiveView.Socket{endpoint: JairojobsWeb.Endpoint, assigns: %{__changed__: %{}, flash: %{}}}
+    end
+
+    test "REQ-001-9: admin passes", %{conn: conn} do
+      admin = %{admin_fixture() | authenticated_at: DateTime.utc_now()}
+
+      session =
+        conn
+        |> put_session(:user_token, Accounts.generate_user_session_token(admin))
+        |> get_session()
+
+      assert {:cont, socket} = UserAuth.on_mount(:require_admin, %{}, session, live_socket())
+      assert socket.assigns.current_scope.user.id == admin.id
+    end
+
+    test "REQ-001-9: candidate and employer are refused", %{conn: conn} do
+      for role <- ["candidate", "employer"] do
+        user = user_fixture(role: role)
+
+        session =
+          conn
+          |> put_session(:user_token, Accounts.generate_user_session_token(user))
+          |> get_session()
+
+        assert {:halt, socket} = UserAuth.on_mount(:require_admin, %{}, session, live_socket())
+        assert socket.redirected == {:redirect, %{to: ~p"/", status: 302}}
+        assert socket.assigns.flash["error"] == "You are not authorized to access this page."
+      end
+    end
+
+    test "REQ-001-1: visitor is redirected to log in", %{conn: conn} do
+      session = get_session(conn)
+
+      assert {:halt, socket} = UserAuth.on_mount(:require_admin, %{}, session, live_socket())
+      assert socket.redirected == {:redirect, %{to: ~p"/users/log-in", status: 302}}
+    end
+  end
+
+  describe "require_admin/2" do
+    setup %{conn: conn} do
+      %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}
+    end
+
+    test "REQ-001-9: admin passes", %{conn: conn} do
+      admin = admin_fixture()
+
+      conn =
+        conn
+        |> assign(:current_scope, Scope.for_user(admin))
+        |> fetch_flash()
+        |> UserAuth.require_admin([])
+
+      refute conn.halted
+      refute conn.status
+    end
+
+    test "REQ-001-9: candidate and employer get 403", %{conn: conn} do
+      for role <- ["candidate", "employer"] do
+        conn =
+          conn
+          |> assign(:current_scope, Scope.for_user(user_fixture(role: role)))
+          |> fetch_flash()
+          |> UserAuth.require_admin([])
+
+        assert conn.halted
+        assert conn.status == 403
+      end
+    end
+
+    test "REQ-001-1: visitor is redirected to log in", %{conn: conn} do
+      conn = conn |> fetch_flash() |> UserAuth.require_admin([])
+
+      assert conn.halted
+      assert redirected_to(conn) == ~p"/users/log-in"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+               "You must log in to access this page."
+    end
+  end
+
   describe "disconnect_sessions/1" do
     test "REQ-001-7: disconnect_sessions broadcasts a disconnect for each token" do
       tokens = [%{token: "token1"}, %{token: "token2"}]

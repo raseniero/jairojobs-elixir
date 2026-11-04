@@ -246,6 +246,27 @@ defmodule JairojobsWeb.UserAuth do
     end
   end
 
+  # spec 001 — plan decision 7: admin-only LiveViews (specs 004/008).
+  # Visitors go to log in; signed-in non-admins are sent home with a flash.
+  def on_mount(:require_admin, params, session, socket) do
+    case on_mount(:require_authenticated, params, session, socket) do
+      {:cont, socket} ->
+        if Scope.admin?(socket.assigns.current_scope) do
+          {:cont, socket}
+        else
+          socket =
+            socket
+            |> Phoenix.LiveView.put_flash(:error, "You are not authorized to access this page.")
+            |> Phoenix.LiveView.redirect(to: ~p"/")
+
+          {:halt, socket}
+        end
+
+      halted ->
+        halted
+    end
+  end
+
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
       {user, _} =
@@ -277,6 +298,32 @@ defmodule JairojobsWeb.UserAuth do
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log-in")
       |> halt()
+    end
+  end
+
+  @doc """
+  Plug for routes that require an admin (spec 001, plan decision 7).
+
+  Visitors are redirected to log in (and return afterwards); signed-in
+  non-admins receive a 403.
+  """
+  def require_admin(conn, opts) do
+    conn = require_authenticated_user(conn, opts)
+
+    cond do
+      conn.halted ->
+        conn
+
+      Scope.admin?(conn.assigns.current_scope) ->
+        conn
+
+      true ->
+        conn
+        |> put_status(:forbidden)
+        |> Phoenix.Controller.put_format("html")
+        |> Phoenix.Controller.put_view(html: JairojobsWeb.ErrorHTML)
+        |> Phoenix.Controller.render(:"403")
+        |> halt()
     end
   end
 
