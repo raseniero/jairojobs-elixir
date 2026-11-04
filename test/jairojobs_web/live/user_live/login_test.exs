@@ -5,7 +5,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
   import Jairojobs.AccountsFixtures
 
   describe "login page" do
-    test "renders login page", %{conn: conn} do
+    test "REQ-001-1: log-in page renders without login", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
       assert html =~ "Log in"
@@ -15,7 +15,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
   end
 
   describe "user login - magic link" do
-    test "sends magic link email when user exists", %{conn: conn} do
+    test "REQ-001-4: request a magic link sends an email to a registered user", %{conn: conn} do
       user = user_fixture()
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
@@ -31,7 +31,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
                "login"
     end
 
-    test "does not disclose if user is registered", %{conn: conn} do
+    test "REQ-001-4: unregistered email is not revealed", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _lv, html} =
@@ -44,7 +44,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
   end
 
   describe "user login - password" do
-    test "redirects if user logs in with valid credentials", %{conn: conn} do
+    test "REQ-001-5: log in with valid email and password", %{conn: conn} do
       user = user_fixture() |> set_password()
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
@@ -59,7 +59,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
       assert redirected_to(conn) == ~p"/"
     end
 
-    test "redirects to login page with a flash error if credentials are invalid", %{
+    test "REQ-001-5: wrong password shows a generic error", %{
       conn: conn
     } do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
@@ -76,7 +76,7 @@ defmodule JairojobsWeb.UserLive.LoginTest do
   end
 
   describe "login navigation" do
-    test "redirects to registration page when the Register button is clicked", %{conn: conn} do
+    test "REQ-001-1: log-in page links to sign up", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _login_live, login_html} =
@@ -95,7 +95,10 @@ defmodule JairojobsWeb.UserLive.LoginTest do
       %{user: user, conn: log_in_user(conn, user)}
     end
 
-    test "shows login page with email filled in", %{conn: conn, user: user} do
+    test "REQ-001-6: re-authentication shows log in with the email filled in", %{
+      conn: conn,
+      user: user
+    } do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
       assert html =~ "You need to reauthenticate"

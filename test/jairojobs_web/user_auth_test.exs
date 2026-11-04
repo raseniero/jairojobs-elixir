@@ -21,7 +21,7 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "log_in_user/3" do
-    test "stores the user token in the session", %{conn: conn, user: user} do
+    test "REQ-001-4: log in stores the user token in the session", %{conn: conn, user: user} do
       conn = UserAuth.log_in_user(conn, user)
       assert token = get_session(conn, :user_token)
       assert get_session(conn, :live_socket_id) == "users_sessions:#{Base.url_encode64(token)}"
@@ -29,12 +29,15 @@ defmodule JairojobsWeb.UserAuthTest do
       assert Accounts.get_user_by_session_token(token)
     end
 
-    test "clears everything previously stored in the session", %{conn: conn, user: user} do
+    test "REQ-001-4: log in clears everything previously stored in the session", %{
+      conn: conn,
+      user: user
+    } do
       conn = conn |> put_session(:to_be_removed, "value") |> UserAuth.log_in_user(user)
       refute get_session(conn, :to_be_removed)
     end
 
-    test "keeps session when re-authenticating", %{conn: conn, user: user} do
+    test "REQ-001-6: re-authenticating the same user keeps the session", %{conn: conn, user: user} do
       conn =
         conn
         |> assign(:current_scope, Scope.for_user(user))
@@ -44,7 +47,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert get_session(conn, :to_be_removed)
     end
 
-    test "clears session when user does not match when re-authenticating", %{
+    test "REQ-001-6: re-authenticating as a different user clears the session", %{
       conn: conn,
       user: user
     } do
@@ -59,12 +62,15 @@ defmodule JairojobsWeb.UserAuthTest do
       refute get_session(conn, :to_be_removed)
     end
 
-    test "redirects to the configured path", %{conn: conn, user: user} do
+    test "REQ-001-4: log in redirects to the configured path", %{conn: conn, user: user} do
       conn = conn |> put_session(:user_return_to, "/hello") |> UserAuth.log_in_user(user)
       assert redirected_to(conn) == "/hello"
     end
 
-    test "clears the return-to path from the session after logging in", %{conn: conn, user: user} do
+    test "REQ-001-1: log in returns to the requested page and clears it from the session", %{
+      conn: conn,
+      user: user
+    } do
       conn =
         conn
         |> assign(:current_scope, Scope.for_user(user))
@@ -75,7 +81,7 @@ defmodule JairojobsWeb.UserAuthTest do
       refute get_session(conn, :user_return_to)
     end
 
-    test "writes a cookie if remember_me is configured", %{conn: conn, user: user} do
+    test "REQ-001-4: remember me writes a cookie", %{conn: conn, user: user} do
       conn = conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
       assert get_session(conn, :user_token) == conn.cookies[@remember_me_cookie]
       assert get_session(conn, :user_remember_me) == true
@@ -85,7 +91,10 @@ defmodule JairojobsWeb.UserAuthTest do
       assert max_age == @remember_me_cookie_max_age
     end
 
-    test "redirects to settings when user is already logged in", %{conn: conn, user: user} do
+    test "REQ-001-6: re-authenticating an already logged-in user redirects to settings", %{
+      conn: conn,
+      user: user
+    } do
       conn =
         conn
         |> assign(:current_scope, Scope.for_user(user))
@@ -94,7 +103,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert redirected_to(conn) == ~p"/users/settings"
     end
 
-    test "writes a cookie if remember_me was set in previous session", %{conn: conn, user: user} do
+    test "REQ-001-4: remember me is kept from the previous session", %{conn: conn, user: user} do
       conn = conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
       assert get_session(conn, :user_token) == conn.cookies[@remember_me_cookie]
       assert get_session(conn, :user_remember_me) == true
@@ -118,7 +127,7 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "logout_user/1" do
-    test "erases session and cookies", %{conn: conn, user: user} do
+    test "REQ-001-8: log out erases session and cookies", %{conn: conn, user: user} do
       user_token = Accounts.generate_user_session_token(user)
 
       conn =
@@ -135,7 +144,7 @@ defmodule JairojobsWeb.UserAuthTest do
       refute Accounts.get_user_by_session_token(user_token)
     end
 
-    test "broadcasts to the given live_socket_id", %{conn: conn} do
+    test "REQ-001-8: log out disconnects live sockets for the session", %{conn: conn} do
       live_socket_id = "users_sessions:abcdef-token"
       JairojobsWeb.Endpoint.subscribe(live_socket_id)
 
@@ -146,7 +155,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert_receive %Phoenix.Socket.Broadcast{event: "disconnect", topic: ^live_socket_id}
     end
 
-    test "works even if user is already logged out", %{conn: conn} do
+    test "REQ-001-8: log out works even if already logged out", %{conn: conn} do
       conn = conn |> fetch_cookies() |> UserAuth.log_out_user()
       refute get_session(conn, :user_token)
       assert %{max_age: 0} = conn.resp_cookies[@remember_me_cookie]
@@ -155,7 +164,7 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "fetch_current_scope_for_user/2" do
-    test "authenticates user from session", %{conn: conn, user: user} do
+    test "REQ-001-9: scope is built from the session", %{conn: conn, user: user} do
       user_token = Accounts.generate_user_session_token(user)
 
       conn =
@@ -166,7 +175,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert get_session(conn, :user_token) == user_token
     end
 
-    test "authenticates user from cookies", %{conn: conn, user: user} do
+    test "REQ-001-9: scope is built from the remember-me cookie", %{conn: conn, user: user} do
       logged_in_conn =
         conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
 
@@ -187,14 +196,17 @@ defmodule JairojobsWeb.UserAuthTest do
                "users_sessions:#{Base.url_encode64(user_token)}"
     end
 
-    test "does not authenticate if data is missing", %{conn: conn, user: user} do
+    test "REQ-001-9: scope is empty when no session data is present", %{conn: conn, user: user} do
       _ = Accounts.generate_user_session_token(user)
       conn = UserAuth.fetch_current_scope_for_user(conn, [])
       refute get_session(conn, :user_token)
       refute conn.assigns.current_scope
     end
 
-    test "reissues a new token after a few days and refreshes cookie", %{conn: conn, user: user} do
+    test "REQ-001-9: session token is reissued after a few days and cookie refreshed", %{
+      conn: conn,
+      user: user
+    } do
       logged_in_conn =
         conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
 
@@ -226,7 +238,10 @@ defmodule JairojobsWeb.UserAuthTest do
       %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}
     end
 
-    test "assigns current_scope based on a valid user_token", %{conn: conn, user: user} do
+    test "REQ-001-9: mount_current_scope assigns current_scope from a valid token", %{
+      conn: conn,
+      user: user
+    } do
       user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -236,7 +251,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert updated_socket.assigns.current_scope.user.id == user.id
     end
 
-    test "assigns nil to current_scope assign if there isn't a valid user_token", %{conn: conn} do
+    test "REQ-001-1: mount_current_scope assigns nil for an invalid token", %{conn: conn} do
       user_token = "invalid_token"
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -246,7 +261,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert updated_socket.assigns.current_scope == nil
     end
 
-    test "assigns nil to current_scope assign if there isn't a user_token", %{conn: conn} do
+    test "REQ-001-1: mount_current_scope assigns nil for a visitor", %{conn: conn} do
       session = conn |> get_session()
 
       {:cont, updated_socket} =
@@ -257,7 +272,10 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "on_mount :require_authenticated" do
-    test "authenticates current_scope based on a valid user_token", %{conn: conn, user: user} do
+    test "REQ-001-9: require_authenticated assigns current_scope from a valid token", %{
+      conn: conn,
+      user: user
+    } do
       user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -267,7 +285,9 @@ defmodule JairojobsWeb.UserAuthTest do
       assert updated_socket.assigns.current_scope.user.id == user.id
     end
 
-    test "redirects to login page if there isn't a valid user_token", %{conn: conn} do
+    test "REQ-001-1: require_authenticated redirects to log in for an invalid token", %{
+      conn: conn
+    } do
       user_token = "invalid_token"
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -280,7 +300,7 @@ defmodule JairojobsWeb.UserAuthTest do
       assert updated_socket.assigns.current_scope == nil
     end
 
-    test "redirects to login page if there isn't a user_token", %{conn: conn} do
+    test "REQ-001-1: require_authenticated redirects a visitor to log in", %{conn: conn} do
       session = conn |> get_session()
 
       socket = %LiveView.Socket{
@@ -294,7 +314,10 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "on_mount :require_sudo_mode" do
-    test "allows users that have authenticated in the last 10 minutes", %{conn: conn, user: user} do
+    test "REQ-001-6: sudo mode allows users authenticated in the last 10 minutes", %{
+      conn: conn,
+      user: user
+    } do
       user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -307,7 +330,10 @@ defmodule JairojobsWeb.UserAuthTest do
                UserAuth.on_mount(:require_sudo_mode, %{}, session, socket)
     end
 
-    test "redirects when authentication is too old", %{conn: conn, user: user} do
+    test "REQ-001-6: sudo mode redirects when authentication is too old", %{
+      conn: conn,
+      user: user
+    } do
       eleven_minutes_ago = DateTime.utc_now() |> DateTime.add(-11, :minute)
       user = %{user | authenticated_at: eleven_minutes_ago}
       user_token = Accounts.generate_user_session_token(user)
@@ -330,7 +356,7 @@ defmodule JairojobsWeb.UserAuthTest do
       %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}
     end
 
-    test "redirects if user is not authenticated", %{conn: conn} do
+    test "REQ-001-1: protected page redirects a visitor to log in", %{conn: conn} do
       conn = conn |> fetch_flash() |> UserAuth.require_authenticated_user([])
       assert conn.halted
 
@@ -340,7 +366,7 @@ defmodule JairojobsWeb.UserAuthTest do
                "You must log in to access this page."
     end
 
-    test "stores the path to redirect to on GET", %{conn: conn} do
+    test "REQ-001-1: protected page stores the return-to path on GET", %{conn: conn} do
       halted_conn =
         %{conn | path_info: ["foo"], query_string: ""}
         |> fetch_flash()
@@ -366,7 +392,7 @@ defmodule JairojobsWeb.UserAuthTest do
       refute get_session(halted_conn, :user_return_to)
     end
 
-    test "does not redirect if user is authenticated", %{conn: conn, user: user} do
+    test "REQ-001-1: protected page renders for an authenticated user", %{conn: conn, user: user} do
       conn =
         conn
         |> assign(:current_scope, Scope.for_user(user))
@@ -378,7 +404,7 @@ defmodule JairojobsWeb.UserAuthTest do
   end
 
   describe "disconnect_sessions/1" do
-    test "broadcasts disconnect messages for each token" do
+    test "REQ-001-7: disconnect_sessions broadcasts a disconnect for each token" do
       tokens = [%{token: "token1"}, %{token: "token2"}]
 
       for %{token: token} <- tokens do

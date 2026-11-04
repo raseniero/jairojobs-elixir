@@ -11,7 +11,10 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
   end
 
   describe "Confirm user" do
-    test "renders confirmation page for unconfirmed user", %{conn: conn, unconfirmed_user: user} do
+    test "REQ-001-3: link landing renders confirmation for an unconfirmed user", %{
+      conn: conn,
+      unconfirmed_user: user
+    } do
       token =
         extract_user_token(fn url ->
           Accounts.deliver_login_instructions(user, url)
@@ -21,7 +24,10 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
       assert html =~ "Confirm and stay logged in"
     end
 
-    test "renders login page for confirmed user", %{conn: conn, confirmed_user: user} do
+    test "REQ-001-4: link landing renders log in for a confirmed user", %{
+      conn: conn,
+      confirmed_user: user
+    } do
       token =
         extract_user_token(fn url ->
           Accounts.deliver_login_instructions(user, url)
@@ -32,7 +38,10 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
       assert html =~ "Keep me logged in on this device"
     end
 
-    test "renders login page for already logged in user", %{conn: conn, confirmed_user: user} do
+    test "REQ-001-4: link landing renders log in for an already logged-in user", %{
+      conn: conn,
+      confirmed_user: user
+    } do
       conn = log_in_user(conn, user)
 
       token =
@@ -45,7 +54,10 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
       assert html =~ "Log in"
     end
 
-    test "confirms the given token once", %{conn: conn, unconfirmed_user: user} do
+    test "REQ-001-3: first link confirms and logs in; used link is rejected", %{
+      conn: conn,
+      unconfirmed_user: user
+    } do
       token =
         extract_user_token(fn url ->
           Accounts.deliver_login_instructions(user, url)
@@ -76,7 +88,7 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
       assert html =~ "Magic link is invalid or it has expired"
     end
 
-    test "logs confirmed user in without changing confirmed_at", %{
+    test "REQ-001-4: magic link logs in a confirmed user without changing confirmed_at", %{
       conn: conn,
       confirmed_user: user
     } do
@@ -107,7 +119,7 @@ defmodule JairojobsWeb.UserLive.ConfirmationTest do
       assert html =~ "Magic link is invalid or it has expired"
     end
 
-    test "raises error for invalid token", %{conn: conn} do
+    test "REQ-001-3: invalid link raises", %{conn: conn} do
       {:ok, _lv, html} =
         live(conn, ~p"/users/log-in/invalid-token")
         |> follow_redirect(conn, ~p"/users/log-in")

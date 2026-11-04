@@ -6,7 +6,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
   import Jairojobs.AccountsFixtures
 
   describe "Settings page" do
-    test "renders settings page", %{conn: conn} do
+    test "REQ-001-6: settings page renders for a logged-in user", %{conn: conn} do
       {:ok, _lv, html} =
         conn
         |> log_in_user(user_fixture())
@@ -16,7 +16,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert html =~ "Save Password"
     end
 
-    test "redirects if user is not logged in", %{conn: conn} do
+    test "REQ-001-1: settings redirects a visitor to log in", %{conn: conn} do
       assert {:error, redirect} = live(conn, ~p"/users/settings")
 
       assert {:redirect, %{to: path, flash: flash}} = redirect
@@ -24,7 +24,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert %{"error" => "You must log in to access this page."} = flash
     end
 
-    test "redirects if user is not in sudo mode", %{conn: conn} do
+    test "REQ-001-6: settings requires sudo mode", %{conn: conn} do
       {:ok, conn} =
         conn
         |> log_in_user(user_fixture(),
@@ -43,7 +43,10 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       %{conn: log_in_user(conn, user), user: user}
     end
 
-    test "updates the user email", %{conn: conn, user: user} do
+    test "REQ-001-6: request email change sends a link and keeps the current email", %{
+      conn: conn,
+      user: user
+    } do
       new_email = unique_user_email()
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
@@ -59,7 +62,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert Accounts.get_user_by_email(user.email)
     end
 
-    test "renders errors with invalid data (phx-change)", %{conn: conn} do
+    test "REQ-001-6: invalid new email shows a validation error (phx-change)", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
       result =
@@ -74,7 +77,10 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert result =~ "must have the @ sign and no spaces"
     end
 
-    test "renders errors with invalid data (phx-submit)", %{conn: conn, user: user} do
+    test "REQ-001-6: unchanged email shows a validation error (phx-submit)", %{
+      conn: conn,
+      user: user
+    } do
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
       result =
@@ -95,7 +101,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       %{conn: log_in_user(conn, user), user: user}
     end
 
-    test "updates the user password", %{conn: conn, user: user} do
+    test "REQ-001-7: change password updates the password", %{conn: conn, user: user} do
       new_password = valid_user_password()
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
@@ -123,7 +129,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert Accounts.get_user_by_email_and_password(user.email, new_password)
     end
 
-    test "renders errors with invalid data (phx-change)", %{conn: conn} do
+    test "REQ-001-7: invalid new password shows a validation error (phx-change)", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
       result =
@@ -141,7 +147,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert result =~ "does not match password"
     end
 
-    test "renders errors with invalid data (phx-submit)", %{conn: conn} do
+    test "REQ-001-7: invalid new password shows a validation error (phx-submit)", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
       result =
@@ -173,7 +179,12 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       %{conn: log_in_user(conn, user), token: token, email: email, user: user}
     end
 
-    test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do
+    test "REQ-001-6: confirm new email updates the account once", %{
+      conn: conn,
+      user: user,
+      token: token,
+      email: email
+    } do
       {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
 
       assert {:live_redirect, %{to: path, flash: flash}} = redirect
@@ -191,7 +202,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert message == "Email change link is invalid or it has expired."
     end
 
-    test "does not update email with invalid token", %{conn: conn, user: user} do
+    test "REQ-001-6: invalid change-email link is rejected", %{conn: conn, user: user} do
       {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/oops")
       assert {:live_redirect, %{to: path, flash: flash}} = redirect
       assert path == ~p"/users/settings"
@@ -200,7 +211,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert Accounts.get_user_by_email(user.email)
     end
 
-    test "redirects if user is not logged in", %{token: token} do
+    test "REQ-001-1: confirm-email page redirects a visitor to log in", %{token: token} do
       conn = build_conn()
       {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
       assert {:redirect, %{to: path, flash: flash}} = redirect

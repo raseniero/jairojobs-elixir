@@ -5,14 +5,14 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
   import Jairojobs.AccountsFixtures
 
   describe "Registration page" do
-    test "renders registration page", %{conn: conn} do
+    test "REQ-001-1: sign-up page renders without login", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
 
       assert html =~ "Register"
       assert html =~ "Log in"
     end
 
-    test "redirects if already logged in", %{conn: conn} do
+    test "REQ-001-2: sign-up page redirects an already logged-in user", %{conn: conn} do
       result =
         conn
         |> log_in_user(user_fixture())
@@ -22,7 +22,7 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
       assert {:ok, _conn} = result
     end
 
-    test "renders errors for invalid data", %{conn: conn} do
+    test "REQ-001-2: invalid email format shows a validation error", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       result =
@@ -36,7 +36,7 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
   end
 
   describe "register user" do
-    test "creates account but does not log in", %{conn: conn} do
+    test "REQ-001-2: successful sign-up creates the account and emails a link", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       email = unique_user_email()
@@ -50,7 +50,7 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
                ~r/An email was sent to .*, please access it to confirm your account/
     end
 
-    test "renders errors for duplicated email", %{conn: conn} do
+    test "REQ-001-2: existing email does not create a duplicate account", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       user = user_fixture(%{email: "test@email.com"})
@@ -67,7 +67,7 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
   end
 
   describe "registration navigation" do
-    test "redirects to login page when the Log in button is clicked", %{conn: conn} do
+    test "REQ-001-1: sign-up page links to log in", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       {:ok, _login_live, login_html} =
