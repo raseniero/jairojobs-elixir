@@ -88,6 +88,22 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
       assert redirected_to(conn) == ~p"/users/log-in"
     end
+
+    test "REQ-001-5: password login is refused for an unconfirmed email", %{
+      conn: conn,
+      unconfirmed_user: user
+    } do
+      user = set_password(user)
+
+      conn =
+        post(conn, ~p"/users/log-in?mode=password", %{
+          "user" => %{"email" => user.email, "password" => valid_user_password()}
+        })
+
+      refute get_session(conn, :user_token)
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      assert redirected_to(conn) == ~p"/users/log-in"
+    end
   end
 
   describe "POST /users/log-in - magic link" do

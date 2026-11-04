@@ -33,6 +33,12 @@ defmodule Jairojobs.AccountsTest do
       assert %User{id: ^id} =
                Accounts.get_user_by_email_and_password(user.email, valid_user_password())
     end
+
+    test "REQ-001-5: unconfirmed user cannot log in with a password" do
+      user = unconfirmed_user_fixture() |> set_password()
+      refute user.confirmed_at
+      refute Accounts.get_user_by_email_and_password(user.email, valid_user_password())
+    end
   end
 
   describe "get_user!/1" do

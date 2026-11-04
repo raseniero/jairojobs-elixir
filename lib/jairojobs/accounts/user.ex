@@ -129,4 +129,10 @@ defmodule Jairojobs.Accounts.User do
     Bcrypt.no_user_verify()
     false
   end
+
+  @doc """
+  Returns `true` if the user's email has been confirmed.
+  """
+  def confirmed?(%Jairojobs.Accounts.User{confirmed_at: %DateTime{}}), do: true
+  def confirmed?(_), do: false
 end

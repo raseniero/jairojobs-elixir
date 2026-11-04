@@ -29,6 +29,10 @@ defmodule Jairojobs.Accounts do
   @doc """
   Gets a user by email and password.
 
+  Returns `nil` unless the email is confirmed (REQ-001-5): until the first
+  login link is used, no login method may open a session. The password is
+  still verified first so timing does not reveal the confirmation state.
+
   ## Examples
 
       iex> get_user_by_email_and_password("foo@example.com", "correct_password")
@@ -41,7 +45,8 @@ defmodule Jairojobs.Accounts do
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
+
+    if User.valid_password?(user, password) and User.confirmed?(user), do: user
   end
 
   @doc """
