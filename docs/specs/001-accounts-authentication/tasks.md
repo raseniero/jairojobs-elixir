@@ -40,7 +40,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - `mix ecto.migrate`; `mix test` — all generated tests green
   - Commit: `feat(accounts): phx.gen.auth baseline (REQ-001-1..8)`
 
-- [ ] **T5** — Rename generated tests to the `REQ-001-n: <scenario>` convention (plan decision 10)
+- [x] **T5** — Rename generated tests to the `REQ-001-n: <scenario>` convention (plan decision 10) — done 2026-11-04
   - Map each generated test to its scenario in `spec.md`; rename only, no behaviour change
   - Add any scenario the generator doesn't cover (e.g. "Protected page redirects and returns",
     "Expired or used link") as new tests
@@ -128,6 +128,17 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 <!-- Record anything that changed during implementation and why. -->
 
+- T5: two spec scenarios differ from generator behaviour and were **not** changed (rename-only task);
+  they need a decision before T12:
+  - REQ-001-2 "Existing email is not revealed" — the generated sign-up form shows
+    "has already been taken" (enumeration). Options: accept as a spec change, or add a task to
+    show the neutral "check your email" message for existing emails.
+  - REQ-001-5 "Password login requires confirmed email" — `get_user_by_email_and_password/2`
+    does not check `confirmed_at`. The state is unreachable through the UI (a password can only
+    be set in Settings, which requires a confirmed login); the generator raises instead if it is
+    ever hit via magic link. Options: accept as-is with that note, or add a guard + test.
+  Added tests beyond the generator: `REQ-001-1` public home page, protected-page round trip,
+  `REQ-001-3` expired link, `REQ-001-4` used link.
 - T4: the migration already came out with `:utc_datetime_usec` timestamps and `:binary_id` keys
   thanks to the T2 generator config — no manual migration edits were needed. The generator also
   appended an "Authentication" section to `AGENTS.md` (kept).
