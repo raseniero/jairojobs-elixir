@@ -65,7 +65,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     "Invalid email or password" flash, no session)
   - Commit: `feat(accounts): password login requires confirmed email (REQ-001-5)`
 
-- [ ] **T6** — Role column and sign-up selection (REQ-001-2, REQ-001-9)
+- [x] **T6** — Role column and sign-up selection (REQ-001-2, REQ-001-9) — done 2026-11-04
   - Migration `add_role_to_users`: `role :string, null: false` + CHECK constraint,
     `previous_role :string`, `create index(:users, [:role])`
   - `User`: `field :role, Ecto.Enum, values: [:candidate, :employer, :admin]`,
