@@ -149,8 +149,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   (168 tests; per-REQ counts: 1:19, 2:15, 3:7, 4:20, 5:15, 6:20, 7:5, 8:6, 9:24, 10:9, 11:11, 12:5)
 - [x] Authorization tests present for any private resource — Settings (login + sudo),
   promote/demote (scope rules), `require_admin` hook + plug
-- [x] `mix precommit` green locally **and** CI green on `main` — see CI run linked in the
-  final commit of this spec
+- [x] `mix precommit` green locally **and** CI green on `main` — run 41934491805 (commit eea638c)
 - [x] Works at 375 px width — sign-up, home, header and drawer checked in headless Chrome at a
   true 375 px viewport
 - [x] No new deps without a justification line in `plan.md` — only `bcrypt_elixir`
