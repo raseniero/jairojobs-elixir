@@ -48,7 +48,7 @@ Status becomes *Implemented* when the introducing spec is Done.
 
 | Context | Responsibility | Introduced by spec | Status |
 |---|---|---|---|
-| `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope` | 001 | Planned |
+| `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion | 001 | Implemented |
 | `Jairojobs.Regions` | Admin-managed list of PH regions/cities | 002 | Planned |
 | `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed), approval, slugs, salary range | 003, 004, 005 | Planned |
 | `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |

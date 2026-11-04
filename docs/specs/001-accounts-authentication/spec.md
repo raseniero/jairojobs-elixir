@@ -1,6 +1,6 @@
 # 001 — Accounts & Authentication
 
-**Status:** In Progress
+**Status:** Done (2026-11-04)
 **Created:** 2026-10-29
 **Approved:** 2026-10-30
 **Owner:** Jairo
@@ -539,3 +539,4 @@ Scenario: Admin navigation
 | 2026-10-30 | REQ-001-10: added scenario "Unconfirmed user cannot be promoted" (was only in the activity diagram) |
 | 2026-10-31 | Added screen-flow diagram with story → path table |
 | 2026-10-31 | Consistency pass: token lifetimes aligned to generator defaults (7 d email-change, 14 d session, 10 min sudo); Employer nav includes "Post a job" |
+| 2026-11-04 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred to the bootstrap plan Phase 4 |

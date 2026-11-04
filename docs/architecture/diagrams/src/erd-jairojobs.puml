@@ -39,6 +39,7 @@ users ||--o{ users_tokens : "has"
 note bottom of users
   Spec 001. Indexes: unique(email), index(role).
   CHECK role IN ('candidate','employer','admin').
+  CHECK previous_role IS NULL OR IN ('candidate','employer').
 end note
 
 note bottom of users_tokens

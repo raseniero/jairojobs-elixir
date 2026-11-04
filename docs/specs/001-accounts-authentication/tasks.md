@@ -1,6 +1,6 @@
 # 001 — Accounts & Authentication — Tasks
 
-**Status:** Approved (2026-10-31)
+**Status:** Done (2026-11-04)
 **Plan:** [plan.md](./plan.md) (Approved 2026-10-30)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
@@ -134,7 +134,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 ## Phase E — Close
 
-- [ ] **T12** — Docs and DoD
+- [x] **T12** — Docs and DoD — done 2026-11-04
   - `docs/architecture/data-model.md`: tables → *Implemented*; ERD unchanged unless columns differ
   - `docs/architecture/overview.md`: Accounts context → *Implemented*
   - `README.md`: admin command, dev mailbox URL
@@ -142,6 +142,25 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   - Walk the Definition of Done checklist (constitution §7); note "Deployed to Fly.io" as
     deferred until Phase 4 of the bootstrap plan
   - Commit: `docs(spec 001): mark done`
+
+## Definition of Done (constitution §7) — walked 2026-11-04
+
+- [x] Every REQ in the spec has a passing, REQ-named test — REQ-001-1…12 all covered
+  (168 tests; per-REQ counts: 1:19, 2:15, 3:7, 4:20, 5:15, 6:20, 7:5, 8:6, 9:24, 10:9, 11:11, 12:5)
+- [x] Authorization tests present for any private resource — Settings (login + sudo),
+  promote/demote (scope rules), `require_admin` hook + plug
+- [x] `mix precommit` green locally **and** CI green on `main` — see CI run linked in the
+  final commit of this spec
+- [x] Works at 375 px width — sign-up, home, header and drawer checked in headless Chrome at a
+  true 375 px viewport
+- [x] No new deps without a justification line in `plan.md` — only `bcrypt_elixir`
+  (generator default, plan §Approach)
+- [x] `docs/architecture/` updated — data-model (tables Implemented, ERD regenerated with the
+  `previous_role` CHECK), overview (Accounts Implemented)
+- [x] `tasks.md` checked off; spec status set to `Done` — spec, plan, tasks and the spec 000
+  feature map all updated
+- [ ] Deployed to Fly.io and smoke-checked — **deferred** until bootstrap plan Phase 4 creates
+  the deployment (`Jairojobs.Release.promote_admin/1` lands there too)
 
 ## Notes / deviations from plan
 

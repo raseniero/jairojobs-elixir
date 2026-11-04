@@ -1,7 +1,7 @@
 # 001 — Accounts & Authentication — Plan
 
-**Status:** Approved
-**Spec:** [spec.md](./spec.md) (Approved 2026-10-30)
+**Status:** Done (2026-11-04)
+**Spec:** [spec.md](./spec.md) (Done 2026-11-04)
 **Created:** 2026-10-30
 **Approved:** 2026-10-30
 
