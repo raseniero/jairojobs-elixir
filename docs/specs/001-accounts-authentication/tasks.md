@@ -115,7 +115,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
 
 ## Phase D — Design foundation and navigation
 
-- [ ] **T10b** — Apply the design guide theme (`docs/design.md` §3)
+- [x] **T10b** — Apply the design guide theme (`docs/design.md` §3) — done 2026-11-04
   - `assets/css/app.css`: replace generated `light` + `dark` theme blocks with the single
     `jairojobs` theme; remove the theme toggle from `layouts.ex` / `root.html.heex`
   - `core_components.ex`: adjust button/input defaults only where they conflict with the
