@@ -37,6 +37,55 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
     end
   end
 
+  describe "account type" do
+    test "REQ-001-9: role shown in Settings as a read-only label", %{conn: conn} do
+      for {role, label} <- [candidate: "Candidate", employer: "Employer"] do
+        {:ok, lv, _html} =
+          conn
+          |> log_in_user(user_fixture(role: to_string(role)))
+          |> live(~p"/users/settings")
+
+        assert has_element?(lv, "#account_type", label)
+        refute has_element?(lv, "input[name='user[role]']")
+        refute has_element?(lv, "select[name='user[role]']")
+      end
+    end
+
+    test "REQ-001-9: admin role is shown as Admin", %{conn: conn} do
+      user = user_fixture()
+      {:ok, user} = user |> Ecto.Changeset.change(role: :admin) |> Jairojobs.Repo.update()
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/settings")
+
+      assert has_element?(lv, "#account_type", "Admin")
+    end
+
+    test "REQ-001-9: users cannot change their own role", %{conn: conn} do
+      user = user_fixture(role: "candidate")
+      conn = log_in_user(conn, user)
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      # Submit a forged role param alongside each settings form.
+      lv
+      |> form("#email_form", %{"user" => %{"email" => unique_user_email()}})
+      |> render_submit(%{"user" => %{"role" => "admin"}})
+
+      lv
+      |> form("#password_form", %{
+        "user" => %{
+          "password" => valid_user_password(),
+          "password_confirmation" => valid_user_password()
+        }
+      })
+      |> render_submit(%{"user" => %{"role" => "admin"}})
+
+      assert Accounts.get_user!(user.id).role == :candidate
+    end
+  end
+
   describe "update email form" do
     setup %{conn: conn} do
       user = user_fixture()

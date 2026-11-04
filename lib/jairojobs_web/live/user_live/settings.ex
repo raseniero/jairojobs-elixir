@@ -16,6 +16,19 @@ defmodule JairojobsWeb.UserLive.Settings do
         </.header>
       </div>
 
+      <%!-- spec 001 — REQ-001-9: role is read-only here; it is never cast from Settings --%>
+      <div class="fieldset mb-2">
+        <span class="label mb-1">Account type</span>
+        <div class="flex items-center gap-2">
+          <span id="account_type" class="badge badge-outline badge-lg">
+            {role_label(@current_scope)}
+          </span>
+          <span class="text-sm text-base-content/70">Account type can't be changed here.</span>
+        </div>
+      </div>
+
+      <div class="divider" />
+
       <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
         <.input
           field={@email_form[:email]}
@@ -67,6 +80,14 @@ defmodule JairojobsWeb.UserLive.Settings do
       </.form>
     </Layouts.app>
     """
+  end
+
+  defp role_label(scope) do
+    case Jairojobs.Accounts.Scope.role(scope) do
+      :candidate -> "Candidate"
+      :employer -> "Employer"
+      :admin -> "Admin"
+    end
   end
 
   @impl true
