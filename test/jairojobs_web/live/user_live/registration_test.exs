@@ -5,6 +5,7 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
   import Jairojobs.AccountsFixtures
   import Swoosh.TestAssertions
 
+  alias Jairojobs.Accounts
   alias Jairojobs.Accounts.User
   alias Jairojobs.Repo
 
@@ -37,6 +38,14 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
       assert result =~ "Register"
       assert result =~ "must have the @ sign and no spaces"
     end
+
+    test "REQ-001-2: sign-up offers candidate and employer roles only", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      assert has_element?(lv, "#user_role_candidate[type=radio][value=candidate]")
+      assert has_element?(lv, "#user_role_employer[type=radio][value=employer]")
+      refute has_element?(lv, "input[name='user[role]'][value=admin]")
+    end
   end
 
   describe "register user" do
@@ -54,6 +63,37 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
                ~r/An email was sent to .*, please access it to confirm your account/
     end
 
+    test "REQ-001-2: missing role shows a validation error and creates no account", %{
+      conn: conn
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+      users_before = Repo.aggregate(User, :count)
+      email = unique_user_email()
+
+      result =
+        lv
+        |> form("#registration_form", user: %{"email" => email})
+        |> render_submit()
+
+      assert result =~ "can&#39;t be blank"
+      assert Repo.aggregate(User, :count) == users_before
+      refute Accounts.get_user_by_email(email)
+    end
+
+    test "REQ-001-2: forged admin role is rejected", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+      email = unique_user_email()
+
+      # The form never offers admin; submit the param directly as an attacker would.
+      result =
+        lv
+        |> form("#registration_form", user: %{"email" => email})
+        |> render_submit(%{"user" => %{"email" => email, "role" => "admin"}})
+
+      assert result =~ "is invalid"
+      refute Accounts.get_user_by_email(email)
+    end
+
     test "REQ-001-2: existing email is not revealed", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
@@ -63,7 +103,8 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
       assert_email_sent(subject: "Confirmation instructions")
       users_before = Repo.aggregate(User, :count)
 
-      form = form(lv, "#registration_form", user: %{"email" => user.email})
+      form =
+        form(lv, "#registration_form", user: %{"email" => user.email, "role" => "candidate"})
 
       {:ok, _lv, html} =
         render_submit(form)

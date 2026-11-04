@@ -91,6 +91,26 @@ defmodule Jairojobs.AccountsTest do
       assert is_nil(user.confirmed_at)
       assert is_nil(user.password)
     end
+
+    test "REQ-001-2: successful sign-up persists the chosen role" do
+      {:ok, user} = Accounts.register_user(valid_user_attributes(role: "employer"))
+      assert user.role == :employer
+      assert Accounts.get_user!(user.id).role == :employer
+      assert is_nil(user.previous_role)
+    end
+
+    test "REQ-001-2: missing role is rejected" do
+      {:error, changeset} = Accounts.register_user(%{email: unique_user_email()})
+      assert %{role: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "REQ-001-2: forged admin role is rejected" do
+      {:error, changeset} = Accounts.register_user(valid_user_attributes(role: "admin"))
+      assert %{role: ["is invalid"]} = errors_on(changeset)
+
+      {:error, changeset} = Accounts.register_user(valid_user_attributes(role: "superuser"))
+      assert %{role: ["is invalid"]} = errors_on(changeset)
+    end
   end
 
   describe "sudo_mode?/2" do

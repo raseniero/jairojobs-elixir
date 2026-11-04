@@ -9,7 +9,33 @@ defmodule Jairojobs.Accounts.User do
     field :confirmed_at, :utc_datetime_usec
     field :authenticated_at, :utc_datetime_usec, virtual: true
 
+    # spec 001 — exactly one role per account (REQ-001-9); previous_role is
+    # remembered on promotion so demotion can restore it (REQ-001-11).
+    field :role, Ecto.Enum, values: [:candidate, :employer, :admin]
+    field :previous_role, Ecto.Enum, values: [:candidate, :employer]
+
     timestamps()
+  end
+
+  @signup_roles [:candidate, :employer]
+
+  @doc """
+  Roles a visitor may choose at sign-up. `admin` is never offered (REQ-001-2 rule).
+  """
+  def signup_roles, do: @signup_roles
+
+  @doc """
+  A user changeset for sign-up: email plus a role chosen from `signup_roles/0`
+  (REQ-001-2). A forged `admin` role is rejected by `validate_inclusion`.
+
+  Accepts the same options as `email_changeset/3`.
+  """
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :role])
+    |> validate_email(opts)
+    |> validate_required([:role])
+    |> validate_inclusion(:role, @signup_roles)
   end
 
   @doc """

@@ -68,21 +68,30 @@ defmodule Jairojobs.Accounts do
   ## User registration
 
   @doc """
-  Registers a user.
+  Registers a user with an email and a sign-up role (REQ-001-2).
 
   ## Examples
 
-      iex> register_user(%{field: value})
+      iex> register_user(%{email: "me@example.com", role: "candidate"})
       {:ok, %User{}}
 
-      iex> register_user(%{field: bad_value})
+      iex> register_user(%{email: "me@example.com", role: "admin"})
       {:error, %Ecto.Changeset{}}
 
   """
   def register_user(attrs) do
     %User{}
-    |> User.email_changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for the sign-up form.
+
+  See `Jairojobs.Accounts.User.registration_changeset/3` for supported options.
+  """
+  def change_user_registration(user, attrs \\ %{}, opts \\ []) do
+    User.registration_changeset(user, attrs, opts)
   end
 
   ## Settings

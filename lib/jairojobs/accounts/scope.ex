@@ -30,4 +30,17 @@ defmodule Jairojobs.Accounts.Scope do
   end
 
   def for_user(nil), do: nil
+
+  # spec 001 — REQ-001-9: the role travels with the scope.
+
+  @doc """
+  The role of the scoped user, or `nil` for a visitor.
+  """
+  def role(%__MODULE__{user: %User{role: role}}), do: role
+  def role(_scope), do: nil
+
+  @doc """
+  `true` when the scoped user is an admin.
+  """
+  def admin?(scope), do: role(scope) == :admin
 end

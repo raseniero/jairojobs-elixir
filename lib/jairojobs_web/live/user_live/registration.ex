@@ -33,6 +33,40 @@ defmodule JairojobsWeb.UserLive.Registration do
             phx-mounted={JS.focus()}
           />
 
+          <%!-- spec 001 — REQ-001-2: role chosen at sign-up; admin is never offered --%>
+          <fieldset class="fieldset mb-2" id="registration_role">
+            <legend class="fieldset-legend">I am…</legend>
+            <div class="grid grid-cols-2 gap-2">
+              <label
+                :for={{role, label} <- role_options()}
+                for={"user_role_#{role}"}
+                class={[
+                  "flex cursor-pointer items-center gap-3 rounded-box border border-base-300",
+                  "px-4 py-3 transition-colors hover:border-primary",
+                  "has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                ]}
+              >
+                <input
+                  type="radio"
+                  id={"user_role_#{role}"}
+                  name={@form[:role].name}
+                  value={role}
+                  checked={to_string(@form[:role].value) == to_string(role)}
+                  class="radio radio-primary radio-sm"
+                  required
+                />
+                <span class="text-sm font-medium">{label}</span>
+              </label>
+            </div>
+            <p
+              :for={msg <- role_errors(@form)}
+              class="mt-1.5 flex gap-2 items-center text-sm text-error"
+            >
+              <.icon name="hero-exclamation-circle" class="size-5" />
+              {msg}
+            </p>
+          </fieldset>
+
           <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
             Create an account
           </.button>
@@ -49,7 +83,7 @@ defmodule JairojobsWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    changeset = Accounts.change_user_registration(%User{}, %{}, validate_unique: false)
 
     {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
   end
@@ -79,7 +113,7 @@ defmodule JairojobsWeb.UserLive.Registration do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
+    changeset = Accounts.change_user_registration(%User{}, user_params, validate_unique: false)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
@@ -90,6 +124,21 @@ defmodule JairojobsWeb.UserLive.Registration do
       "An email was sent to #{email}, please access it to confirm your account."
     )
     |> push_navigate(to: ~p"/users/log-in")
+  end
+
+  defp role_options do
+    [candidate: "Looking for work", employer: "Hiring"]
+  end
+
+  defp role_errors(form) do
+    field = form[:role]
+    # An untouched radio group sends no param at all, so `used_input?` stays false even
+    # on submit; show its errors once the form has been submitted.
+    submitted? = form.source.action == :insert
+
+    if submitted? or Phoenix.Component.used_input?(field),
+      do: Enum.map(field.errors, &translate_error/1),
+      else: []
   end
 
   defp email_taken_only?(%Ecto.Changeset{errors: [email: {_msg, opts}]}) do
