@@ -64,16 +64,17 @@ defmodule JairojobsWeb.UserLive.Registration do
             &url(~p"/users/log-in/#{&1}")
           )
 
-        {:noreply,
-         socket
-         |> put_flash(
-           :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
-         )
-         |> push_navigate(to: ~p"/users/log-in")}
+        {:noreply, check_your_email(socket, user.email)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
+        # REQ-001-2: an existing email must not be revealed. If the only problem is that the
+        # address is already registered, respond exactly like a successful sign-up — but
+        # create nothing and send nothing.
+        if email_taken_only?(changeset) do
+          {:noreply, check_your_email(socket, Ecto.Changeset.get_field(changeset, :email))}
+        else
+          {:noreply, assign_form(socket, changeset)}
+        end
     end
   end
 
@@ -81,6 +82,21 @@ defmodule JairojobsWeb.UserLive.Registration do
     changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
+
+  defp check_your_email(socket, email) do
+    socket
+    |> put_flash(
+      :info,
+      "An email was sent to #{email}, please access it to confirm your account."
+    )
+    |> push_navigate(to: ~p"/users/log-in")
+  end
+
+  defp email_taken_only?(%Ecto.Changeset{errors: [email: {_msg, opts}]}) do
+    opts[:constraint] == :unique or opts[:validation] == :unsafe_unique
+  end
+
+  defp email_taken_only?(_changeset), do: false
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: "user")

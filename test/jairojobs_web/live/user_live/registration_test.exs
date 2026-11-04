@@ -3,6 +3,10 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
 
   import Phoenix.LiveViewTest
   import Jairojobs.AccountsFixtures
+  import Swoosh.TestAssertions
+
+  alias Jairojobs.Accounts.User
+  alias Jairojobs.Repo
 
   describe "Registration page" do
     test "REQ-001-1: sign-up page renders without login", %{conn: conn} do
@@ -50,19 +54,28 @@ defmodule JairojobsWeb.UserLive.RegistrationTest do
                ~r/An email was sent to .*, please access it to confirm your account/
     end
 
-    test "REQ-001-2: existing email does not create a duplicate account", %{conn: conn} do
+    test "REQ-001-2: existing email is not revealed", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       user = user_fixture(%{email: "test@email.com"})
+      # The fixture confirms the user via a magic link; drain that email so the
+      # assertion below only sees mail triggered by the sign-up submit.
+      assert_email_sent(subject: "Confirmation instructions")
+      users_before = Repo.aggregate(User, :count)
 
-      result =
-        lv
-        |> form("#registration_form",
-          user: %{"email" => user.email}
-        )
-        |> render_submit()
+      form = form(lv, "#registration_form", user: %{"email" => user.email})
 
-      assert result =~ "has already been taken"
+      {:ok, _lv, html} =
+        render_submit(form)
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      refute html =~ "has already been taken"
+
+      assert html =~
+               ~r/An email was sent to .*, please access it to confirm your account/
+
+      assert Repo.aggregate(User, :count) == users_before
+      refute_email_sent()
     end
   end
 
