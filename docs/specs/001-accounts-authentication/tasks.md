@@ -57,7 +57,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     (`refute_email_sent` via `Swoosh.TestAssertions`); keep the context-level uniqueness test
   - Commit: `feat(accounts): neutral sign-up response for existing emails (REQ-001-2)`
 
-- [ ] **T5c** — Password login requires a confirmed email (REQ-001-5 "Password login requires confirmed email")
+- [x] **T5c** — Password login requires a confirmed email (REQ-001-5 "Password login requires confirmed email") — done 2026-11-04
   - `Accounts.get_user_by_email_and_password/2`: return `nil` unless `user.confirmed_at` is set
     (still run `Bcrypt.no_user_verify/0` path for timing parity)
   - Tests: context `REQ-001-5: unconfirmed user cannot log in with a password`; controller
