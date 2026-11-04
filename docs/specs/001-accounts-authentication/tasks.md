@@ -77,7 +77,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
     `REQ-001-2: forged admin role is rejected`, `REQ-001-9: role available in scope`
   - Commit: `feat(accounts): user role chosen at sign-up (REQ-001-2, REQ-001-9)`
 
-- [ ] **T7** — Read-only role label in Settings (REQ-001-9)
+- [x] **T7** — Read-only role label in Settings (REQ-001-9) — done 2026-11-04
   - `UserLive.Settings`: show "Account type: Candidate / Employer / Admin"; `role` never cast
   - Tests: `REQ-001-9: role shown in Settings`, `REQ-001-9: users cannot change their own role`
     (submitting `role` param is ignored)
