@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :jairojobs, :scopes,
+  user: [
+    default: true,
+    module: Jairojobs.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :binary_id,
+    schema_table: :users,
+    test_data_fixture: Jairojobs.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :jairojobs,
   ecto_repos: [Jairojobs.Repo],
   generators: [binary_id: true, timestamp_type: :utc_datetime_usec]
