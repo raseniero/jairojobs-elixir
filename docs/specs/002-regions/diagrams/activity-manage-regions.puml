@@ -1,0 +1,48 @@
+@startuml activity-manage-regions
+' Spec 002 — Admin lists, adds, renames, hides / unhides regions (REQ-002-1..4)
+title Admin manages regions (REQ-002-1/2/3/4)
+
+start
+:Open /admin/regions;
+if (Logged in?) then (no)
+  :Redirect to log in;
+  stop
+else (yes)
+endif
+if (Admin?) then (no)
+  :Refuse — send home with message;
+  stop
+else (yes)
+endif
+:Show all regions, A→Z,
+hidden ones marked;
+switch (Action)
+case (add)
+  :Enter name;
+  :Trim; derive slug from name;
+  if (Name blank or > 80 chars?) then (yes)
+    :Validation error;
+    stop
+  endif
+  if (Name taken (case-insensitive)\nor slug taken?) then (yes)
+    :Validation error;
+    stop
+  endif
+  :Create region (active);
+case (rename)
+  :Enter new name;
+  if (Blank / too long / taken?) then (yes)
+    :Validation error;
+    stop
+  endif
+  :Save name — slug unchanged;
+case (hide / unhide)
+  :Toggle active flag;
+  note right
+    No delete. Listings and
+    links keep working.
+  end note
+endswitch
+:List refreshes;
+stop
+@enduml

@@ -1,0 +1,26 @@
+@startuml state-region
+' Spec 002 — region lifecycle. Must agree with REQ-002-4 and REQ-002-6.
+' No delete: a region is only ever hidden.
+
+hide empty description
+skinparam state {
+  BackgroundColor<<hidden>> #E8E8E8
+}
+
+state Active
+state Hidden <<hidden>>
+
+[*] --> Active : admin adds\n(or seed)
+Active : offered to employers (003) and visitors (005)
+Active : can be renamed (slug fixed)
+Active --> Hidden : admin hides
+Hidden : not offered in pickers or public index
+Hidden : still resolves by slug; listings untouched
+Hidden : can be renamed (slug fixed)
+Hidden --> Active : admin unhides
+
+note right of Hidden
+  There is no delete.
+  Listings keep referencing the region.
+end note
+@enduml

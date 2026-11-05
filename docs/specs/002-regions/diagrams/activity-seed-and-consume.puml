@@ -1,0 +1,32 @@
+@startuml activity-seed-and-consume
+' Spec 002 — launch regions are seeded (REQ-002-5); other features consume active regions (REQ-002-6)
+title Seed launch regions and consume the list (REQ-002-5/6)
+
+start
+:Operator runs seeds (fresh install
+or again later);
+repeat
+  :Next launch region
+  (Davao City, Cebu, Metro Manila);
+  if (Region with this slug exists?) then (yes)
+    :Skip — keep admin's edits;
+  else (no)
+    :Insert as active;
+  endif
+repeat while (More launch regions?) is (yes)
+->no;
+:Seed done;
+
+:A consuming feature (003 / 005 / 010)
+asks for regions to offer users;
+:Receive active regions only, A→Z;
+:Look up a region by slug
+(from a URL or a listing);
+if (Found?) then (yes)
+  :Use it — even if hidden
+  (old links keep resolving);
+else (no)
+  :Not found;
+endif
+stop
+@enduml

@@ -1,0 +1,67 @@
+@startuml screenflow-regions
+' Spec 002 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
+' Every user story US-002-1..6 is a path through this diagram (see table in spec.md).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #f8fafc
+  BackgroundColor<<terminal>> #f1f5f9
+  BorderColor #94a3b8
+  FontSize 12
+}
+skinparam arrowFontSize 11
+
+title Spec 002 — screen flow (375 px, Admin)
+
+state "Drawer (☰)" as Drawer <<public>>
+Drawer : Admin: Browse · Admin · Settings · Log out
+
+state "Admin" as Admin
+Admin : Regions
+Admin : (more sections arrive with 004 / 008)
+
+state "Regions" as Regions
+Regions : [ + Add region ]
+Regions : Cebu              [Edit] [Hide]
+Regions : Davao City        [Edit] [Hide]
+Regions : Metro Manila      [Edit] [Hide]
+Regions : Baguio  (hidden)  [Edit] [Show]
+Regions : "Hidden regions stay on existing\nlistings but can't be chosen."
+
+state "New region" as New
+New : Name ______________
+New : "We'll make the web address\nfrom the name: /jobs/<slug>"
+New : [ Add region ]   Cancel
+
+state "Edit region" as Edit
+Edit : Name ______________
+Edit : Address: /jobs/davao-city (fixed)
+Edit : [ Save ]   Cancel
+
+state "Operator terminal" as Terminal <<terminal>>
+Terminal : mix ecto.setup / mix run priv/repo/seeds.exs
+Terminal : (prod: release migrate + seed)
+
+[*] --> Drawer : logged in as Admin
+Drawer --> Admin : Admin
+Admin --> Regions : Regions
+Regions --> New : + Add region
+New --> Regions : save (row added)
+New --> New : validation error
+New --> Regions : cancel
+Regions --> Edit : Edit
+Edit --> Regions : save (row renamed)
+Edit --> Edit : validation error
+Edit --> Regions : cancel
+Regions --> Regions : Hide / Show\n(row toggles)
+Terminal --> Regions : seed creates the\nthree launch regions
+Terminal -[hidden]-> Drawer
+
+legend right
+  |= Shade |= Meaning |
+  | light grey | shared navigation |
+  | slate | operator only, not a screen |
+endlegend
+
+@enduml
