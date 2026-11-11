@@ -226,7 +226,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Form do
   defp locked_reason(%Listing{status: :taken_down}), do: "taken down"
   defp locked_reason(%Listing{}), do: "locked"
 
-  defp show_path(%Listing{id: id}), do: "/my/listings/#{id}"
+  defp show_path(%Listing{id: id}), do: ~p"/my/listings/#{id}"
 
   # Active regions, plus the listing's own region if an Admin has hidden it since:
   # editing must never silently clear it. Submitting then asks for another region.

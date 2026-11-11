@@ -133,7 +133,7 @@ see them fail, then implement.
     `REQ-003-14: another employer's listing is not found` (edit)
   - Commit: `feat(web): listing form for drafts (REQ-003-3, REQ-003-5)`
 
-- [ ] **T9** — Owner view and its actions (REQ-003-6 to -12, -14)
+- [x] **T9** — Owner view and its actions (REQ-003-6 to -12, -14) — done 2026-11-11
   - `ListingComponents.listing_detail/1`
   - Router: `live "/listings/:id", ListingLive.Show, :show`
   - `Employer.ListingLive.Show`: status box, missing fields, rejection reason, actions by

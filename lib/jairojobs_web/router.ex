@@ -84,6 +84,7 @@ defmodule JairojobsWeb.Router do
       live "/business", BusinessLive, :edit
       live "/listings", ListingLive.Index, :index
       live "/listings/new", ListingLive.Form, :new
+      live "/listings/:id", ListingLive.Show, :show
       live "/listings/:id/edit", ListingLive.Form, :edit
     end
   end

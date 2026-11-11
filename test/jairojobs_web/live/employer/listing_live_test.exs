@@ -37,6 +37,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       for path <- [
             ~p"/my/listings",
             ~p"/my/listings/new",
+            ~p"/my/listings/#{listing.id}",
             ~p"/my/listings/#{listing.id}/edit"
           ] do
         assert {:error, {:redirect, %{to: "/", flash: flash}}} = live(conn, path)
@@ -50,6 +51,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       for path <- [
             ~p"/my/listings",
             ~p"/my/listings/new",
+            ~p"/my/listings/#{listing.id}",
             ~p"/my/listings/#{listing.id}/edit"
           ] do
         assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, path)
@@ -465,6 +467,292 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       assert_raise Ecto.NoResultsError, fn ->
         live(conn, ~p"/my/listings/#{Ecto.UUID.generate()}/edit")
       end
+    end
+  end
+
+  describe "owner view" do
+    setup :log_in_employer
+
+    defp action_ids(view) do
+      for id <- ~w(submit-listing edit-listing withdraw-listing close-listing delete-listing),
+          has_element?(view, "#listing-status-box ##{id}"),
+          do: id
+    end
+
+    test "REQ-003-10: owner view of a draft", %{conn: conn, scope: scope} do
+      region = region_fixture()
+
+      listing =
+        listing_fixture(
+          scope,
+          complete_listing_attrs(title: "Barista (full-time)", region_id: region.id)
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings")
+
+      {:ok, view, _html} =
+        view
+        |> element("#my-listings-#{listing.id} a")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/my/listings/#{listing.id}")
+
+      assert text(view, "#listing-status-#{listing.id}") == "Draft"
+      assert text(view, "#listing-status-box") =~ "only you can see this"
+      refute has_element?(view, "#listing-missing")
+      assert action_ids(view) == ~w(submit-listing edit-listing delete-listing)
+
+      assert text(view, "#listing-title") == "Barista (full-time)"
+      assert text(view, "#listing-business") == "Kape Isla"
+      assert text(view, "#listing-salary") == "₱14,000–16,000 / month"
+      assert text(view, "#listing-location") == "Matina, #{region.name}"
+      assert text(view, "#listing-type") == "Full-time"
+      assert text(view, "#listing-schedule") == "Shifting, 6 days"
+
+      detail = text(view, "#listing-detail")
+      assert detail =~ "neighbourhood café"
+      assert detail =~ "At least 18 years old"
+      assert detail =~ "Free meals on shift"
+    end
+
+    test "REQ-003-10: unfinished draft shows what is missing", %{conn: conn, scope: scope} do
+      listing = listing_fixture(scope, %{title: "Dishwasher"})
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      missing = text(view, "#listing-missing")
+
+      for label <- ["Region", "Area", "Salary", "Type", "About the job"] do
+        assert missing =~ label
+      end
+
+      assert text(view, "#listing-title") == "Dishwasher"
+    end
+
+    test "REQ-003-10: actions follow the status", %{conn: conn, scope: scope} do
+      expected = %{
+        draft: ~w(submit-listing edit-listing delete-listing),
+        pending: ~w(withdraw-listing),
+        rejected: ~w(submit-listing edit-listing delete-listing),
+        published: ~w(close-listing),
+        closed: [],
+        taken_down: []
+      }
+
+      for {status, actions} <- expected do
+        listing = listing_in_status_fixture(scope, status)
+        {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+        assert {status, action_ids(view)} == {status, actions}
+        assert has_element?(view, "#listing-detail")
+      end
+    end
+
+    test "REQ-003-10: a draft shows my current business details, a live listing its own copy",
+         %{conn: conn, scope: scope} do
+      live_listing = listing_in_status_fixture(scope, :published)
+      draft = listing_fixture(scope, complete_listing_attrs())
+
+      {:ok, _user} =
+        Jairojobs.Accounts.update_business_details(scope, %{
+          business_name: "Renamed Café",
+          business_about: "New owners."
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{draft.id}")
+      assert text(view, "#listing-business") == "Renamed Café"
+      assert text(view, "#listing-detail") =~ "New owners."
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{live_listing.id}")
+      assert text(view, "#listing-business") == "Kape Isla"
+      refute text(view, "#listing-detail") =~ "New owners."
+    end
+
+    test "REQ-003-5: pending listing is locked", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :pending)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      refute has_element?(view, "#edit-listing")
+      assert text(view, "#listing-status-box") =~ "withdraw it"
+    end
+
+    test "REQ-003-5: live listing is locked", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :published)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      refute has_element?(view, "#edit-listing")
+      assert text(view, "#listing-status-box") =~ "can't be edited"
+    end
+
+    test "REQ-003-6: submit a complete draft", %{conn: conn, scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      view |> element("#submit-listing") |> render_click()
+
+      assert text(view, "#listing-status-#{listing.id}") == "Waiting for approval"
+      assert text(view, "#listing-status-box") =~ "An admin will check it before it goes live"
+      assert action_ids(view) == ~w(withdraw-listing)
+      assert Listings.get_my_listing!(scope, listing.id).status == :pending
+    end
+
+    test "REQ-003-6: incomplete draft cannot be submitted", %{conn: conn, scope: scope} do
+      listing =
+        listing_fixture(
+          scope,
+          complete_listing_attrs(salary_min: nil, salary_max: nil, description: nil)
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      html = view |> element("#submit-listing") |> render_click()
+
+      assert html =~ "Still needed: Salary, About the job"
+      assert text(view, "#listing-status-#{listing.id}") == "Draft"
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+    end
+
+    test "REQ-003-6: region was hidden in the meantime", %{conn: conn, scope: scope} do
+      region = region_fixture()
+      listing = listing_fixture(scope, complete_listing_attrs(region_id: region.id))
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin_scope_fixture(), region)
+
+      assert view |> element("#submit-listing") |> render_click() =~ "choose another region"
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+    end
+
+    test "REQ-003-12: limit reached", %{conn: conn, scope: scope} do
+      for status <- [:pending, :published, :published],
+          do: listing_in_status_fixture(scope, status)
+
+      listing = listing_fixture(scope, complete_listing_attrs())
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      html = view |> element("#submit-listing") |> render_click()
+
+      assert html =~ "You can have 3 open listings at a time"
+      assert html =~ "close or withdraw one to post another"
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+    end
+
+    test "REQ-003-7: withdraw", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :pending)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      view |> element("#withdraw-listing") |> render_click()
+
+      assert text(view, "#listing-status-#{listing.id}") == "Draft"
+      assert has_element?(view, "#edit-listing")
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+    end
+
+    test "REQ-003-8: see the reason", %{conn: conn, scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      set_listing_status(listing, :rejected, reason: "Salary looks like a typo")
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      assert text(view, "#listing-status-#{listing.id}") == "Needs changes"
+      assert text(view, "#listing-rejection-reason") =~ "Salary looks like a typo"
+    end
+
+    test "REQ-003-8: fix and resubmit", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :rejected)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      {:ok, form, _html} =
+        view
+        |> element("#edit-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/my/listings/#{listing.id}/edit")
+
+      {:ok, view, _html} =
+        form
+        |> form("#listing-form", listing: %{salary_max: "18000"})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/my/listings/#{listing.id}")
+
+      assert text(view, "#listing-salary") == "₱14,000–18,000 / month"
+      assert text(view, "#submit-listing") == "Resubmit"
+
+      view |> element("#submit-listing") |> render_click()
+
+      assert text(view, "#listing-status-#{listing.id}") == "Waiting for approval"
+      refute has_element?(view, "#listing-rejection-reason")
+    end
+
+    test "REQ-003-9: close", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :published)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      view |> element("#close-listing") |> render_click()
+
+      assert text(view, "#listing-status-#{listing.id}") == "Closed"
+      assert action_ids(view) == []
+      assert Listings.get_my_listing!(scope, listing.id).status == :closed
+
+      {:ok, list, _html} = live(conn, ~p"/my/listings")
+      assert has_element?(list, "#my-listings-#{listing.id}")
+    end
+
+    test "REQ-003-9: closing asks first", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :published)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      confirm =
+        view
+        |> element("#close-listing")
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.attribute("data-confirm")
+
+      assert [message] = confirm
+      assert message =~ "can't be reopened"
+    end
+
+    test "REQ-003-11: delete a draft", %{conn: conn, scope: scope} do
+      listing = listing_fixture(scope)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      assert view
+             |> element("#delete-listing")
+             |> render()
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.attribute("data-confirm") != []
+
+      {:ok, list, _html} =
+        view
+        |> element("#delete-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/my/listings")
+
+      refute has_element?(list, "#my-listings-#{listing.id}")
+      assert Listings.list_my_listings(scope) == []
+
+      assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/my/listings/#{listing.id}") end
+    end
+
+    test "REQ-003-11: other listings cannot be deleted", %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :published)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      refute has_element?(view, "#delete-listing")
+      render_click(view, "delete")
+
+      assert Listings.get_my_listing!(scope, listing.id).status == :published
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{conn: conn} do
+      theirs = listing_in_status_fixture(employer_scope_fixture(), :published)
+
+      assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/my/listings/#{theirs.id}") end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        live(conn, ~p"/my/listings/#{Ecto.UUID.generate()}")
+      end
+
+      assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/my/listings/not-a-uuid") end
     end
   end
 end
