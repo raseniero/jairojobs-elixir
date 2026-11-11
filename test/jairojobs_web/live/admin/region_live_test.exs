@@ -168,7 +168,7 @@ defmodule JairojobsWeb.Admin.RegionLiveTest do
 
       for name <- ["cebu", " Cebu "] do
         html = view |> form("#region-form", region: %{name: name}) |> render_submit()
-        assert html =~ "is already a region"
+        assert html =~ "is already used by another region"
       end
 
       assert has_element?(view, "#region-form")
@@ -196,7 +196,7 @@ defmodule JairojobsWeb.Admin.RegionLiveTest do
       {:ok, view, _html} = live(conn, ~p"/admin/regions/new")
 
       assert view |> form("#region-form", region: %{name: "Cebu!"}) |> render_submit() =~
-               "makes a web address that another region already uses"
+               "makes a web address another region already uses"
 
       assert [%{name: "Cebu"}] = Regions.list_regions()
     end
@@ -251,7 +251,7 @@ defmodule JairojobsWeb.Admin.RegionLiveTest do
       {:ok, view, _html} = live(conn, ~p"/admin/regions/#{davao.id}/edit")
 
       assert view |> form("#region-form", region: %{name: "Cebu"}) |> render_submit() =~
-               "is already a region"
+               "is already used by another region"
 
       assert Regions.get_region!(davao.id).name == "Davao City"
     end

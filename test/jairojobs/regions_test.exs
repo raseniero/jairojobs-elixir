@@ -64,7 +64,7 @@ defmodule Jairojobs.RegionsTest do
 
       assert {:error, changeset} = Regions.create_region(admin, %{name: "Cebu!"})
 
-      assert "makes a web address that another region already uses" in errors_on(changeset).name
+      assert "makes a web address another region already uses" in errors_on(changeset).name
 
       assert [%Region{name: "Cebu"}] = Regions.list_regions()
     end
@@ -89,7 +89,7 @@ defmodule Jairojobs.RegionsTest do
 
     test "REQ-002-2: a name with no letters or digits is rejected", %{admin: admin} do
       assert {:error, changeset} = Regions.create_region(admin, %{name: "!!!"})
-      assert "must contain at least one letter or number" in errors_on(changeset).name
+      assert "needs at least one letter or number" in errors_on(changeset).name
     end
 
     test "REQ-002-2: slug and active cannot be set from params", %{admin: admin} do
@@ -135,7 +135,7 @@ defmodule Jairojobs.RegionsTest do
 
       for name <- ["Cebu", "cebu "] do
         assert {:error, changeset} = Regions.rename_region(admin, davao, %{name: name})
-        assert "is already a region" in errors_on(changeset).name
+        assert "is already used by another region" in errors_on(changeset).name
       end
 
       assert Regions.get_region!(davao.id).name == "Davao City"

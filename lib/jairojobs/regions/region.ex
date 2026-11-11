@@ -31,7 +31,7 @@ defmodule Jairojobs.Regions.Region do
     |> put_slug()
     |> unique_constraint(:slug,
       error_key: :name,
-      message: "makes a web address that another region already uses"
+      message: "makes a web address another region already uses"
     )
   end
 
@@ -50,7 +50,7 @@ defmodule Jairojobs.Regions.Region do
     |> update_change(:name, &trim/1)
     |> validate_required([:name])
     |> validate_length(:name, max: @max_name_length)
-    |> unique_constraint(:name, message: "is already a region")
+    |> unique_constraint(:name, message: "is already used by another region")
   end
 
   # A blank value on an existing region is cast to a `nil` change.
@@ -64,7 +64,7 @@ defmodule Jairojobs.Regions.Region do
 
       name ->
         case slugify(name) do
-          "" -> add_error(changeset, :name, "must contain at least one letter or number")
+          "" -> add_error(changeset, :name, "needs at least one letter or number")
           slug -> put_change(changeset, :slug, slug)
         end
     end
