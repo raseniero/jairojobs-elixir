@@ -74,7 +74,7 @@ as volume grows.
 | Apply to a listing | ❌ | ✅ | ❌ | ❌ |
 | Create profile from CV | ❌ | ✅ | ❌ | ❌ |
 | Post a listing (pending approval) | ❌ | ❌ | ✅ | ✅ |
-| Receive applications by email (phase 1) | ❌ | ❌ | ✅ | ❌ |
+| Receive applications by email (phase 1) | ❌ | ❌ | ✅ | ✅ (own listings) |
 | Manage applications on-platform (later) | ❌ | ❌ | ✅ | ❌ |
 | Approve / edit / take down listings | ❌ | ❌ | ❌ | ✅ |
 | Manage regions & employer accounts | ❌ | ❌ | ❌ | ✅ |
@@ -100,7 +100,7 @@ UI may say "jobs" to visitors ("Browse jobs"); the domain object is always a **L
 | Term | Definition | Code |
 |---|---|---|
 | **Region** | A supported geographic area (e.g. Davao City, Cebu, Metro Manila). Every Listing belongs to exactly one. Admin-managed. | `Jairojobs.Regions` |
-| **Listing** | A single open position posted by an Employer. **Must include a salary range (PHP).** Lifecycle: *Draft → Pending approval → Published → Closed/Expired*; Admin may *Reject* or *Take down*. | `Jairojobs.Listings` |
+| **Listing** | A single open position posted by an Employer (or an Admin). **Must include a salary range (PHP) before it can be submitted.** Lifecycle: *Draft → Pending approval → Published → Closed*; an Admin may *Reject* a pending listing or *Take down* a published one. No automatic expiry. | `Jairojobs.Listings` |
 | **Employer** | An account that posts Listings; also the business identity shown on the Listing. One person per account initially. | `Jairojobs.Accounts` (role) |
 | **Candidate** | An account that applies to Listings; owns exactly one Profile. | `Jairojobs.Accounts` (role) |
 | **Profile** | A Candidate's structured résumé on the platform (contact, summary, experience, education, skills), seeded from an uploaded CV. | `Jairojobs.Profiles` |
@@ -120,7 +120,7 @@ Phase 1 (001–007) is the minimum launchable product. Each row becomes `docs/sp
 | 001 | **Accounts & authentication** — signup/login; role chosen at signup (Candidate / Employer); **admin user creation** via a privileged mechanism (mix task / release command / seed — never public signup); admin can promote/demote users | 1 | Done | [001](../001-accounts-authentication/spec.md) |
 | 002 | **Regions** — admin-managed list; seed Davao City, Cebu, Metro Manila | 1 | Done | [002](../002-regions/spec.md) |
 | 003 | **Listings — employer posting** — create/edit listing with required salary range (PHP), submit for approval, close | 1 | Approved | [003](../003-listings-employer-posting/spec.md) |
-| 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit | 1 | Not started | |
+| 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit; emails the employer each decision | 1 | Not started | |
 | 005 | **Public browse & search** — visitor-facing index by region, search/filter, listing detail page, shareable URLs, SEO basics, mobile-first | 1 | Not started | |
 | 006 | **Candidate profile & CV upload** — upload CV file, manually fill structured profile (auto-extraction from CV is a later enhancement) | 1 | Not started | |
 | 007 | **Applications (email phase)** — apply with profile + CV; employer receives email; candidate sees own application history | 1 | Not started | |

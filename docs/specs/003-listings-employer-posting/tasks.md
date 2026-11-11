@@ -67,7 +67,8 @@ see them fail, then implement.
     `REQ-003-12: within the limit`, `REQ-003-12: limit reached`,
     `REQ-003-12: drafts are not limited`, `REQ-003-12: admins are not limited`,
     `REQ-003-14` for submit, the completeness CHECK refuses a direct status change on an
-    incomplete row
+    incomplete row, `REQ-002-4: hidden region keeps its data` (listings in every status are
+    unchanged after their region is hidden — the half spec 002 deferred here)
   - `test/jairojobs/listings_concurrency_test.exs` (not async, unboxed): two concurrent
     submissions cannot exceed the limit
   - Commit: `feat(listings): submit for approval with free-tier limit (REQ-003-4, REQ-003-6, REQ-003-12)`

@@ -17,11 +17,16 @@ case (Pending approval)
   endif
 case (Rejected)
   :Show the Admin's reason;
-  :Edit the listing;
+  :Edit the listing (optional);
   if (Resubmit?) then (yes)
     :Run the submit checks
     (complete, region, limit);
-    :Status → Pending approval;
+    if (Checks pass?) then (yes)
+      :Status → Pending approval;
+    else (no)
+      :Stays Rejected; say
+      what is stopping it;
+    endif
   else (no)
     :Stays Rejected;
   endif

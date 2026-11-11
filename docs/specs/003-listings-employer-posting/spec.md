@@ -36,8 +36,9 @@ the public pages are spec 005.
   transitions are drawn in the lifecycle diagram here only so the picture is whole.
 - Public listing pages, search, shareable addresses and their slugs — spec 005.
 - Applying to a listing and the emails that follow — spec 007.
-- Telling Admins that something is waiting, or telling Employers about a decision by email
-  — specs 004 and 010. In this spec the Employer sees the outcome in "My listings".
+- Telling Admins that something is waiting, and emailing Employers each decision (approved,
+  rejected with the reason, taken down) — spec 004. In this spec the Employer sees the
+  outcome in "My listings".
 - Editing a listing while it is Pending or Published. To change a Live listing the Employer
   closes it and posts a new one.
 - Reopening a Closed listing, or copying an old listing into a new draft. Closed is final;
@@ -154,7 +155,7 @@ must agree with this diagram.
 | US-003-9 delete | My listings → Listing (Draft / Needs changes) → Delete → My listings |
 | US-003-10 see it as a job seeker will | Listing form → Listing (owner view) |
 | US-003-11 limit | My listings shows "x of 3 open listings used"; Listing → Submit → message when the limit is reached |
-| US-003-12 Admin posts | Admin area → Post a job → same path as US-003-2 and US-003-4 |
+| US-003-12 Admin posts | Admin area → Post a job → same path as US-003-1, US-003-2 and US-003-4 |
 
 *Source: `diagrams/screenflow-posting.puml`.*
 
@@ -263,7 +264,7 @@ Scenario: Change business details
   Given I have saved business details and have a Live listing
   When I change my business name
   Then new listings I submit show the new name
-  And the Live listing still shows the name it was approved with
+  And the Live listing still shows the name it was submitted with
 ```
 
 **Rules**
@@ -362,7 +363,8 @@ Scenario: Same minimum and maximum is allowed
 
 - Salary is always a stated monthly range in PHP. There is no "negotiable", "competitive"
   or hidden option (design guide, principle 3).
-- Salary is displayed as "₱14,000–16,000 / month" with thousands separators.
+- Salary is displayed with thousands separators: "₱14,000–16,000 / month" on a listing's
+  page and "₱14,000–16,000/mo" in list rows.
 - Text fields are plain text; line breaks are kept; no formatting, links or HTML.
 - The Employer's business name and "about" text are part of the listing as shown
   (REQ-003-2).
@@ -515,7 +517,8 @@ Scenario: Only live listings can be closed
 **Serves:** US-003-10, US-003-5
 
 Each of an Employer's listings has its own page: a status box on top, then the listing laid
-out the way visitors will see it once it is Live.
+out the way visitors will see it once it is Live, without the trust line (approved badge
+and posted date), which only exists after approval.
 
 ```gherkin
 Scenario: Owner view of a draft
@@ -587,7 +590,7 @@ Scenario: Limit reached
   Given I have 3 open listings
   When I submit another complete listing
   Then it stays a Draft
-  And I am told I can have 3 open listings at a time and can close one to post another
+  And I am told I can have 3 open listings at a time and can close or withdraw one to post another
 
 Scenario: Drafts are not limited
   Given I have 3 open listings
@@ -693,6 +696,20 @@ Scenario: My listings shows only mine
 | 5 | Very wide salary ranges | No automatic rule; an Admin rejects them with a reason (spec 004) |
 | 6 | Reopening a Closed listing | Not possible; Closed is final (REQ-003-9) |
 
+## Hand-offs to later specs
+
+Sentences the following specs inherit from this one (settled 2026-11-11).
+
+| Spec | Inherits |
+|---|---|
+| 004 | Spec 004 emails the Employer each decision — approved, rejected (with the reason), taken down — as part of the Admin action. |
+| 004 | An Admin edit to a listing's business name or "about" changes that listing's copy only, never the account's business details. |
+| 004 | Closed is final for everyone; whether an Admin can restore a Taken down listing is decided in spec 004. |
+| 004 | Hiding a region changes no listing's status; spec 004 decides whether a Pending listing in a hidden region can still be approved. |
+| 004 | Who may approve a listing that an Admin posted is decided in spec 004 (REQ-003-1). |
+| 005 | Hiding a region changes no listing's status; spec 005 decides whether a Published listing in a hidden region stays visible. |
+| 007 | Applications to a listing are emailed to the account that owns it, whatever its role; an Admin who posts a listing receives its applications like an Employer. |
+
 ## Traceability
 
 | Story | Requirements |
@@ -717,3 +734,4 @@ Scenario: My listings shows only mine
 | 2026-11-10 | Created (Draft) with lifecycle, screen flow, wireframe and four activity diagrams |
 | 2026-11-10 | Open questions resolved; Admins can post (US-003-12, REQ-003-1, REQ-003-12) |
 | 2026-11-10 | Approved |
+| 2026-11-11 | Consistency pass after review: decision emails belong to spec 004; hand-offs table added; salary display in rows vs. page; owner view has no trust line; limit message mentions withdrawing; diagrams aligned (Admin business gate, rejected branch, legend, wording) |

@@ -34,7 +34,7 @@ Pending -[dashed]-> Rejected : Admin rejects\nwith a reason (004)
 Rejected : employer sees the reason
 Rejected : can be edited and deleted
 Rejected --> Rejected : edit
-Rejected --> Pending : resubmit
+Rejected --> Pending : resubmit\n(complete, within the limit)
 Rejected --> [*] : delete
 
 Published : visible to everyone (005)
@@ -50,6 +50,6 @@ legend right
   | solid arrow | Employer action (this spec) |
   | dashed arrow | Admin action (spec 004) |
   | green | publicly visible |
-  | grey | final — no way back |
+  | grey | no Employer actions; Closed is final |
 endlegend
 @enduml

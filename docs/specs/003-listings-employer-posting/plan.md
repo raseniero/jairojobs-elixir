@@ -257,6 +257,9 @@ generates unique names.
 | 14 | Another employer's listing not found (every action); list shows only mine | `listings_test.exs`, `listing_live_test.exs` | context + LiveView (constitution §3.4) |
 
 Notes:
+- **REQ-002-4 "Hidden region keeps its data"** — spec 002 left the "its listings still
+  exist" half to this spec. One context test hides a region that has listings in every
+  status and asserts that none of them changed.
 - **Published, Rejected and Taken down** listings come from
   `ListingsFixtures.set_listing_status/3`, which updates the row directly. It lives only in
   `test/support`, carries a comment pointing at spec 004, and is replaced by the real

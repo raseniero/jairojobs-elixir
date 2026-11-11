@@ -11,8 +11,9 @@ if (Any listings?) then (no)
 else (yes)
 endif
 :Show most recently changed first:
-title, region, salary,
-status label, "x of 3 open listings used";
+title, region and salary (or "Not finished yet"),
+status label; Employers also see
+"x of 3 open listings used";
 :Employer taps a listing
 (or opens its address directly);
 if (Listing belongs to this employer?) then (no)

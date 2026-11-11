@@ -50,10 +50,10 @@ Status becomes *Implemented* when the introducing spec is Done.
 |---|---|---|---|
 | `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion | 001 | Implemented |
 | `Jairojobs.Regions` | Admin-managed list of PH regions/cities: slugs, hide / show, launch-region seed; active regions are what other contexts offer users | 002 | Implemented |
-| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed), approval, slugs, salary range | 003, 004, 005 | Planned |
+| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), approval, slugs, salary range, free-tier limit of 3 open listings | 003, 004, 005 | Planned |
 | `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |
 | `Jairojobs.Applications` | Candidate applies to listing; email delivery (phase 1), on-platform tracking (phase 2) | 007, 009 | Planned |
-| `Jairojobs.Billing` | Employer subscriptions, free-tier limits | 011 | Future |
+| `Jairojobs.Billing` | Employer subscriptions; varies the open-listing limit by plan | 011 | Future |
 | `Jairojobs.Gigs` (name TBD) | Freelance gig marketplace | 012 | Future |
 
 ### Context dependencies

@@ -6,7 +6,8 @@ title Start a listing (REQ-003-1/2/3/5/11)
 start
 :Open "Post a job" or "My listings";
 if (Logged in?) then (no)
-  :Redirect to log in;
+  :Redirect to log in; return
+  here afterwards (REQ-001-1);
   stop
 else (yes)
 endif
@@ -20,7 +21,7 @@ case (post a job)
   if (Business details saved?) then (no)
     :Ask for business name
     (and optional "about");
-    if (Name blank or too long?) then (yes)
+    if (Name under 2 or over 80 characters,\nor "about" over 500?) then (yes)
       :Validation error;
       stop
     endif

@@ -10,7 +10,7 @@ if (Listing is Draft or Rejected?) then (no)
   stop
 else (yes)
 endif
-if (Complete?\nTitle, region, area, salary range,\ntype, description all valid) then (no)
+if (Complete?\nTitle, region, area, salary range,\ntype, "About the job" all valid) then (no)
   :Show what is missing;
   note right
     Salary: whole pesos per month,
@@ -27,7 +27,7 @@ else (yes)
 endif
 if (Employer with 3 open listings already?\n(Pending + Published; Admins have no limit)) then (yes)
   :Refuse — explain the limit and
-  suggest closing a listing;
+  suggest closing or withdrawing a listing;
   stop
 else (no)
 endif

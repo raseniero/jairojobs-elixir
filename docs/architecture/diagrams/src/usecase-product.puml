@@ -51,6 +51,8 @@ Employer --> UC12
 
 Admin --> UC7
 Admin --> UC8
+Admin --> UC5
+Admin --> UC6
 
 Operator --> UC9
 

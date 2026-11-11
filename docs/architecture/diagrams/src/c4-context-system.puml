@@ -10,7 +10,7 @@ title jairojobs — System Context
 Person(visitor, "Visitor", "Browses and searches listings without an account. Mobile-first.")
 Person(candidate, "Candidate", "Job seeker in the Philippines. Owns a profile + CV, applies to listings.")
 Person(employer, "Employer", "Local business hiring in a PH region. Posts listings, receives applications.")
-Person(admin, "Admin", "Approves listings, manages regions. Operator-appointed.")
+Person(admin, "Admin", "Approves listings, manages regions, may post listings. Operator-appointed.")
 
 System(jairojobs, "jairojobs", "National job board for the Philippines, organized by region. Phoenix / LiveView web app.")
 
@@ -20,7 +20,7 @@ System_Ext(inbox, "User inbox", "Where magic links and application emails arrive
 Rel(visitor, jairojobs, "Browses, searches, signs up", "HTTPS")
 Rel(candidate, jairojobs, "Logs in, manages profile, applies", "HTTPS")
 Rel(employer, jairojobs, "Logs in, posts listings", "HTTPS")
-Rel(admin, jairojobs, "Moderates listings, manages regions", "HTTPS")
+Rel(admin, jairojobs, "Moderates and posts listings, manages regions", "HTTPS")
 
 Rel(jairojobs, email, "Sends email via", "SMTP / API")
 Rel(email, inbox, "Delivers to")
