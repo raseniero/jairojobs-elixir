@@ -253,6 +253,144 @@ defmodule Jairojobs.ListingsTest do
     end
   end
 
+  describe "update_listing/3" do
+    test "REQ-003-5: edit a draft", %{scope: scope} do
+      listing = listing_fixture(scope)
+
+      assert {:ok, updated} =
+               Listings.update_listing(scope, listing, %{
+                 title: "Senior barista",
+                 salary_min: 18_000,
+                 salary_max: 20_000
+               })
+
+      assert updated.title == "Senior barista"
+      assert {updated.salary_min, updated.salary_max} == {18_000, 20_000}
+      assert updated.status == :draft
+    end
+
+    test "REQ-003-5: a rejected listing can be edited and stays rejected", %{scope: scope} do
+      listing = listing_in_status_fixture(scope, :rejected)
+
+      assert {:ok, updated} = Listings.update_listing(scope, listing, %{title: "Senior barista"})
+      assert updated.title == "Senior barista"
+      assert updated.status == :rejected
+      assert updated.rejection_reason == listing.rejection_reason
+    end
+
+    test "REQ-003-5: a filled-in field can be cleared again in a draft", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:ok, updated} =
+               Listings.update_listing(scope, listing, %{
+                 salary_min: "",
+                 salary_max: "",
+                 area: "",
+                 region_id: ""
+               })
+
+      assert {updated.salary_min, updated.salary_max, updated.area, updated.region} ==
+               {nil, nil, nil, nil}
+    end
+
+    test "REQ-003-5: the same field rules apply as for a new draft", %{scope: scope} do
+      listing = listing_fixture(scope)
+
+      assert {:error, changeset} = Listings.update_listing(scope, listing, %{title: ""})
+      assert "can't be blank" in errors_on(changeset).title
+
+      assert {:error, changeset} =
+               Listings.update_listing(scope, listing, %{salary_min: 16_000, salary_max: 14_000})
+
+      assert "The maximum must be at least the minimum" in errors_on(changeset).salary_max
+    end
+
+    test "REQ-003-5: editing a locked listing is refused", %{scope: scope} do
+      for status <- [:pending, :published, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+
+        assert {:error, :locked} = Listings.update_listing(scope, listing, %{title: "Changed it"})
+        assert Listings.get_my_listing!(scope, listing.id).title == listing.title
+      end
+    end
+
+    test "REQ-003-5: a stale copy cannot be used to edit a locked listing", %{scope: scope} do
+      draft = listing_fixture(scope, complete_listing_attrs())
+      set_listing_status(draft, :pending)
+
+      assert {:error, :locked} = Listings.update_listing(scope, draft, %{title: "Changed it"})
+    end
+
+    test "REQ-003-5: status and owner cannot be changed by an edit", %{scope: scope} do
+      listing = listing_fixture(scope)
+
+      assert {:ok, updated} =
+               Listings.update_listing(scope, listing, %{
+                 title: "Senior barista",
+                 status: "published",
+                 user_id: employer_scope_fixture().user.id
+               })
+
+      assert updated.status == :draft
+      assert updated.user_id == scope.user.id
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
+      theirs = listing_fixture(employer_scope_fixture())
+
+      assert {:error, :not_found} = Listings.update_listing(scope, theirs, %{title: "Hijacked"})
+
+      assert {:error, :not_found} =
+               Listings.update_listing(admin_poster_scope_fixture(), theirs, %{title: "Hijacked"})
+
+      for other <- non_poster_scopes() do
+        assert {:error, :unauthorized} =
+                 Listings.update_listing(other, theirs, %{title: "Hijacked"})
+      end
+
+      assert Repo.get!(Listing, theirs.id).title == theirs.title
+    end
+  end
+
+  describe "delete_listing/2" do
+    test "REQ-003-11: delete a draft", %{scope: scope} do
+      listing = listing_fixture(scope)
+
+      assert {:ok, %Listing{}} = Listings.delete_listing(scope, listing)
+      assert Listings.list_my_listings(scope) == []
+      assert_raise Ecto.NoResultsError, fn -> Listings.get_my_listing!(scope, listing.id) end
+    end
+
+    test "REQ-003-11: delete a rejected listing", %{scope: scope} do
+      listing = listing_in_status_fixture(scope, :rejected)
+
+      assert {:ok, %Listing{}} = Listings.delete_listing(scope, listing)
+      assert Listings.list_my_listings(scope) == []
+    end
+
+    test "REQ-003-11: other listings cannot be deleted", %{scope: scope} do
+      for status <- [:pending, :published, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+
+        assert {:error, :locked} = Listings.delete_listing(scope, listing)
+        assert Listings.get_my_listing!(scope, listing.id).status == status
+      end
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
+      theirs = listing_fixture(employer_scope_fixture())
+
+      assert {:error, :not_found} = Listings.delete_listing(scope, theirs)
+      assert {:error, :not_found} = Listings.delete_listing(admin_poster_scope_fixture(), theirs)
+
+      for other <- non_poster_scopes() do
+        assert {:error, :unauthorized} = Listings.delete_listing(other, theirs)
+      end
+
+      assert Repo.get!(Listing, theirs.id)
+    end
+  end
+
   describe "change_listing/2" do
     test "returns a changeset for the form" do
       assert %Ecto.Changeset{valid?: true} =

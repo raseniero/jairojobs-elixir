@@ -74,4 +74,41 @@ defmodule Jairojobs.ListingsFixtures do
 
     listing
   end
+
+  @doc """
+  Puts a listing into `status` by updating the row directly.
+
+  **Test-only, on purpose** (spec 003 plan, decision 1): Published, Rejected
+  and Taken down are reached through Admin actions that arrive with spec 004.
+  Until then this is the only way to get such listings; spec 004 replaces it
+  with the real approve / reject / take-down functions. The database CHECK
+  constraints still apply, so the listing must be complete.
+
+  Options: `:reason` for `:rejected`.
+  """
+  def set_listing_status(%Listings.Listing{} = listing, status, opts \\ []) do
+    owner = Accounts.get_user!(listing.user_id)
+    now = DateTime.utc_now()
+
+    listing
+    |> Ecto.Changeset.change(
+      status: status,
+      business_name: listing.business_name || owner.business_name,
+      business_about: listing.business_about || owner.business_about,
+      submitted_at: listing.submitted_at || now,
+      rejection_reason: if(status == :rejected, do: opts[:reason] || "Needs more detail"),
+      closed_at: if(status == :closed, do: now)
+    )
+    |> Jairojobs.Repo.update!()
+    |> Jairojobs.Repo.preload(:region, force: true)
+  end
+
+  @doc """
+  A complete listing owned by `scope`, put straight into `status` (see
+  `set_listing_status/3`).
+  """
+  def listing_in_status_fixture(scope, status, attrs \\ %{}) do
+    listing = listing_fixture(scope, complete_listing_attrs(attrs))
+    if status == :draft, do: listing, else: set_listing_status(listing, status)
+  end
 end

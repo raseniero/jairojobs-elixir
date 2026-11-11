@@ -43,7 +43,7 @@ see them fail, then implement.
     employment-type CHECKs each refuse a direct bad update
   - Commit: `feat(listings): listings table and drafts (REQ-003-3, REQ-003-13, REQ-003-14)`
 
-- [ ] **T3** — Edit and delete (REQ-003-5, -11)
+- [x] **T3** — Edit and delete (REQ-003-5, -11) — done 2026-11-11
   - `Listings.update_listing/3`, `delete_listing/2`
   - `ListingsFixtures.set_listing_status/3` (test-only; plan decision 1)
   - Tests: `REQ-003-5: edit a draft`, `REQ-003-5: editing a locked listing is refused`
