@@ -391,6 +391,233 @@ defmodule Jairojobs.ListingsTest do
     end
   end
 
+  describe "missing_fields/1" do
+    test "REQ-003-4: complete listing", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      assert Listings.missing_fields(listing) == []
+    end
+
+    test "REQ-003-4: optional fields are not needed", %{scope: scope} do
+      listing =
+        listing_fixture(
+          scope,
+          complete_listing_attrs(schedule: nil, requirements: nil, benefits: nil)
+        )
+
+      assert Listings.missing_fields(listing) == []
+    end
+
+    test "REQ-003-4: salary range is required", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs(salary_min: nil, salary_max: nil))
+      assert Listings.missing_fields(listing) == [:salary]
+    end
+
+    test "REQ-003-4: a title-only draft is missing everything else, in form order", %{
+      scope: scope
+    } do
+      assert Listings.missing_fields(listing_fixture(scope)) ==
+               [:region, :area, :salary, :employment_type, :description]
+    end
+
+    test "REQ-003-4: about the job needs at least 50 characters", %{scope: scope} do
+      short = listing_fixture(scope, complete_listing_attrs(description: "Too short."))
+      assert Listings.missing_fields(short) == [:description]
+
+      exact =
+        listing_fixture(scope, complete_listing_attrs(description: String.duplicate("a", 50)))
+
+      assert Listings.missing_fields(exact) == []
+    end
+  end
+
+  describe "submit_listing/2" do
+    test "REQ-003-6: submit a complete draft", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:ok, submitted} = Listings.submit_listing(scope, listing)
+      assert submitted.status == :pending
+      assert %DateTime{} = submitted.submitted_at
+      assert submitted.business_name == scope.user.business_name
+      assert submitted.region.id == listing.region_id
+      assert Listings.count_open_listings(scope) == 1
+    end
+
+    test "REQ-003-6: incomplete draft cannot be submitted", %{scope: scope} do
+      listing =
+        listing_fixture(
+          scope,
+          complete_listing_attrs(salary_min: nil, salary_max: nil, description: nil)
+        )
+
+      assert {:error, {:incomplete, [:salary, :description]}} =
+               Listings.submit_listing(scope, listing)
+
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+      assert Listings.count_open_listings(scope) == 0
+    end
+
+    test "REQ-003-6: region was hidden in the meantime", %{scope: scope} do
+      region = region_fixture(name: "Baguio #{System.unique_integer([:positive])}")
+      listing = listing_fixture(scope, complete_listing_attrs(region_id: region.id))
+      {:ok, _region} = Jairojobs.Regions.hide_region(admin_scope_fixture(), region)
+
+      assert {:error, :region_hidden} = Listings.submit_listing(scope, listing)
+      assert Listings.get_my_listing!(scope, listing.id).status == :draft
+    end
+
+    test "REQ-003-6: submitting twice does nothing", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      {:ok, submitted} = Listings.submit_listing(scope, listing)
+
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, submitted)
+      # even with the stale Draft copy
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, listing)
+
+      assert Listings.get_my_listing!(scope, listing.id).submitted_at == submitted.submitted_at
+      assert Listings.count_open_listings(scope) == 1
+    end
+
+    test "REQ-003-6: only a draft or rejected listing can be submitted", %{scope: scope} do
+      for status <- [:published, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+        assert {:error, :invalid_status} = Listings.submit_listing(scope, listing)
+        assert Listings.get_my_listing!(scope, listing.id).status == status
+      end
+    end
+
+    test "REQ-003-2: change business details", %{scope: scope} do
+      live = listing_in_status_fixture(scope, :published)
+      old_name = scope.user.business_name
+      assert live.business_name == old_name
+
+      {:ok, user} =
+        Jairojobs.Accounts.update_business_details(scope, %{
+          business_name: "Renamed Café",
+          business_about: "New owners."
+        })
+
+      scope = Scope.for_user(user)
+      draft = listing_fixture(scope, complete_listing_attrs())
+      assert {:ok, submitted} = Listings.submit_listing(scope, draft)
+
+      assert submitted.business_name == "Renamed Café"
+      assert submitted.business_about == "New owners."
+      assert Listings.get_my_listing!(scope, live.id).business_name == old_name
+    end
+
+    test "REQ-003-2: the business details copied are the stored ones, not a stale scope's", %{
+      scope: stale_scope
+    } do
+      draft = listing_fixture(stale_scope, complete_listing_attrs())
+
+      {:ok, _user} =
+        Jairojobs.Accounts.update_business_details(stale_scope, %{business_name: "Renamed Café"})
+
+      assert {:ok, submitted} = Listings.submit_listing(stale_scope, draft)
+      assert submitted.business_name == "Renamed Café"
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
+      theirs = listing_fixture(employer_scope_fixture(), complete_listing_attrs())
+
+      assert {:error, :not_found} = Listings.submit_listing(scope, theirs)
+      assert {:error, :not_found} = Listings.submit_listing(admin_poster_scope_fixture(), theirs)
+
+      for other <- non_poster_scopes() do
+        assert {:error, :unauthorized} = Listings.submit_listing(other, theirs)
+      end
+
+      assert Repo.get!(Listing, theirs.id).status == :draft
+    end
+  end
+
+  describe "free-tier limit" do
+    defp open_listings(scope, statuses) do
+      for status <- statuses, do: listing_in_status_fixture(scope, status)
+    end
+
+    test "the limit is 3 for an employer and none for an admin", %{scope: scope} do
+      assert Listings.open_listing_limit(scope) == 3
+      assert Listings.open_listing_limit(admin_poster_scope_fixture()) == :unlimited
+    end
+
+    test "REQ-003-12: within the limit", %{scope: scope} do
+      open_listings(scope, [:pending, :published])
+      draft = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(scope, draft)
+      assert Listings.count_open_listings(scope) == 3
+    end
+
+    test "REQ-003-12: limit reached", %{scope: scope} do
+      open_listings(scope, [:pending, :published, :published])
+      draft = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, draft)
+      assert Listings.get_my_listing!(scope, draft.id).status == :draft
+      assert Listings.count_open_listings(scope) == 3
+    end
+
+    test "REQ-003-12: drafts are not limited", %{scope: scope} do
+      open_listings(scope, [:pending, :published, :published])
+
+      assert {:ok, %Listing{status: :draft}} =
+               Listings.create_listing(scope, complete_listing_attrs())
+
+      assert {:ok, %Listing{status: :draft}} = Listings.create_listing(scope, %{title: "Barista"})
+    end
+
+    test "REQ-003-12: only pending and published listings count", %{scope: scope} do
+      open_listings(scope, [:draft, :rejected, :closed, :taken_down])
+      assert Listings.count_open_listings(scope) == 0
+
+      open_listings(scope, [:pending, :published])
+      assert Listings.count_open_listings(scope) == 2
+
+      open_listings(employer_scope_fixture(), [:pending, :published, :published])
+      assert Listings.count_open_listings(scope) == 2
+    end
+
+    test "REQ-003-12: admins are not limited" do
+      scope = admin_poster_scope_fixture()
+      open_listings(scope, [:pending, :published, :published])
+      draft = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(scope, draft)
+      assert Listings.count_open_listings(scope) == 4
+    end
+
+    test "REQ-003-12: nothing is counted for a scope that may not post" do
+      for scope <- non_poster_scopes() do
+        assert Listings.count_open_listings(scope) == 0
+      end
+    end
+  end
+
+  describe "regions and listings" do
+    test "REQ-002-4: hidden region keeps its data", %{scope: scope} do
+      region = region_fixture()
+      statuses = [:draft, :pending, :published, :rejected, :closed, :taken_down]
+
+      before =
+        for status <- statuses do
+          listing_in_status_fixture(scope, status, region_id: region.id)
+        end
+
+      {:ok, hidden} = Jairojobs.Regions.hide_region(admin_scope_fixture(), region)
+      refute hidden.active
+
+      for listing <- before do
+        stored = Listings.get_my_listing!(scope, listing.id)
+        assert stored.status == listing.status
+        assert stored.region_id == region.id
+        assert stored.updated_at == listing.updated_at
+      end
+
+      assert Jairojobs.Regions.get_region_by_slug(region.slug).id == region.id
+    end
+  end
+
   describe "change_listing/2" do
     test "returns a changeset for the form" do
       assert %Ecto.Changeset{valid?: true} =
@@ -425,6 +652,23 @@ defmodule Jairojobs.ListingsTest do
       assert_raise Postgrex.Error, ~r/listings_status_check/, fn ->
         raw_update(listing, "status = 'expired', business_name = 'Kape Isla'")
       end
+    end
+
+    test "REQ-003-4: an incomplete listing cannot leave Draft, whoever changes the status", %{
+      scope: scope
+    } do
+      title_only = listing_fixture(scope)
+      no_business = listing_fixture(scope, complete_listing_attrs())
+
+      for listing <- [title_only, no_business],
+          status <- ~w(pending published closed taken_down) do
+        assert_raise Postgrex.Error, ~r/listings_complete_unless_unsubmitted/, fn ->
+          raw_update(listing, "status = '#{status}'")
+        end
+      end
+
+      # a rejected listing may be incomplete again while its owner fixes it
+      raw_update(title_only, "status = 'rejected'")
     end
 
     test "the employment type is guarded by the database", %{scope: scope} do

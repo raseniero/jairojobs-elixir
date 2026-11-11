@@ -53,7 +53,7 @@ see them fail, then implement.
     `REQ-003-14: another employer's listing is not found` (update, delete)
   - Commit: `feat(listings): edit and delete unpublished listings (REQ-003-5, REQ-003-11)`
 
-- [ ] **T4** — Submit for approval and the limit (REQ-003-4, -6, -12)
+- [x] **T4** — Submit for approval and the limit (REQ-003-4, -6, -12) — done 2026-11-11
   - `Listing.submit_changeset/1`; `Listings.missing_fields/1`, `submit_listing/2`
     (transaction, owner row lock, checks, business snapshot), `count_open_listings/1`,
     `open_listing_limit/1`

@@ -12,8 +12,13 @@ defmodule Jairojobs.Listings do
 
   alias Jairojobs.Accounts
   alias Jairojobs.Accounts.Scope
+  alias Jairojobs.Accounts.User
   alias Jairojobs.Listings.Listing
   alias Jairojobs.Repo
+
+  # spec 003 — REQ-003-12: open (Pending + Published) listings a free Employer may have.
+  @open_listing_limit 3
+  @open_statuses [:pending, :published]
 
   @doc """
   The scoped account's listings, most recently changed first, with their
@@ -113,6 +118,96 @@ defmodule Jairojobs.Listings do
          :ok <- editable(listing) do
       Repo.delete(listing)
     end
+  end
+
+  @doc """
+  The required parts a listing still lacks before it can be submitted; `[]`
+  when it is complete (REQ-003-4). See `Listing.missing_fields/1`.
+  """
+  def missing_fields(%Listing{} = listing), do: Listing.missing_fields(listing)
+
+  @doc """
+  How many listings the scoped account has open — Pending or Published
+  (REQ-003-12).
+  """
+  def count_open_listings(scope) do
+    if Scope.poster?(scope), do: count_open(scope.user.id), else: 0
+  end
+
+  defp count_open(user_id) do
+    Repo.aggregate(
+      from(l in Listing, where: l.user_id == ^user_id and l.status in ^@open_statuses),
+      :count
+    )
+  end
+
+  @doc """
+  The most listings the scoped account may have open at once: `3` for an
+  Employer, `:unlimited` for an Admin (REQ-003-12).
+  """
+  def open_listing_limit(scope) do
+    if Scope.admin?(scope), do: :unlimited, else: @open_listing_limit
+  end
+
+  @doc """
+  Submits a Draft or Rejected listing for approval (REQ-003-6, REQ-003-8).
+  The listing becomes Pending; only an Admin approval (spec 004) publishes it.
+  Returns:
+
+    * `{:ok, listing}`
+    * `{:error, :invalid_status}` — not a Draft or Rejected listing
+    * `{:error, {:incomplete, fields}}` — see `missing_fields/1`
+    * `{:error, :region_hidden}` — its region is no longer offered
+    * `{:error, :limit_reached}` — an Employer already has 3 open listings
+    * `{:error, :not_found}` / `{:error, :unauthorized}`
+
+  Runs in a transaction that locks the owner's account row, so two
+  submissions at the same moment cannot both pass the limit check.
+  """
+  def submit_listing(scope, %Listing{} = listing) do
+    if Scope.poster?(scope) do
+      Repo.transaction(fn ->
+        owner = Repo.one!(from u in User, where: u.id == ^scope.user.id, lock: "FOR UPDATE")
+
+        with {:ok, listing} <- fetch_mine(scope, listing),
+             :ok <- submittable(listing),
+             :ok <- complete(listing),
+             :ok <- region_active(listing),
+             :ok <- within_limit(owner),
+             {:ok, listing} <-
+               listing |> Listing.submit_changeset(owner, DateTime.utc_now()) |> Repo.update() do
+          Repo.preload(listing, :region, force: true)
+        else
+          {:error, reason} -> Repo.rollback(reason)
+        end
+      end)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  defp submittable(%Listing{status: status}) when status in [:draft, :rejected], do: :ok
+  defp submittable(%Listing{}), do: {:error, :invalid_status}
+
+  defp complete(listing) do
+    case Listing.missing_fields(listing) do
+      [] -> :ok
+      fields -> {:error, {:incomplete, fields}}
+    end
+  end
+
+  defp region_active(listing) do
+    case Repo.preload(listing, :region).region do
+      %{active: true} -> :ok
+      _hidden -> {:error, :region_hidden}
+    end
+  end
+
+  # The role is read from the locked row, not from the (possibly stale) scope.
+  defp within_limit(%User{role: :admin}), do: :ok
+
+  defp within_limit(%User{id: id}) do
+    if count_open(id) < @open_listing_limit, do: :ok, else: {:error, :limit_reached}
   end
 
   # The stored row, never the struct we were handed: the caller's copy may be

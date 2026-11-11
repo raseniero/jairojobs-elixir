@@ -78,6 +78,46 @@ defmodule Jairojobs.Listings.Listing do
     |> check_constraint(:salary_max, name: :listings_salary_check)
   end
 
+  @required_to_submit [:region, :area, :salary, :employment_type, :description]
+  @min_description 50
+
+  @doc """
+  The required parts a listing still lacks before it can be submitted
+  (REQ-003-4), in the order the form shows them. `[]` means it is complete.
+  `:salary` stands for both ends of the range; `:description` ("About the
+  job") is also reported while it is shorter than 50 characters.
+  """
+  def missing_fields(%__MODULE__{} = listing) do
+    Enum.reject(@required_to_submit, &present?(listing, &1))
+  end
+
+  defp present?(listing, :region), do: not is_nil(listing.region_id)
+
+  defp present?(listing, :salary),
+    do: is_integer(listing.salary_min) and is_integer(listing.salary_max)
+
+  defp present?(listing, :description),
+    do: is_binary(listing.description) and String.length(listing.description) >= @min_description
+
+  defp present?(listing, field), do: not is_nil(Map.fetch!(listing, field))
+
+  @doc """
+  Changeset that moves a complete Draft or Rejected listing to Pending
+  (REQ-003-6): stamps the submission time, clears any rejection reason and
+  copies the owner's business details onto the listing (REQ-003-2).
+  """
+  def submit_changeset(%__MODULE__{} = listing, %User{} = owner, %DateTime{} = now) do
+    listing
+    |> change(
+      status: :pending,
+      submitted_at: now,
+      rejection_reason: nil,
+      business_name: owner.business_name,
+      business_about: owner.business_about
+    )
+    |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
+  end
+
   defp trim(changeset, fields) do
     Enum.reduce(fields, changeset, fn field, changeset ->
       update_change(changeset, field, fn
