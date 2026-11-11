@@ -10,6 +10,13 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 In development, every email the app sends (sign-up and login links, email-change
 confirmations) is viewable at [`localhost:4000/dev/mailbox`](http://localhost:4000/dev/mailbox).
 
+## Regions
+
+`mix setup` (and `mix run priv/repo/seeds.exs`) creates the launch regions — Davao City,
+Cebu and Metro Manila (spec 002, REQ-002-5). The seed is safe to run again: it only inserts
+what is missing and never undoes an admin's rename or hide. Admins manage the list at
+`/admin/regions`.
+
 ## Admin accounts
 
 There is no admin sign-up. Admins are created and removed by the operator from the command

@@ -44,7 +44,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `REQ-002-6: lookup by slug works for hidden regions`, unknown slug returns `nil`
   - Commit: `feat(regions): hide/show and active-region contract (REQ-002-4, REQ-002-6)`
 
-- [ ] **T4** — Seed the launch regions (REQ-002-5)
+- [x] **T4** — Seed the launch regions (REQ-002-5) — done 2026-11-10
   - `Regions.seed_launch_regions/0` (match on slug, insert missing, `on_conflict: :nothing`)
   - `priv/repo/seeds.exs` calls it
   - Tests: `REQ-002-5: fresh install has the launch regions` (names, slugs, active),

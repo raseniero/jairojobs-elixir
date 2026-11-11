@@ -13,6 +13,13 @@ defmodule Jairojobs.Regions do
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
 
+  # spec 002 — REQ-002-5: {name, slug} of the regions the site launches with.
+  @launch_regions [
+    {"Davao City", "davao-city"},
+    {"Cebu", "cebu"},
+    {"Metro Manila", "metro-manila"}
+  ]
+
   @doc """
   Every region, active and hidden, in alphabetical order (REQ-002-1).
   """
@@ -96,6 +103,23 @@ defmodule Jairojobs.Regions do
       |> Ecto.Changeset.change(active: active)
       |> Repo.update()
     end
+  end
+
+  @doc """
+  Inserts the launch regions that are missing (REQ-002-5). Safe to run any
+  number of times: it matches on slug, so an Admin's rename or hide of a
+  seeded region is never undone, and a launch name that another region
+  already holds is skipped.
+
+  Takes no scope and no input — it can only ever create the fixed launch
+  regions. Called from `priv/repo/seeds.exs`, never from the web layer.
+  """
+  def seed_launch_regions do
+    for {name, slug} <- @launch_regions, is_nil(get_region_by_slug(slug)) do
+      Repo.insert!(%Region{name: name, slug: slug, active: true}, on_conflict: :nothing)
+    end
+
+    :ok
   end
 
   defp authorize(scope) do

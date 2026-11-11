@@ -266,6 +266,55 @@ defmodule Jairojobs.RegionsTest do
     end
   end
 
+  describe "seed_launch_regions/0" do
+    test "REQ-002-5: fresh install has the launch regions" do
+      assert :ok = Regions.seed_launch_regions()
+
+      assert Enum.map(Regions.list_regions(), &{&1.name, &1.slug, &1.active}) == [
+               {"Cebu", "cebu", true},
+               {"Davao City", "davao-city", true},
+               {"Metro Manila", "metro-manila", true}
+             ]
+    end
+
+    test "REQ-002-5: seed is safe to run again", %{admin: admin} do
+      assert :ok = Regions.seed_launch_regions()
+
+      cebu = Regions.get_region_by_slug("cebu")
+      assert {:ok, _region} = Regions.rename_region(admin, cebu, %{name: "Cebu City"})
+
+      assert :ok = Regions.seed_launch_regions()
+
+      assert Enum.map(Regions.list_regions(), &{&1.name, &1.slug}) == [
+               {"Cebu City", "cebu"},
+               {"Davao City", "davao-city"},
+               {"Metro Manila", "metro-manila"}
+             ]
+    end
+
+    test "REQ-002-5: seed does not unhide a launch region", %{admin: admin} do
+      assert :ok = Regions.seed_launch_regions()
+      assert {:ok, _region} = Regions.hide_region(admin, Regions.get_region_by_slug("cebu"))
+
+      assert :ok = Regions.seed_launch_regions()
+
+      refute Regions.get_region_by_slug("cebu").active
+    end
+
+    test "REQ-002-5: seed skips a launch name another region already holds", %{admin: admin} do
+      other = region_fixture(name: "Cebu Province")
+      assert {:ok, _region} = Regions.rename_region(admin, other, %{name: "Cebu"})
+
+      assert :ok = Regions.seed_launch_regions()
+
+      assert Enum.map(Regions.list_regions(), &{&1.name, &1.slug}) == [
+               {"Cebu", "cebu-province"},
+               {"Davao City", "davao-city"},
+               {"Metro Manila", "metro-manila"}
+             ]
+    end
+  end
+
   describe "get_region!/1" do
     test "returns the region or raises" do
       region = region_fixture()
