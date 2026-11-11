@@ -27,7 +27,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `REQ-002-2: non-admin scopes cannot add a region` (candidate, employer, `nil`, system)
   - Commit: `feat(regions): regions table, schema and create (REQ-002-1, REQ-002-2)`
 
-- [ ] **T2** — Rename (REQ-002-3)
+- [x] **T2** — Rename (REQ-002-3) — done 2026-11-10
   - `Region.rename_changeset/2` (casts `:name` only); `Regions.rename_region/3`,
     `Regions.get_region!/1`
   - Tests: `REQ-002-3: rename keeps the slug`, `REQ-002-3: rename to an existing name`,

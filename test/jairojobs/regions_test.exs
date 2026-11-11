@@ -116,9 +116,89 @@ defmodule Jairojobs.RegionsTest do
     end
   end
 
+  describe "rename_region/3" do
+    test "REQ-002-3: rename keeps the slug", %{admin: admin} do
+      region = region_fixture(name: "Davao")
+
+      assert {:ok, renamed} = Regions.rename_region(admin, region, %{name: " Davao City "})
+      assert renamed.name == "Davao City"
+      assert renamed.slug == "davao"
+      assert Enum.map(Regions.list_regions(), &{&1.name, &1.slug}) == [{"Davao City", "davao"}]
+    end
+
+    test "REQ-002-3: rename to an existing name", %{admin: admin} do
+      region_fixture(name: "Cebu")
+      davao = region_fixture(name: "Davao City")
+
+      for name <- ["Cebu", "cebu "] do
+        assert {:error, changeset} = Regions.rename_region(admin, davao, %{name: name})
+        assert "is already a region" in errors_on(changeset).name
+      end
+
+      assert Regions.get_region!(davao.id).name == "Davao City"
+    end
+
+    test "REQ-002-3: blank or too-long name is rejected", %{admin: admin} do
+      region = region_fixture(name: "Davao City")
+
+      assert {:error, changeset} = Regions.rename_region(admin, region, %{name: " "})
+      assert "can't be blank" in errors_on(changeset).name
+
+      assert {:error, changeset} =
+               Regions.rename_region(admin, region, %{name: String.duplicate("a", 81)})
+
+      assert "should be at most 80 character(s)" in errors_on(changeset).name
+    end
+
+    test "REQ-002-3: a region can keep its own name with different casing", %{admin: admin} do
+      region = region_fixture(name: "davao city")
+
+      assert {:ok, renamed} = Regions.rename_region(admin, region, %{name: "Davao City"})
+      assert renamed.name == "Davao City"
+    end
+
+    test "REQ-002-3: slug and active cannot be changed by a rename", %{admin: admin} do
+      region = region_fixture(name: "Davao")
+
+      assert {:ok, renamed} =
+               Regions.rename_region(admin, region, %{
+                 name: "Davao City",
+                 slug: "forged",
+                 active: false
+               })
+
+      assert renamed.slug == "davao"
+      assert renamed.active
+    end
+
+    test "REQ-002-3: non-admin scopes cannot rename" do
+      region = region_fixture(name: "Davao")
+
+      for scope <- non_admin_scopes() do
+        assert {:error, :unauthorized} = Regions.rename_region(scope, region, %{name: "Other"})
+      end
+
+      assert Regions.get_region!(region.id).name == "Davao"
+    end
+  end
+
+  describe "get_region!/1" do
+    test "returns the region or raises" do
+      region = region_fixture()
+      assert Regions.get_region!(region.id) == region
+      assert_raise Ecto.NoResultsError, fn -> Regions.get_region!(Ecto.UUID.generate()) end
+    end
+  end
+
   describe "change_region/2" do
     test "returns a changeset for the form" do
       assert %Ecto.Changeset{} = changeset = Regions.change_region(%Region{}, %{name: "Naga"})
+      assert Ecto.Changeset.get_field(changeset, :slug) == "naga"
+    end
+
+    test "keeps the slug of an existing region" do
+      region = region_fixture(name: "Naga")
+      changeset = Regions.change_region(region, %{name: "Naga City"})
       assert Ecto.Changeset.get_field(changeset, :slug) == "naga"
     end
   end

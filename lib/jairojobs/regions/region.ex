@@ -35,13 +35,27 @@ defmodule Jairojobs.Regions.Region do
     )
   end
 
+  @doc """
+  Changeset for renaming a region (REQ-002-3). Only the name is cast, so the
+  slug stays exactly as it was created.
+  """
+  def rename_changeset(region, attrs) do
+    region
+    |> cast(attrs, [:name])
+    |> validate_name()
+  end
+
   defp validate_name(changeset) do
     changeset
-    |> update_change(:name, &String.trim/1)
+    |> update_change(:name, &trim/1)
     |> validate_required([:name])
     |> validate_length(:name, max: @max_name_length)
     |> unique_constraint(:name, message: "is already a region")
   end
+
+  # A blank value on an existing region is cast to a `nil` change.
+  defp trim(nil), do: nil
+  defp trim(name), do: String.trim(name)
 
   defp put_slug(changeset) do
     case get_change(changeset, :name) do

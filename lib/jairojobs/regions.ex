@@ -23,9 +23,15 @@ defmodule Jairojobs.Regions do
   @doc """
   A changeset for the region form.
   """
-  def change_region(%Region{} = region, attrs \\ %{}) do
-    Region.create_changeset(region, attrs)
-  end
+  def change_region(region, attrs \\ %{})
+
+  def change_region(%Region{id: nil} = region, attrs), do: Region.create_changeset(region, attrs)
+  def change_region(%Region{} = region, attrs), do: Region.rename_changeset(region, attrs)
+
+  @doc """
+  Gets a region by id (admin URLs use the UUID). Raises if it does not exist.
+  """
+  def get_region!(id), do: Repo.get!(Region, id)
 
   @doc """
   Adds a region; it starts active and its slug is derived from the name
@@ -40,6 +46,18 @@ defmodule Jairojobs.Regions do
       %Region{}
       |> Region.create_changeset(attrs)
       |> Repo.insert()
+    end
+  end
+
+  @doc """
+  Renames a region; the slug never changes (REQ-002-3). Returns the same
+  shapes as `create_region/2`.
+  """
+  def rename_region(scope, %Region{} = region, attrs) do
+    with :ok <- authorize(scope) do
+      region
+      |> Region.rename_changeset(attrs)
+      |> Repo.update()
     end
   end
 
