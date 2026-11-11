@@ -1,0 +1,55 @@
+@startuml state-listing
+' Spec 003 — listing lifecycle. Must agree with REQ-003-5..11 here and with spec 004.
+' Solid arrows: Employer actions, specified in spec 003.
+' Dashed arrows: Admin actions, specified in spec 004 (drawn here so the picture is whole).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #dcfce7
+  BackgroundColor<<done>> #E8E8E8
+  BorderColor #94a3b8
+}
+
+state "Draft" as Draft
+state "Pending approval" as Pending
+state "Published" as Published <<public>>
+state "Rejected" as Rejected
+state "Closed" as Closed <<done>>
+state "Taken down" as TakenDown <<done>>
+
+[*] --> Draft : employer saves\na new listing
+Draft : only the employer sees it
+Draft : can be edited and deleted
+Draft --> Draft : edit
+Draft --> Pending : submit for approval\n(complete, within the limit)
+Draft --> [*] : delete
+
+Pending : waiting for an Admin
+Pending : locked — cannot be edited
+Pending --> Draft : withdraw
+Pending -[dashed]-> Published : Admin approves (004)
+Pending -[dashed]-> Rejected : Admin rejects\nwith a reason (004)
+
+Rejected : employer sees the reason
+Rejected : can be edited and deleted
+Rejected --> Rejected : edit
+Rejected --> Pending : resubmit
+Rejected --> [*] : delete
+
+Published : visible to everyone (005)
+Published : locked — cannot be edited
+Published --> Closed : employer closes
+Published -[dashed]-> TakenDown : Admin takes down (004)
+
+Closed : no longer public; kept in My listings
+TakenDown : no longer public; kept in My listings
+
+legend right
+  |= Mark |= Meaning |
+  | solid arrow | Employer action (this spec) |
+  | dashed arrow | Admin action (spec 004) |
+  | green | publicly visible |
+  | grey | final — no way back |
+endlegend
+@enduml

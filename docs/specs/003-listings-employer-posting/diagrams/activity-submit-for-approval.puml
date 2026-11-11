@@ -1,0 +1,40 @@
+@startuml activity-submit-for-approval
+' Spec 003 — what a complete listing is, submitting, the free-tier limit (REQ-003-4, -6, -12)
+title Submit for approval (REQ-003-4/6/12)
+
+start
+:Employer taps "Submit for approval"
+(or "Resubmit") on their own listing;
+if (Listing is Draft or Rejected?) then (no)
+  :Refuse — nothing to submit;
+  stop
+else (yes)
+endif
+if (Complete?\nTitle, region, area, salary range,\ntype, description all valid) then (no)
+  :Show what is missing;
+  note right
+    Salary: whole pesos per month,
+    minimum ≥ ₱1,000, maximum ≥ minimum.
+    Never "negotiable".
+  end note
+  stop
+else (yes)
+endif
+if (Chosen region still active?) then (no)
+  :Ask to choose another region;
+  stop
+else (yes)
+endif
+if (Already 3 open listings?\n(Pending + Published)) then (yes)
+  :Refuse — explain the limit and
+  suggest closing a listing;
+  stop
+else (no)
+endif
+:Status → Pending approval;
+:Tell the employer: "An admin will
+check it before it goes live.";
+:Listing appears in the
+Admin approval queue (004);
+stop
+@enduml

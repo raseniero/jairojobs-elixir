@@ -1,0 +1,29 @@
+@startuml activity-my-listings
+' Spec 003 — the employer's own list, the owner view, and ownership (REQ-003-10, -13, -14)
+title My listings and ownership (REQ-003-10/13/14)
+
+start
+:Employer opens "My listings";
+:Load only this employer's listings;
+if (Any listings?) then (no)
+  :Empty state with "Post a job";
+  stop
+else (yes)
+endif
+:Show most recently changed first:
+title, region, salary,
+status label, "x of 3 open listings used";
+:Employer taps a listing
+(or opens its address directly);
+if (Listing belongs to this employer?) then (no)
+  :Not found — same as a
+  listing that does not exist;
+  stop
+else (yes)
+endif
+:Show status and what happens next;
+:Show the listing as visitors will see it
+(business name, salary, region, sections);
+:Offer only the actions the status allows;
+stop
+@enduml

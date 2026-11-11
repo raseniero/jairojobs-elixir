@@ -1,0 +1,46 @@
+@startuml activity-after-submitting
+' Spec 003 — withdraw, fix a rejected listing, close a published one (REQ-003-7, -8, -9)
+title After submitting (REQ-003-7/8/9)
+
+start
+:Employer opens one of
+their own listings;
+switch (Status)
+case (Pending approval)
+  :Listing is locked;
+  if (Withdraw?) then (yes)
+    :Status → Draft;
+    :Leaves the Admin queue;
+    :Frees one open-listing slot;
+  else (no)
+    :Wait for the Admin (004);
+  endif
+case (Rejected)
+  :Show the Admin's reason;
+  :Edit the listing;
+  if (Resubmit?) then (yes)
+    :Run the submit checks
+    (complete, region, limit);
+    :Status → Pending approval;
+  else (no)
+    :Stays Rejected;
+  endif
+case (Published)
+  :Listing is locked;
+  if (Close?) then (yes)
+    :Confirm;
+    :Status → Closed;
+    :No longer public (005);
+    :Frees one open-listing slot;
+    note right
+      Final. To hire again,
+      post a new listing.
+    end note
+  else (no)
+    :Stays Published;
+  endif
+case (Closed / Taken down)
+  :Read-only — no actions;
+endswitch
+stop
+@enduml

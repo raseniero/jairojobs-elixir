@@ -1,0 +1,100 @@
+@startsalt wireframe-posting
+' Spec 003 — employer posting screens at phone width (REQ-003-3, -4, -10, -13).
+' Wireframe only — not a visual design.
+
+{
+  {T
+    + Employer posting screens (375 px)
+  }
+  {
+    {+ <b>My listings</b> (REQ-003-13)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { <b>My listings</b> | . | [ + Post a job ] }
+      { <i>2 of 3 open listings used</i> }
+      --
+      { <b>Barista (full-time)</b> }
+      { Davao City · ₱14,000–16,000/mo }
+      { <i>Live</i> }
+      --
+      { <b>Cashier</b> }
+      { Cebu · ₱12,000–13,000/mo }
+      { <i>Waiting for approval</i> }
+      --
+      { <b>Line cook</b> }
+      { Davao City · ₱15,000–18,000/mo }
+      { <i>Needs changes</i> }
+      --
+      { <b>Dishwasher</b> }
+      { <i>Not finished yet</i> }
+      { <i>Draft</i> }
+      --
+      { Kape Isla · Edit business details }
+    } |
+    {+ <b>Listing form</b> (REQ-003-3, -4)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { <b>Post a job</b> }
+      { Job title }
+      { "Barista (full-time)        " }
+      { Region }
+      { ^Davao City              ^ }
+      { Area or neighbourhood }
+      { "Matina                     " }
+      { Salary per month (PHP) }
+      { "₱ 14,000 " | to | "₱ 16,000 " }
+      { <i>Shown on the listing. Required.</i> }
+      { Type }
+      { ^Full-time               ^ }
+      { Schedule <i>(optional)</i> }
+      { "Shifting, 6 days           " }
+      { About the job }
+      {+ "                           "
+         "                           " }
+      { Requirements <i>(optional)</i> }
+      {+ "                           " }
+      { Benefits <i>(optional)</i> }
+      {+ "                           " }
+      .
+      { [ Save draft ] | Cancel }
+    } |
+    {+ <b>Listing — owner view</b> (REQ-003-10)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { <b>Draft</b> — only you can see this }
+      { <i>Submit it and an admin will check</i> }
+      { <i>it before it goes live.</i> }
+      { [ Submit for approval ] }
+      { Edit | Delete }
+      --
+      { <b>Barista (full-time)</b> }
+      { Kape Isla }
+      { Davao City }
+      ..
+      { Salary | ₱14,000–16,000 / month }
+      { Location | Matina, Davao City }
+      { Type | Full-time }
+      { Schedule | Shifting, 6 days }
+      ..
+      { <b>About the job</b> }
+      { We're a neighbourhood café… }
+      { <b>Requirements</b> }
+      { At least 18 years old… }
+      { <b>Benefits</b> }
+      { Free meals on shift… }
+      { <b>About Kape Isla</b> }
+      { Family-run café since 2019. }
+    }
+  }
+  {T
+    + Notes
+    ++ One accent CTA per screen: "Post a job", "Save draft", "Submit for approval"
+    ++ A draft can be saved with only a title; everything else is checked on submit (REQ-003-3, -6)
+    ++ Salary is two whole-peso fields, monthly; there is no "negotiable" option (REQ-003-4)
+    ++ Region offers active regions only (spec 002)
+    ++ Owner view: a status box on top, then the listing as visitors will see it
+    ++ The status box changes with status: Waiting for approval → Withdraw; Needs changes → reason + Edit + Resubmit; Live → Close listing
+    ++ Status labels: Draft, Waiting for approval, Live, Needs changes, Closed, Taken down
+  }
+}
+@endsalt

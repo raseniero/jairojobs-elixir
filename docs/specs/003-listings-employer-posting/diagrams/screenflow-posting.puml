@@ -1,0 +1,72 @@
+@startuml screenflow-posting
+' Spec 003 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
+' Every user story US-003-1..11 is a path through this diagram (see table in spec.md).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #f8fafc
+  BorderColor #94a3b8
+  FontSize 12
+}
+skinparam arrowFontSize 11
+
+title Spec 003 — screen flow (375 px, Employer)
+
+state "Drawer (☰)" as Drawer <<public>>
+Drawer : Employer: Browse · My listings ·
+Drawer : [ + Post a job ] · Settings · Log out
+
+state "My listings" as Mine
+Mine : [ + Post a job ]
+Mine : "2 of 3 open listings used"
+Mine : Barista · Davao City · ₱14,000–16,000   Live
+Mine : Cashier · Cebu · ₱12,000–13,000   Waiting for approval
+Mine : Cook · Davao City · ₱15,000–18,000   Needs changes
+Mine : Dishwasher · Not finished yet   Draft
+Mine : Server · Davao City · ₱13,000–14,000   Closed
+
+state "Business details" as Business
+Business : Business name ___________
+Business : About the business (optional) ___
+Business : "Shown on every listing you post."
+Business : [ Save ]
+
+state "Listing form (new / edit)" as Form
+Form : Job title ___________
+Form : Region [ Davao City ▾ ]   Area ______
+Form : Salary per month ₱ ____ to ₱ ____
+Form : Type [ Full-time ▾ ]   Schedule ______
+Form : About the job / Requirements / Benefits
+Form : [ Save draft ]   Cancel
+
+state "Listing (owner view)" as Listing
+Listing : status + what happens next
+Listing : the listing as visitors will see it
+Listing : Draft: [ Submit for approval ] Edit · Delete
+Listing : Waiting for approval: Withdraw
+Listing : Needs changes: reason, Edit, [ Resubmit ] · Delete
+Listing : Live: Close listing
+Listing : Closed / Taken down: no actions
+
+[*] --> Drawer : logged in as Employer
+Drawer --> Mine : My listings
+Drawer --> Form : Post a job\n(business details saved)
+Drawer --> Business : Post a job\n(no business details yet)
+Mine --> Form : Post a job
+Business --> Form : save\n(first time)
+Business --> Mine : save\n(from "Edit business details")
+Mine --> Business : Edit business details
+Form --> Listing : save draft
+Form --> Form : validation error
+Mine --> Listing : tap a row
+Listing --> Form : Edit\n(Draft / Needs changes)
+Listing --> Listing : Submit / Resubmit → Waiting for approval\n(not complete or limit reached → message)\nWithdraw → Draft\nClose → Closed
+Listing --> Mine : Delete\n(Draft / Needs changes)
+Listing --> Mine : back
+
+legend right
+  |= Shade |= Meaning |
+  | light grey | shared navigation |
+endlegend
+@enduml

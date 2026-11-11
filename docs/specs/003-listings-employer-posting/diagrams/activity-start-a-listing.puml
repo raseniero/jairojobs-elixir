@@ -1,0 +1,58 @@
+@startuml activity-start-a-listing
+' Spec 003 — employer area access, business details, creating / editing / deleting a draft
+' (REQ-003-1, -2, -3, -5, -11)
+title Start a listing (REQ-003-1/2/3/5/11)
+
+start
+:Open "Post a job" or "My listings";
+if (Logged in?) then (no)
+  :Redirect to log in;
+  stop
+else (yes)
+endif
+if (Employer?) then (no)
+  :Refuse — send home with message;
+  stop
+else (yes)
+endif
+switch (What the employer does)
+case (post a job)
+  if (Business details saved?) then (no)
+    :Ask for business name
+    (and optional "about");
+    if (Name blank or too long?) then (yes)
+      :Validation error;
+      stop
+    endif
+    :Save business details;
+  else (yes)
+  endif
+  :Fill in the listing form;
+  if (Title missing, or any filled-in
+field breaks its rule?) then (yes)
+    :Validation error;
+    stop
+  endif
+  :Save as Draft
+  (may be incomplete);
+case (edit)
+  if (Listing is Draft
+or Rejected?) then (no)
+    :Refuse — listing is locked;
+    stop
+  endif
+  :Change fields; save;
+  note right
+    Status does not change.
+  end note
+case (delete)
+  if (Listing is Draft
+or Rejected?) then (no)
+    :Refuse — cannot delete;
+    stop
+  endif
+  :Confirm; delete for good;
+endswitch
+:Show the listing or My listings;
+stop
+@enduml
