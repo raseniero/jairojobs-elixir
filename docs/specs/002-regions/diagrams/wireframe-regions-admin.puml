@@ -1,0 +1,78 @@
+@startsalt wireframe-regions-admin
+' Spec 002 — admin Regions screens at phone width (REQ-002-1..4).
+' The list, plus the New and Edit forms it leads to.
+' Wireframe only — not a visual design.
+
+{
+  {T
+    + Admin Regions screens (375 px)
+  }
+  {
+    {+ <b>Regions</b> — list (REQ-002-1, -4)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { Admin ▸ <b>Regions</b> }
+      { <b>Regions</b> | . | [ + Add region ] }
+      --
+      { Cebu | . | [Edit] | [Hide] }
+      { <i>/jobs/cebu</i> }
+      --
+      { Davao City | . | [Edit] | [Hide] }
+      { <i>/jobs/davao-city</i> }
+      --
+      { Metro Manila | . | [Edit] | [Hide] }
+      { <i>/jobs/metro-manila</i> }
+      --
+      { Baguio  <i>· hidden</i> | . | [Edit] | [Show] }
+      { <i>/jobs/baguio</i> }
+      --
+      { <i>Hidden regions stay on existing</i> }
+      { <i>listings but can't be chosen.</i> }
+    } |
+    {+ <b>New region</b> (REQ-002-2)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { Admin ▸ Regions ▸ <b>New</b> }
+      { <b>Add a region</b> }
+      .
+      { Name }
+      { "Iloilo City            " }
+      { <i>We'll make the web address</i> }
+      { <i>from the name: /jobs/iloilo-city</i> }
+      .
+      { [ Add region ] | Cancel }
+      ..
+      { <b>Error state</b> }
+      { Name }
+      { "cebu                   " }
+      { <i>! That region already exists.</i> }
+    } |
+    {+ <b>Edit region</b> (REQ-002-3)
+      { [≡] | <b>jairojobs</b> | (●) }
+      --
+      { Admin ▸ Regions ▸ <b>Edit</b> }
+      { <b>Edit region</b> }
+      .
+      { Name }
+      { "Davao City             " }
+      .
+      { Web address }
+      { /jobs/davao-city  <i>(fixed)</i> }
+      { <i>The address never changes,</i> }
+      { <i>so shared links keep working.</i> }
+      .
+      { [ Save ] | Cancel }
+    }
+  }
+  {T
+    + Notes
+    ++ List: every region, active and hidden, in alphabetical order (REQ-002-1)
+    ++ One accent CTA per screen: "Add region" / "Save"; Edit, Hide, Show are quiet row actions
+    ++ Hide / Show toggle the row in place — no confirmation screen, no delete (REQ-002-4)
+    ++ Hidden rows are muted and labelled "hidden"; the action flips to Show
+    ++ Errors appear inline under the Name field: blank, over 80 characters, duplicate name, slug collision (REQ-002-2, -3)
+    ++ The web address is shown read-only on Edit; the slug is set once at creation (REQ-002-3)
+    ++ Desktop: same content in a centred single column; rows keep the same order of elements
+  }
+}
+@endsalt

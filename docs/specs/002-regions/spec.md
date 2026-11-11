@@ -97,6 +97,14 @@ agree with this diagram.
 
 *Source: `diagrams/screenflow-regions.puml`.*
 
+### Wireframe: admin Regions screens
+
+Layout of the list and the New / Edit forms at 375 px (layout only, not visual design):
+
+![Admin Regions wireframe](diagrams/wireframe-regions-admin.svg)
+
+*Source: `diagrams/wireframe-regions-admin.puml`.*
+
 ## Flows (activity diagrams)
 
 | Flow | Covers | Diagram |
@@ -302,3 +310,4 @@ Scenario: Lookup by slug works for hidden regions
 | Date | Change |
 |---|---|
 | 2026-11-05 | Created |
+| 2026-11-10 | Added Salt wireframe of the admin Regions screens (list, New, Edit) |
