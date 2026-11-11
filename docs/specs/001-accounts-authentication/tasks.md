@@ -187,3 +187,7 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   with a minimal jairojobs placeholder (`#home`) inside `Layouts.app` until spec 003 ships
   listings; the generated nav strip in `root.html.heex` was removed. Nav items are rendered
   twice (drawer `nav-*`, inline `inline-*` at `md+`); tests target the drawer ids.
+- T10 (changed later by spec 002, T5, 2026-11-10): the `require_admin/2` plug no longer renders a
+  403 for signed-in non-admins; it redirects to `/` with the same flash as the `:require_admin`
+  hook, to satisfy REQ-002-1 "Non-admin is refused". The test
+  `REQ-001-9: candidate and employer get 403` was replaced by `REQ-002-1: non-admin is refused`.

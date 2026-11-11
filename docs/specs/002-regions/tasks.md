@@ -55,7 +55,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
 
 ## Phase B — Admin area
 
-- [ ] **T5** — `require_admin` plug sends non-admins home (REQ-002-1; plan decision 1)
+- [x] **T5** — `require_admin` plug sends non-admins home (REQ-002-1; plan decision 1) — done 2026-11-10
   - `UserAuth.require_admin/2`: for a signed-in non-admin, `put_flash(:error, "You are not
     authorized to access this page.")` and redirect to `/` instead of rendering 403; update
     the `@doc`

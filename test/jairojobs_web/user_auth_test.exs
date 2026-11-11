@@ -463,7 +463,8 @@ defmodule JairojobsWeb.UserAuthTest do
       refute conn.status
     end
 
-    test "REQ-001-9: candidate and employer get 403", %{conn: conn} do
+    # spec 002, plan decision 1: the plug matches the hook (was a 403 in spec 001).
+    test "REQ-002-1: non-admin is refused", %{conn: conn} do
       for role <- ["candidate", "employer"] do
         conn =
           conn
@@ -472,7 +473,10 @@ defmodule JairojobsWeb.UserAuthTest do
           |> UserAuth.require_admin([])
 
         assert conn.halted
-        assert conn.status == 403
+        assert redirected_to(conn) == ~p"/"
+
+        assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+                 "You are not authorized to access this page."
       end
     end
 

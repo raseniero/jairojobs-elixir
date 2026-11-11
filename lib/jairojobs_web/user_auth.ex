@@ -305,7 +305,8 @@ defmodule JairojobsWeb.UserAuth do
   Plug for routes that require an admin (spec 001, plan decision 7).
 
   Visitors are redirected to log in (and return afterwards); signed-in
-  non-admins receive a 403.
+  non-admins are sent home with a message, exactly like the `:require_admin`
+  hook (spec 002, REQ-002-1).
   """
   def require_admin(conn, opts) do
     conn = require_authenticated_user(conn, opts)
@@ -319,10 +320,8 @@ defmodule JairojobsWeb.UserAuth do
 
       true ->
         conn
-        |> put_status(:forbidden)
-        |> Phoenix.Controller.put_format("html")
-        |> Phoenix.Controller.put_view(html: JairojobsWeb.ErrorHTML)
-        |> Phoenix.Controller.render(:"403")
+        |> put_flash(:error, "You are not authorized to access this page.")
+        |> redirect(to: ~p"/")
         |> halt()
     end
   end
