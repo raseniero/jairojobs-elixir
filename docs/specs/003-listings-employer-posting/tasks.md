@@ -1,7 +1,7 @@
 # 003 — Listings: employer posting — Tasks
 
-**Status:** Draft
-**Plan:** [plan.md](./plan.md) (Draft — approve the plan and its "Decisions to confirm" first)
+**Status:** In Progress
+**Plan:** [plan.md](./plan.md) (Approved 2026-11-11)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
 Commit messages reference REQ IDs; test names follow `REQ-003-n: <scenario>`.

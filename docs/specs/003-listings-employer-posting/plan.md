@@ -1,8 +1,9 @@
 # 003 — Listings: employer posting — Plan
 
-**Status:** Draft
+**Status:** Approved
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-10)
 **Created:** 2026-11-11
+**Approved:** 2026-11-11
 
 ## Approach
 
@@ -309,9 +310,9 @@ Notes:
 | Long plain-text fields rendered unsafely | Rendered as escaped text with `whitespace-pre-line`; never `raw/1` |
 | Changing a `users` row lock strategy later (e.g. for billing) | The lock is inside one private function in `Listings` |
 
-## Decisions to confirm
+## Decisions confirmed (2026-11-11)
 
-| # | Decision | Proposed | Hard to change later? |
+| # | Decision | Choice | Hard to change later? |
 |---|---|---|---|
 | 1 | How tests get Published / Rejected / Taken down listings before spec 004 | A test-only helper that sets the status directly; replaced in 004 | no |
 | 2 | Where business details live | Two columns on `users`, in `Accounts` | medium — a later company page would move them |
