@@ -531,6 +531,151 @@ defmodule Jairojobs.ListingsTest do
     end
   end
 
+  describe "withdraw_listing/2" do
+    test "REQ-003-7: withdraw", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      {:ok, pending} = Listings.submit_listing(scope, listing)
+
+      assert {:ok, withdrawn} = Listings.withdraw_listing(scope, pending)
+      assert withdrawn.status == :draft
+      assert withdrawn.submitted_at == nil
+      assert Listings.count_open_listings(scope) == 0
+
+      assert {:ok, %Listing{title: "Senior barista"}} =
+               Listings.update_listing(scope, withdrawn, %{title: "Senior barista"})
+    end
+
+    test "REQ-003-7: only pending listings can be withdrawn", %{scope: scope} do
+      for status <- [:draft, :published, :rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+
+        assert {:error, :invalid_status} = Listings.withdraw_listing(scope, listing)
+        assert Listings.get_my_listing!(scope, listing.id).status == status
+      end
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
+      theirs = listing_in_status_fixture(employer_scope_fixture(), :pending)
+
+      assert {:error, :not_found} = Listings.withdraw_listing(scope, theirs)
+
+      assert {:error, :not_found} =
+               Listings.withdraw_listing(admin_poster_scope_fixture(), theirs)
+
+      for other <- non_poster_scopes() do
+        assert {:error, :unauthorized} = Listings.withdraw_listing(other, theirs)
+      end
+
+      assert Repo.get!(Listing, theirs.id).status == :pending
+    end
+  end
+
+  describe "resubmitting a rejected listing" do
+    test "REQ-003-8: see the reason", %{scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      set_listing_status(listing, :rejected, reason: "Salary looks like a typo")
+
+      rejected = Listings.get_my_listing!(scope, listing.id)
+      assert rejected.status == :rejected
+      assert rejected.rejection_reason == "Salary looks like a typo"
+    end
+
+    test "REQ-003-8: fix and resubmit", %{scope: scope} do
+      rejected = listing_in_status_fixture(scope, :rejected)
+      {:ok, fixed} = Listings.update_listing(scope, rejected, %{salary_max: 18_000})
+
+      assert {:ok, resubmitted} = Listings.submit_listing(scope, fixed)
+      assert resubmitted.status == :pending
+      assert resubmitted.rejection_reason == nil
+      assert resubmitted.salary_max == 18_000
+      assert DateTime.compare(resubmitted.submitted_at, rejected.submitted_at) == :gt
+    end
+
+    test "REQ-003-8: a rejected listing may be resubmitted without changes", %{scope: scope} do
+      rejected = listing_in_status_fixture(scope, :rejected)
+
+      assert {:ok, %Listing{status: :pending, rejection_reason: nil}} =
+               Listings.submit_listing(scope, rejected)
+    end
+
+    test "REQ-003-8: resubmit follows the same checks", %{scope: scope} do
+      rejected = listing_in_status_fixture(scope, :rejected)
+      {:ok, incomplete} = Listings.update_listing(scope, rejected, %{area: ""})
+
+      assert {:error, {:incomplete, [:area]}} = Listings.submit_listing(scope, incomplete)
+
+      {:ok, complete} = Listings.update_listing(scope, incomplete, %{area: "Matina"})
+
+      for status <- [:pending, :published, :published],
+          do: listing_in_status_fixture(scope, status)
+
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, complete)
+
+      stored = Listings.get_my_listing!(scope, rejected.id)
+      assert stored.status == :rejected
+      assert stored.rejection_reason == rejected.rejection_reason
+    end
+  end
+
+  describe "close_listing/2" do
+    test "REQ-003-9: close", %{scope: scope} do
+      live = listing_in_status_fixture(scope, :published)
+
+      assert {:ok, closed} = Listings.close_listing(scope, live)
+      assert closed.status == :closed
+      assert %DateTime{} = closed.closed_at
+      assert Enum.map(Listings.list_my_listings(scope), & &1.id) == [live.id]
+    end
+
+    test "REQ-003-9: only live listings can be closed", %{scope: scope} do
+      for status <- [:draft, :pending, :rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+
+        assert {:error, :invalid_status} = Listings.close_listing(scope, listing)
+        assert Listings.get_my_listing!(scope, listing.id).status == status
+      end
+    end
+
+    test "REQ-003-9: a closed listing has no way back", %{scope: scope} do
+      {:ok, closed} = Listings.close_listing(scope, listing_in_status_fixture(scope, :published))
+
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, closed)
+      assert {:error, :invalid_status} = Listings.withdraw_listing(scope, closed)
+      assert {:error, :locked} = Listings.update_listing(scope, closed, %{title: "Reopened"})
+      assert {:error, :locked} = Listings.delete_listing(scope, closed)
+    end
+
+    test "REQ-003-12: closing or withdrawing frees a place", %{scope: scope} do
+      live = listing_in_status_fixture(scope, :published)
+      pending = listing_in_status_fixture(scope, :pending)
+      listing_in_status_fixture(scope, :published)
+      first = listing_fixture(scope, complete_listing_attrs())
+      second = listing_fixture(scope, complete_listing_attrs())
+
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, first)
+
+      {:ok, _closed} = Listings.close_listing(scope, live)
+      assert {:ok, _pending} = Listings.submit_listing(scope, first)
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, second)
+
+      {:ok, _draft} = Listings.withdraw_listing(scope, pending)
+      assert {:ok, _pending} = Listings.submit_listing(scope, second)
+    end
+
+    test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
+      theirs = listing_in_status_fixture(employer_scope_fixture(), :published)
+
+      assert {:error, :not_found} = Listings.close_listing(scope, theirs)
+      assert {:error, :not_found} = Listings.close_listing(admin_poster_scope_fixture(), theirs)
+
+      for other <- non_poster_scopes() do
+        assert {:error, :unauthorized} = Listings.close_listing(other, theirs)
+      end
+
+      assert Repo.get!(Listing, theirs.id).status == :published
+    end
+  end
+
   describe "free-tier limit" do
     defp open_listings(scope, statuses) do
       for status <- statuses, do: listing_in_status_fixture(scope, status)

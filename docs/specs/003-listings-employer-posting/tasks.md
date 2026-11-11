@@ -73,7 +73,7 @@ see them fail, then implement.
     submissions cannot exceed the limit
   - Commit: `feat(listings): submit for approval with free-tier limit (REQ-003-4, REQ-003-6, REQ-003-12)`
 
-- [ ] **T5** — Withdraw, resubmit, close (REQ-003-7, -8, -9)
+- [x] **T5** — Withdraw, resubmit, close (REQ-003-7, -8, -9) — done 2026-11-11
   - `Listings.withdraw_listing/2`, `close_listing/2`; resubmit path of `submit_listing/2`
     clears `rejection_reason`
   - Tests: `REQ-003-7: withdraw`, `REQ-003-7: only pending listings can be withdrawn`,

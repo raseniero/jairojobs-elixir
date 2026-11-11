@@ -186,6 +186,37 @@ defmodule Jairojobs.Listings do
     end
   end
 
+  @doc """
+  Takes a Pending listing back to Draft so it can be edited again
+  (REQ-003-7). It leaves the approval queue and frees a place under the limit.
+
+  Returns `{:ok, listing}`, `{:error, :invalid_status}` for any other status,
+  or `{:error, :not_found}` / `{:error, :unauthorized}`.
+  """
+  def withdraw_listing(scope, %Listing{} = listing) do
+    transition(scope, listing, :pending, status: :draft, submitted_at: nil)
+  end
+
+  @doc """
+  Closes a Published listing (REQ-003-9). Closed is final: the listing is no
+  longer public, stays in My listings and frees a place under the limit.
+
+  Returns the same shapes as `withdraw_listing/2`.
+  """
+  def close_listing(scope, %Listing{} = listing) do
+    transition(scope, listing, :published, status: :closed, closed_at: DateTime.utc_now())
+  end
+
+  defp transition(scope, listing, from, changes) do
+    with {:ok, listing} <- fetch_mine(scope, listing) do
+      if listing.status == from do
+        listing |> Ecto.Changeset.change(changes) |> Repo.update() |> preload_region()
+      else
+        {:error, :invalid_status}
+      end
+    end
+  end
+
   defp submittable(%Listing{status: status}) when status in [:draft, :rejected], do: :ok
   defp submittable(%Listing{}), do: {:error, :invalid_status}
 
