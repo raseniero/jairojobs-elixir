@@ -142,6 +142,19 @@ see them fail, then implement.
     `REQ-003-8: fix and resubmit`, `REQ-003-9: close`, `REQ-003-9: closing asks first`,
     `REQ-003-11: delete a draft`, `REQ-003-12: limit reached`,
     `REQ-003-14: another employer's listing is not found` (show)
+  - Journey test — `test/jairojobs_web/live/employer/posting_journey_test.exs`, one
+    `Phoenix.LiveViewTest` test, no browser (constitution §3.1), following every navigation
+    and redirect with `follow_redirect/3` instead of opening pages directly:
+    1. A logged-in Employer with no business details chooses "Post a job" in the menu and
+       is sent to business details
+    2. Saves the business name and lands on the listing form
+    3. Saves a draft with only a title; the owner view says Draft and lists what is missing
+    4. Edits it to be complete; the owner view shows the listing with salary and business name
+    5. Submits; the status is Waiting for approval and My listings shows "1 of 3 open
+       listings used"
+    6. Withdraws, changes the title, resubmits
+    7. (status set by the test helper until spec 004) rejected with a reason → sees the
+       reason → resubmits; then published → closes it → Closed, "0 of 3 open listings used"
   - Check all four screens at 375 px in a headless browser
   - Commit: `feat(web): listing owner view and lifecycle actions (REQ-003-6..12)`
 

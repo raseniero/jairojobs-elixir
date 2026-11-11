@@ -274,6 +274,13 @@ Notes:
   non-async module, and deletes the rows it committed.
 - **The database CHECK constraints** each get one test that tries to break them with a
   direct update.
+- **One journey test** (`test/jairojobs_web/live/employer/posting_journey_test.exs`) follows
+  a single Employer from "Post a job" through business details, draft, edit, submit,
+  withdraw, resubmit, rejection and close, following each redirect as a user would. It is a
+  `Phoenix.LiveViewTest` test, not a browser test (constitution §3.1), so JavaScript, CSS and
+  the confirm dialogs are outside it. The two Admin steps in the middle (reject, publish) use
+  the status helper until spec 004 exists; the full post-to-published journey through real
+  screens gets its test there.
 
 ## Risks & mitigations
 
