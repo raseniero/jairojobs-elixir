@@ -1,6 +1,6 @@
 # 002 — Regions
 
-**Status:** Approved
+**Status:** In Progress
 **Created:** 2026-11-05
 **Approved:** 2026-11-10
 **Owner:** Jairo

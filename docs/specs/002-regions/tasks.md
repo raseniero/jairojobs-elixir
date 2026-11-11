@@ -107,25 +107,30 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
 
 ## Phase C — Close
 
-- [ ] **T9** — Docs and Definition of Done
-  - `docs/architecture/diagrams/src/erd-jairojobs.puml`: add `regions`; run
-    `scripts/render-diagrams.sh`; commit the SVG with it
-  - `docs/architecture/data-model.md`: `regions` row → *Implemented*
-  - `docs/architecture/overview.md`: `Jairojobs.Regions` → *Implemented*
-  - `spec.md`, `plan.md`, `tasks.md` status → `Done`; feature map in spec 000 → Done
-  - Walk the Definition of Done checklist (constitution §7) and record it below
+- [ ] **T9** — Docs and Definition of Done — docs done 2026-11-10; close-out waits for CI
+  - [x] `docs/architecture/diagrams/src/erd-jairojobs.puml`: `regions` added; SVG re-rendered
+  - [x] `docs/architecture/data-model.md`: `regions` row → *Implemented*
+  - [x] `docs/architecture/overview.md`: `Jairojobs.Regions` → *Implemented*
+  - [ ] `spec.md`, `plan.md`, `tasks.md` status → `Done`; feature map in spec 000 → Done
+    (after the push and a green CI run on `main`)
   - Commit: `docs(spec 002): mark done`
 
-## Definition of Done (constitution §7)
+## Definition of Done (constitution §7) — walked 2026-11-10
 
-- [ ] Every REQ in the spec has a passing, REQ-named test
-- [ ] Authorization tests present for any private resource
-- [ ] `mix precommit` green locally **and** CI green on `main`
-- [ ] Works at 375 px width (phone) before desktop
-- [ ] No new deps without a justification line in `plan.md`
-- [ ] `docs/architecture/` updated if contexts or data model changed
-- [ ] `tasks.md` checked off; spec status set to `Done`
-- [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
+- [x] Every REQ in the spec has a passing, REQ-named test — REQ-002-1…6, every Gherkin
+  scenario (222 tests in the suite, 54 added by this spec)
+- [x] Authorization tests present for any private resource — every context write refuses
+  candidate, employer, `nil` and system scopes; all four admin routes refuse non-admins and
+  visitors
+- [ ] `mix precommit` green locally **and** CI green on `main` — green locally (30 full runs
+  after the async fix); **not pushed yet**, so no CI run
+- [x] Works at 375 px width — Admin home, Regions list, New (with error) and Edit checked in
+  headless Chromium at a 375 px viewport: no horizontal overflow, buttons 44 px tall
+- [x] No new deps without a justification line in `plan.md` — none added
+- [x] `docs/architecture/` updated — ERD, data-model, overview
+- [ ] `tasks.md` checked off; spec status set to `Done` — after CI
+- [ ] Deployed to Fly.io and smoke-checked — **deferred**, no deployment exists yet;
+  `Jairojobs.Release.seed/0` lands with it (plan decision 6)
 
 ## Notes / deviations from plan
 

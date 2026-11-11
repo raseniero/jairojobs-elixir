@@ -6,7 +6,7 @@
 ' Legend:  PK  primary key (UUID v7, ADR-0004)   FK foreign key   UK unique
 '          *   not null
 
-title jairojobs — Entity-Relationship (after spec 001)
+title jairojobs — Entity-Relationship (after spec 002)
 
 skinparam linetype ortho
 hide circle
@@ -34,6 +34,16 @@ entity "users_tokens" as users_tokens {
   * inserted_at : utc_datetime_usec
 }
 
+entity "regions" as regions {
+  * id : uuid <<PK>>
+  --
+  * name : citext <<UK>>  {1-80 chars}
+  * slug : string <<UK>>  {set once at creation}
+  * active : boolean  {default true; false = hidden}
+  * inserted_at : utc_datetime_usec
+  * updated_at : utc_datetime_usec
+}
+
 users ||--o{ users_tokens : "has"
 
 note bottom of users
@@ -46,8 +56,14 @@ note bottom of users_tokens
   Spec 001. Indexes: index(user_id), unique(context, token).
 end note
 
+note bottom of regions
+  Spec 002. Indexes: unique(name), unique(slug).
+  CHECK slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'.
+  CHECK char_length(name) BETWEEN 1 AND 80.
+  No delete: regions are hidden, never removed.
+end note
+
 ' --- Planned (not yet designed; added by their specs) ---
-' 002 regions
 ' 003 listings  (-> users [employer], -> regions)
 ' 006 profiles  (-> users [candidate]), cv files
 ' 007 applications (-> listings, -> users/profiles)
