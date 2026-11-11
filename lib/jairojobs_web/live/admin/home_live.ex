@@ -44,7 +44,7 @@ defmodule JairojobsWeb.Admin.HomeLive do
         id: "regions",
         label: "Regions",
         hint: "The cities and areas the site serves.",
-        href: "/admin/regions"
+        href: ~p"/admin/regions"
       }
     ]
   end

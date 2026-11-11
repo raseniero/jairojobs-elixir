@@ -77,7 +77,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `layouts_test.exs` — admin nav item links to `/admin` and is no longer a placeholder
   - Commit: `feat(web): admin home and nav link (REQ-002-1)`
 
-- [ ] **T7** — Regions list with Hide / Show (REQ-002-1, REQ-002-4)
+- [x] **T7** — Regions list with Hide / Show (REQ-002-1, REQ-002-4) — done 2026-11-10
   - Router: `live "/regions", RegionLive.Index, :index`
   - `lib/jairojobs_web/live/admin/region_live/index.ex`: stream of regions, breadcrumb,
     `#add-region` (the one `btn-accent`), per row name + `/jobs/<slug>` + hidden badge +
@@ -131,4 +131,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
 
 <!-- Record anything that changed during implementation and why. -->
 
-- 
+- T7: the plan first claimed that a user demoted mid-session would be refused by the context on
+  their next event. That was wrong: the socket keeps the scope it loaded at mount, so the
+  demotion only takes effect on the next navigation or reload, when the `require_admin` hook
+  runs again. The plan's Authorization section was corrected; no code works around it.

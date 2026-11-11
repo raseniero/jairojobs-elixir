@@ -151,8 +151,10 @@ modal component is used.
   The full list including hidden regions is only *rendered* behind `require_admin`.
 - **`seed_launch_regions/0`** takes no scope and accepts no input: it can only insert the
   three fixed launch regions. It is called from seeds, never from the web layer.
-- LiveView event handlers always pass `socket.assigns.current_scope`, so a user demoted
-  mid-session is refused by the context even before their next mount.
+- LiveView event handlers always pass `socket.assigns.current_scope` to the context. That
+  scope is loaded at mount, so an admin demoted while a page is open keeps write access on
+  that page until their next navigation or reload, when the `require_admin` hook runs again
+  (same "role change applies on the next request" rule as REQ-001-9).
 
 ## Background jobs / emails / external services
 
