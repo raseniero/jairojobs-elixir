@@ -135,3 +135,9 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
   their next event. That was wrong: the socket keeps the scope it loaded at mount, so the
   demotion only takes effect on the next navigation or reload, when the `require_admin` hook
   runs again. The plan's Authorization section was corrected; no code works around it.
+- T1–T8: the region context and LiveView test modules run with `async: false`. They use the
+  spec's fixed names ("Cebu", "Davao City"), and concurrent sandbox transactions inserting the
+  same unique names deadlocked about once in ten full runs. Found after T8; the T1–T8 commits
+  before the fix carry the flaky async setting.
+- T8: the tests were written before the implementation but first run after it (they passed).
+

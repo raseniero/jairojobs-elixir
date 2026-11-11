@@ -1,5 +1,8 @@
 defmodule Jairojobs.RegionsTest do
-  use Jairojobs.DataCase, async: true
+  # Not async (constitution §3.5): region names and slugs are unique, and these tests use
+  # the fixed names from the spec ("Cebu", "Davao City"). Concurrent sandbox transactions
+  # inserting the same names wait on each other's unique-index entries and can deadlock.
+  use Jairojobs.DataCase, async: false
 
   import Jairojobs.AccountsFixtures
   import Jairojobs.RegionsFixtures
