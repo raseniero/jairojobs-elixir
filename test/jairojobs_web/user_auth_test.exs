@@ -491,6 +491,83 @@ defmodule JairojobsWeb.UserAuthTest do
     end
   end
 
+  ## spec 003 — require_poster: Employers and Admins may post listings (REQ-003-1)
+
+  describe "on_mount :require_poster" do
+    test "REQ-003-1: employer and admin pass", %{conn: conn} do
+      for user <- [user_fixture(role: "employer"), admin_fixture()] do
+        session =
+          conn
+          |> put_session(:user_token, Accounts.generate_user_session_token(user))
+          |> get_session()
+
+        assert {:cont, socket} = UserAuth.on_mount(:require_poster, %{}, session, live_socket())
+        assert socket.assigns.current_scope.user.id == user.id
+      end
+    end
+
+    test "REQ-003-1: candidate is refused", %{conn: conn} do
+      session =
+        conn
+        |> put_session(
+          :user_token,
+          Accounts.generate_user_session_token(user_fixture(role: "candidate"))
+        )
+        |> get_session()
+
+      assert {:halt, socket} = UserAuth.on_mount(:require_poster, %{}, session, live_socket())
+      assert socket.redirected == {:redirect, %{to: ~p"/", status: 302}}
+      assert socket.assigns.flash["error"] == "You are not authorized to access this page."
+    end
+
+    test "REQ-003-1: visitor is redirected to log in", %{conn: conn} do
+      session = get_session(conn)
+
+      assert {:halt, socket} = UserAuth.on_mount(:require_poster, %{}, session, live_socket())
+      assert socket.redirected == {:redirect, %{to: ~p"/users/log-in", status: 302}}
+    end
+  end
+
+  describe "require_poster/2" do
+    setup %{conn: conn} do
+      %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}
+    end
+
+    test "REQ-003-1: employer and admin pass", %{conn: conn} do
+      for user <- [user_fixture(role: "employer"), admin_fixture()] do
+        conn =
+          conn
+          |> assign(:current_scope, Scope.for_user(user))
+          |> fetch_flash()
+          |> UserAuth.require_poster([])
+
+        refute conn.halted
+        refute conn.status
+      end
+    end
+
+    test "REQ-003-1: candidate is refused", %{conn: conn} do
+      conn =
+        conn
+        |> assign(:current_scope, Scope.for_user(user_fixture(role: "candidate")))
+        |> fetch_flash()
+        |> UserAuth.require_poster([])
+
+      assert conn.halted
+      assert redirected_to(conn) == ~p"/"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+               "You are not authorized to access this page."
+    end
+
+    test "REQ-003-1: visitor is redirected to log in", %{conn: conn} do
+      conn = conn |> fetch_flash() |> UserAuth.require_poster([])
+
+      assert conn.halted
+      assert redirected_to(conn) == ~p"/users/log-in"
+    end
+  end
+
   describe "disconnect_sessions/1" do
     test "REQ-001-7: disconnect_sessions broadcasts a disconnect for each token" do
       tokens = [%{token: "token1"}, %{token: "token2"}]

@@ -267,6 +267,27 @@ defmodule JairojobsWeb.UserAuth do
     end
   end
 
+  # spec 003 — REQ-003-1: the posting screens are for Employers and Admins.
+  # Visitors go to log in; signed-in Candidates are sent home with a flash.
+  def on_mount(:require_poster, params, session, socket) do
+    case on_mount(:require_authenticated, params, session, socket) do
+      {:cont, socket} ->
+        if Scope.poster?(socket.assigns.current_scope) do
+          {:cont, socket}
+        else
+          socket =
+            socket
+            |> Phoenix.LiveView.put_flash(:error, "You are not authorized to access this page.")
+            |> Phoenix.LiveView.redirect(to: ~p"/")
+
+          {:halt, socket}
+        end
+
+      halted ->
+        halted
+    end
+  end
+
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
       {user, _} =
@@ -316,6 +337,32 @@ defmodule JairojobsWeb.UserAuth do
         conn
 
       Scope.admin?(conn.assigns.current_scope) ->
+        conn
+
+      true ->
+        conn
+        |> put_flash(:error, "You are not authorized to access this page.")
+        |> redirect(to: ~p"/")
+        |> halt()
+    end
+  end
+
+  @doc """
+  Plug for routes that require an account that may post listings — an
+  Employer or an Admin (spec 003, REQ-003-1).
+
+  Visitors are redirected to log in (and return afterwards); signed-in
+  Candidates are sent home with a message, exactly like the `:require_poster`
+  hook.
+  """
+  def require_poster(conn, opts) do
+    conn = require_authenticated_user(conn, opts)
+
+    cond do
+      conn.halted ->
+        conn
+
+      Scope.poster?(conn.assigns.current_scope) ->
         conn
 
       true ->

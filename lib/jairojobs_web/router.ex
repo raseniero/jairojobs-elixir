@@ -73,6 +73,18 @@ defmodule JairojobsWeb.Router do
     end
   end
 
+  ## Posting routes (spec 003) — for Employers and Admins (REQ-003-1).
+  # Candidates must be refused, so these cannot sit in `:require_authenticated_user`;
+  # Employers must get in, so they cannot sit in `:require_admin`.
+  scope "/my", JairojobsWeb.Employer do
+    pipe_through [:browser, :require_poster]
+
+    live_session :require_poster,
+      on_mount: [{JairojobsWeb.UserAuth, :require_poster}] do
+      live "/business", BusinessLive, :edit
+    end
+  end
+
   scope "/", JairojobsWeb do
     pipe_through [:browser]
 

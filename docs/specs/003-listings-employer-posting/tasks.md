@@ -85,7 +85,7 @@ see them fail, then implement.
 
 ## Phase B — Screens
 
-- [ ] **T6** — `require_poster` and the business details screen (REQ-003-1, -2)
+- [x] **T6** — `require_poster` and the business details screen (REQ-003-1, -2) — done 2026-11-11
   - `UserAuth`: `require_poster/2` plug and `on_mount(:require_poster, …)`
   - Router: `scope "/my", JairojobsWeb.Employer` with `live_session :require_poster`;
     `live "/business", BusinessLive, :edit`
