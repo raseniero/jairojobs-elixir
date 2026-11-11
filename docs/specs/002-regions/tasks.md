@@ -10,7 +10,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
 
 ## Phase A — Context
 
-- [ ] **T1** — `regions` table, `Region` schema, create and list (REQ-002-1, REQ-002-2)
+- [x] **T1** — `regions` table, `Region` schema, create and list (REQ-002-1, REQ-002-2) — done 2026-11-10
   - `mix ecto.gen.migration create_regions`: `name :citext`, `slug :string`,
     `active :boolean default true`, timestamps, unique indexes on `name` and `slug`,
     CHECK constraints `regions_slug_format` and `regions_name_length`
