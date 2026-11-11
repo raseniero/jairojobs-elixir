@@ -1,7 +1,8 @@
 # 002 — Regions
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-11-05
+**Approved:** 2026-11-10
 **Owner:** Jairo
 **Related ADRs:** 0004 (UUID v7 keys)
 **Depends on:** 000 (product overview), 001 (admin role, `require_admin`)
@@ -311,3 +312,4 @@ Scenario: Lookup by slug works for hidden regions
 |---|---|
 | 2026-11-05 | Created |
 | 2026-11-10 | Added Salt wireframe of the admin Regions screens (list, New, Edit) |
+| 2026-11-10 | Approved |
