@@ -77,7 +77,7 @@ Admin, and `{:error, :not_found}` when the listing passed in is not the caller's
 | Type is one of the five | yes, when filled in | yes |
 | Region, area, salary, type, description present | no | yes |
 | Description at least 50 characters | no | yes |
-| Region is active | offered in the form only | checked in the context |
+| Region is active | not checked; the form offers active regions plus the draft's current one | checked in the context |
 
 Reading of the spec: "a filled-in field must still be valid" is applied to formats and
 maximums. The 50-character minimum on "About the job" is checked only on submit, so a
@@ -188,13 +188,17 @@ and a signed-in Candidate home with "You are not authorized to access this page.
   the listing form; later saves return to My listings.
 - **Listing form** — opening `/my/listings/new` without business details redirects to
   `/my/business` first. Stock `<.form>` / `<.input>`; region select fed by
-  `Regions.list_active_regions/0`; two salary inputs with `inputmode="numeric"`; "Save draft"
+  `Regions.list_active_regions/0`, plus the draft's current region marked "(no longer
+  available)" when an Admin has hidden it since, so editing never silently clears it and
+  submit refuses it as REQ-003-6 describes; two salary inputs with `inputmode="numeric"`; "Save draft"
   is the accent button. Opening the edit form for a locked listing redirects to the owner
   view with a message.
 - **Owner view** — a status box (label, one sentence on what happens next, the missing
   fields or the rejection reason when relevant, and only the actions the status allows),
-  then `listing_detail`. Close and Delete use `data-confirm` with the spec's wording; no
-  modal. Submit failures show a flash naming the reason (missing fields, hidden region,
+  then `listing_detail`. A Draft or Rejected listing shows the account's **current**
+  business name and "about" (what would be submitted); every other status shows the
+  listing's own copy, taken at submit. Close and Delete use `data-confirm` with the spec's
+  wording; no modal. Submit failures show a flash naming the reason (missing fields, hidden region,
   limit reached).
 
 ### DOM ids (fixed now so tests can be written first)
@@ -204,8 +208,8 @@ and a signed-in Candidate home with "You are not authorized to access this page.
 | My listings stream / row / empty state | `#my-listings` / `#my-listings-<uuid>` / `#no-listings` |
 | Post a job button, open-listings line, business footer link | `#post-a-job`, `#open-listings-count`, `#edit-business` |
 | Status label on a row or in the status box | `#listing-status-<uuid>` |
-| Business form | `#business-form` |
-| Listing form / cancel | `#listing-form` / `#listing-form-cancel` |
+| Business form (params under `business`) | `#business-form` |
+| Listing form (params under `listing`) / cancel | `#listing-form` / `#listing-form-cancel` |
 | Owner view: status box, listing body | `#listing-status-box`, `#listing-detail` |
 | Owner view: missing fields, rejection reason | `#listing-missing`, `#listing-rejection-reason` |
 | Owner view actions | `#submit-listing`, `#edit-listing`, `#withdraw-listing`, `#close-listing`, `#delete-listing` |
@@ -223,10 +227,21 @@ and a signed-in Candidate home with "You are not authorized to access this page.
   on create and is never cast.
 - **Admins** get no special access to other people's listings from this context; their
   moderation powers are separate functions in spec 004.
-- **Status, salary, business snapshot, rejection reason and timestamps** are never cast
+- **Status, owner, business snapshot, rejection reason and timestamps** are never cast
   from params.
 - As noted in spec 002, the scope is loaded at mount: a role change takes effect on the
   person's next navigation or reload.
+
+## Logging and privacy
+
+The spec requires that listing text and business details are not written to logs
+(constitution §4.12).
+
+- The context and LiveViews log nothing about listing content; any log line uses ids only.
+- Phoenix logs form parameters at `debug`, which production (`level: :info`) does not emit.
+  To make it certain in every environment, `config :phoenix, :filter_parameters` becomes
+  `["password", "listing", "business"]` — the two form names — so their values are logged
+  as `[FILTERED]`. The business form is therefore named `business`, not `user`.
 
 ## Background jobs / emails / external services
 

@@ -19,7 +19,7 @@ see them fail, then implement.
   - Tests (`accounts_test.exs`, `scope_test.exs`): `REQ-003-2: business name is required`
     (blank, 1 character, 81 characters), saves and trims, about over 500 refused,
     `REQ-003-2: a candidate cannot save business details`, `poster?/1` for all four roles
-    and `nil`
+    and `nil`, the `users_business_name_length` CHECK refuses a direct bad update
   - Commit: `feat(accounts): business details for employers (REQ-003-2)`
 
 - [ ] **T2** — `listings` table, `Pesos` type, save a draft, list and get (REQ-003-3, -13, -14)
@@ -39,8 +39,8 @@ see them fail, then implement.
     details` (`:business_details_required`), `REQ-003-1: a candidate cannot create a
     listing`, `REQ-003-14: my listings shows only mine`,
     `REQ-003-14: another employer's listing is not found` (`get_my_listing!/2`), forged
-    `status` / `user_id` / `business_name` params ignored, salary CHECK refuses a direct
-    bad update
+    `status` / `user_id` / `business_name` params ignored, the salary, status and
+    employment-type CHECKs each refuse a direct bad update
   - Commit: `feat(listings): listings table and drafts (REQ-003-3, REQ-003-13, REQ-003-14)`
 
 - [ ] **T3** — Edit and delete (REQ-003-5, -11)
@@ -89,11 +89,14 @@ see them fail, then implement.
   - `UserAuth`: `require_poster/2` plug and `on_mount(:require_poster, …)`
   - Router: `scope "/my", JairojobsWeb.Employer` with `live_session :require_poster`;
     `live "/business", BusinessLive, :edit`
-  - `Employer.BusinessLive`: `#business-form`; first save continues to the listing form
+  - `config/config.exs`: `config :phoenix, :filter_parameters, ["password", "listing",
+    "business"]` (plan, Logging and privacy)
+  - `Employer.BusinessLive`: `#business-form` with params under `business`; first save continues to the listing form
     (plain path until T8 adds the route), later saves go to My listings (plain path until T7)
   - Tests (`user_auth_test.exs`): employer and admin pass, candidate refused, visitor
     redirected — plug and hook. (`business_live_test.exs`):
-    `REQ-003-2: business name is required`, saves, `REQ-003-1: candidate is refused`,
+    `REQ-003-2: business name is required`, saves, listing and business form values are
+    filtered from logged parameters, `REQ-003-1: candidate is refused`,
     `REQ-003-1: visitor is redirected to log in`
   - Commit: `feat(web): poster access and business details screen (REQ-003-1, REQ-003-2)`
 
@@ -115,15 +118,17 @@ see them fail, then implement.
 - [ ] **T8** — Listing form: new and edit (REQ-003-2, -3, -5)
   - Router: `live "/listings/new", ListingLive.Form, :new`,
     `live "/listings/:id/edit", ListingLive.Form, :edit`
-  - `Employer.ListingLive.Form` per the wireframe; redirect to `/my/business` when business
-    details are missing; redirect to the owner view (plain path until T9) when the listing
+  - `Employer.ListingLive.Form` per the wireframe (params under `listing`; the region
+    select offers active regions plus the draft's own region when it has been hidden);
+    redirect to `/my/business` when business details are missing; redirect to the owner view (plain path until T9) when the listing
     is locked
   - `Layouts`: "Post a job" → `/my/listings/new`; `Admin.HomeLive`: "Post a job" row;
     `#post-a-job` on My listings
   - Tests: `REQ-003-2: first post asks for business details`, `REQ-003-2: later posts skip
     the question`, `REQ-003-1: admin posts a listing`, `REQ-003-3: save an unfinished
     draft`, `REQ-003-3: title is required`, `REQ-003-3: a filled-in field must still be
-    valid`, `REQ-003-3: only active regions are offered`, `REQ-003-5: edit a draft`,
+    valid`, `REQ-003-3: only active regions are offered`, editing a draft whose region was
+    hidden keeps the region, `REQ-003-5: edit a draft`,
     `REQ-003-5: editing a locked listing is refused` (edit address redirects),
     `REQ-003-14: another employer's listing is not found` (edit)
   - Commit: `feat(web): listing form for drafts (REQ-003-3, REQ-003-5)`
@@ -134,7 +139,9 @@ see them fail, then implement.
   - `Employer.ListingLive.Show`: status box, missing fields, rejection reason, actions by
     status, `data-confirm` on Close and Delete, flashes for each submit failure
   - Replace the plain paths from T6–T8 with verified routes
-  - Tests: `REQ-003-10: owner view of a draft`, `REQ-003-10: unfinished draft shows what is
+  - A Draft or Rejected listing shows the account's current business details; other
+    statuses show the listing's own copy
+  - Tests: `REQ-003-10: owner view of a draft` (current business name), `REQ-003-10: unfinished draft shows what is
     missing`, `REQ-003-10: actions follow the status`, `REQ-003-5: pending listing is
     locked`, `REQ-003-5: live listing is locked`, `REQ-003-6: submit a complete draft`,
     `REQ-003-6: incomplete draft cannot be submitted`, `REQ-003-6: region was hidden in the
