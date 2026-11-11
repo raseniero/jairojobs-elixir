@@ -34,7 +34,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `REQ-002-3: non-admin scopes cannot rename`, forged `slug` param is ignored
   - Commit: `feat(regions): rename a region, slug fixed (REQ-002-3)`
 
-- [ ] **T3** — Hide, show and the consumer contract (REQ-002-4, REQ-002-6)
+- [x] **T3** — Hide, show and the consumer contract (REQ-002-4, REQ-002-6) — done 2026-11-10
   - `Regions.hide_region/2`, `show_region/2`, `list_active_regions/0`,
     `get_region_by_slug/1`
   - Tests: `REQ-002-4: hide a region`, `REQ-002-4: unhide a region`,

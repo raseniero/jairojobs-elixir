@@ -182,6 +182,90 @@ defmodule Jairojobs.RegionsTest do
     end
   end
 
+  describe "hide_region/2 and show_region/2" do
+    test "REQ-002-4: hide a region", %{admin: admin} do
+      region = region_fixture(name: "Baguio")
+
+      assert {:ok, hidden} = Regions.hide_region(admin, region)
+      refute hidden.active
+      refute Regions.get_region!(region.id).active
+      assert Regions.list_active_regions() == []
+    end
+
+    test "REQ-002-4: unhide a region", %{admin: admin} do
+      region = region_fixture(name: "Baguio", active: false)
+
+      assert {:ok, shown} = Regions.show_region(admin, region)
+      assert shown.active
+      assert Regions.list_active_regions() == [shown]
+    end
+
+    test "REQ-002-4: hidden region keeps its data", %{admin: admin} do
+      region = region_fixture(name: "Baguio")
+
+      assert {:ok, hidden} = Regions.hide_region(admin, region)
+
+      # Its listings are covered in spec 003, once listings exist.
+      assert %{hidden | active: true} == %{region | updated_at: hidden.updated_at}
+      assert Regions.list_regions() == [hidden]
+      assert Regions.get_region_by_slug("baguio") == hidden
+    end
+
+    test "REQ-002-4: hiding or showing twice is harmless", %{admin: admin} do
+      region = region_fixture(name: "Baguio")
+
+      assert {:ok, hidden} = Regions.hide_region(admin, region)
+      assert {:ok, %Region{active: false}} = Regions.hide_region(admin, hidden)
+      assert {:ok, shown} = Regions.show_region(admin, hidden)
+      assert {:ok, %Region{active: true}} = Regions.show_region(admin, shown)
+    end
+
+    test "REQ-002-4: a hidden region can still be renamed", %{admin: admin} do
+      region = region_fixture(name: "Baguio", active: false)
+
+      assert {:ok, renamed} = Regions.rename_region(admin, region, %{name: "Baguio City"})
+      assert renamed.slug == "baguio"
+      refute renamed.active
+    end
+
+    test "REQ-002-4: non-admin scopes cannot hide or show" do
+      active = region_fixture()
+      hidden = region_fixture(active: false)
+
+      for scope <- non_admin_scopes() do
+        assert {:error, :unauthorized} = Regions.hide_region(scope, active)
+        assert {:error, :unauthorized} = Regions.show_region(scope, hidden)
+      end
+
+      assert Regions.get_region!(active.id).active
+      refute Regions.get_region!(hidden.id).active
+    end
+  end
+
+  describe "list_active_regions/0" do
+    test "REQ-002-6: only active regions are offered" do
+      region_fixture(name: "Davao City")
+      region_fixture(name: "Cebu")
+      region_fixture(name: "Baguio", active: false)
+
+      assert Enum.map(Regions.list_active_regions(), & &1.name) == ["Cebu", "Davao City"]
+    end
+  end
+
+  describe "get_region_by_slug/1" do
+    test "REQ-002-6: lookup by slug works for hidden regions" do
+      hidden = region_fixture(name: "Baguio", active: false)
+      active = region_fixture(name: "Cebu")
+
+      assert Regions.get_region_by_slug("baguio") == hidden
+      assert Regions.get_region_by_slug("cebu") == active
+    end
+
+    test "REQ-002-6: unknown slug is not found" do
+      assert Regions.get_region_by_slug("nowhere") == nil
+    end
+  end
+
   describe "get_region!/1" do
     test "returns the region or raises" do
       region = region_fixture()

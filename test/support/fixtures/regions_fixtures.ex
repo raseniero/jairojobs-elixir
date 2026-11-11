@@ -10,13 +10,23 @@ defmodule Jairojobs.RegionsFixtures do
 
   @doc """
   A region created through the real context function by an admin (spec 002).
+
+  Pass `active: false` for a hidden region.
   """
   def region_fixture(attrs \\ %{}) do
+    {active, attrs} = attrs |> Map.new() |> Map.pop(:active, true)
+    scope = AccountsFixtures.admin_scope_fixture()
+
     {:ok, region} =
       attrs
       |> Enum.into(%{name: unique_region_name()})
-      |> then(&Regions.create_region(AccountsFixtures.admin_scope_fixture(), &1))
+      |> then(&Regions.create_region(scope, &1))
 
-    region
+    if active do
+      region
+    else
+      {:ok, region} = Regions.hide_region(scope, region)
+      region
+    end
   end
 end
