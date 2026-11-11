@@ -22,7 +22,7 @@ see them fail, then implement.
     and `nil`, the `users_business_name_length` CHECK refuses a direct bad update
   - Commit: `feat(accounts): business details for employers (REQ-003-2)`
 
-- [ ] **T2** — `listings` table, `Pesos` type, save a draft, list and get (REQ-003-3, -13, -14)
+- [x] **T2** — `listings` table, `Pesos` type, save a draft, list and get (REQ-003-3, -13, -14) — done 2026-11-11
   - `lib/jairojobs/pesos.ex`: cast digits / "14,000" / "₱14,000"; refuse decimals and text;
     dump ×100; load ÷100
   - `mix ecto.gen.migration create_listings`: columns, FKs (`on_delete: :restrict`), index
