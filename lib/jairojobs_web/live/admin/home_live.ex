@@ -52,6 +52,12 @@ defmodule JairojobsWeb.Admin.HomeLive do
         label: "My listings",
         hint: "Listings you have posted yourself.",
         href: ~p"/my/listings"
+      },
+      %{
+        id: "post-a-job",
+        label: "Post a job",
+        hint: "Add a listing yourself. It still needs approval.",
+        href: ~p"/my/listings/new"
       }
     ]
   end

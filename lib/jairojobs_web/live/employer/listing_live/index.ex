@@ -17,6 +17,9 @@ defmodule JairojobsWeb.Employer.ListingLive.Index do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="flex items-center justify-between gap-3">
         <h1 class="text-[22px] font-bold">My listings</h1>
+        <.button navigate={~p"/my/listings/new"} id="post-a-job" variant="accent">
+          <.icon name="hero-plus" class="size-5" /> Post a job
+        </.button>
       </div>
 
       <p :if={@limit != :unlimited} id="open-listings-count" class="text-sm text-base-content/70">
@@ -29,7 +32,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Index do
         class="divide-y divide-base-300 border-y border-base-300"
       >
         <li id="no-listings" class="hidden py-3 text-base-content/70 only:block">
-          You haven't posted a job yet. Your listings will appear here.
+          You haven't posted a job yet. Tap “Post a job” to write your first listing.
         </li>
         <li :for={{dom_id, listing} <- @streams.listings} id={dom_id}>
           <.link

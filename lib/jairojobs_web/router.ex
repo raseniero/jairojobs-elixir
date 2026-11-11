@@ -83,6 +83,8 @@ defmodule JairojobsWeb.Router do
       on_mount: [{JairojobsWeb.UserAuth, :require_poster}] do
       live "/business", BusinessLive, :edit
       live "/listings", ListingLive.Index, :index
+      live "/listings/new", ListingLive.Form, :new
+      live "/listings/:id/edit", ListingLive.Form, :edit
     end
   end
 

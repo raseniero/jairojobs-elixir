@@ -99,7 +99,7 @@ defmodule JairojobsWeb.Employer.BusinessLive do
   end
 
   # First time: carry on to the listing the user came to post. Later: back to the list.
-  defp next_path(true), do: "/my/listings/new"
+  defp next_path(true), do: ~p"/my/listings/new"
   defp next_path(false), do: ~p"/my/listings"
 
   # Params travel under "business" (not "user") so they can be filtered from logs.

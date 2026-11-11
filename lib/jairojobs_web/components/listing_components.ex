@@ -18,6 +18,26 @@ defmodule JairojobsWeb.ListingComponents do
   """
   def status_label(status), do: Map.fetch!(@status_labels, status)
 
+  @employment_type_labels [
+    full_time: "Full-time",
+    part_time: "Part-time",
+    contract: "Contract",
+    temporary: "Temporary",
+    internship: "Internship"
+  ]
+
+  @doc """
+  The words shown for an employment type, e.g. `:full_time` → "Full-time".
+  """
+  def employment_type_label(type), do: Keyword.fetch!(@employment_type_labels, type)
+
+  @doc """
+  `{label, value}` pairs for the employment type select.
+  """
+  def employment_type_options do
+    for {type, label} <- @employment_type_labels, do: {label, type}
+  end
+
   @doc """
   A listing's status as a pill. The status is always written out in words;
   colour only reinforces it (design guide §6).

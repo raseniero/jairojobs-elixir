@@ -115,7 +115,7 @@ see them fail, then implement.
     (`layouts_test.exs`, `home_live_test.exs`): links updated
   - Commit: `feat(web): my listings and employer navigation (REQ-003-1, REQ-003-13)`
 
-- [ ] **T8** — Listing form: new and edit (REQ-003-2, -3, -5)
+- [x] **T8** — Listing form: new and edit (REQ-003-2, -3, -5) — done 2026-11-11
   - Router: `live "/listings/new", ListingLive.Form, :new`,
     `live "/listings/:id/edit", ListingLive.Form, :edit`
   - `Employer.ListingLive.Form` per the wireframe (params under `listing`; the region

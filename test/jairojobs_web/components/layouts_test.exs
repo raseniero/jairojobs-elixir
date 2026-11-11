@@ -65,7 +65,7 @@ defmodule JairojobsWeb.LayoutsTest do
              "nav-logout"
            ]
 
-    assert placeholder_ids(html) == ["nav-post-job"]
+    assert placeholder_ids(html) == []
   end
 
   test "REQ-003-1: employer navigation links to My listings" do
