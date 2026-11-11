@@ -48,6 +48,12 @@ defmodule Jairojobs.Accounts.Scope do
   def admin?(scope), do: role(scope) == :admin
 
   @doc """
+  `true` when the scoped user may post listings: an Employer or an Admin
+  (spec 003, REQ-003-1).
+  """
+  def poster?(scope), do: role(scope) in [:employer, :admin]
+
+  @doc """
   The operator scope used by privileged commands (REQ-001-10). It carries no
   user and must never be mounted from a web request.
   """

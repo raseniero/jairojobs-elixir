@@ -14,6 +14,11 @@ defmodule Jairojobs.Accounts.User do
     field :role, Ecto.Enum, values: [:candidate, :employer, :admin]
     field :previous_role, Ecto.Enum, values: [:candidate, :employer]
 
+    # spec 003 — REQ-003-2: the business this account posts listings for. A
+    # listing copies both when it is submitted.
+    field :business_name, :string
+    field :business_about, :string
+
     timestamps()
   end
 
@@ -79,6 +84,30 @@ defmodule Jairojobs.Accounts.User do
       add_error(changeset, :email, "did not change")
     else
       changeset
+    end
+  end
+
+  @doc """
+  A changeset for the business details shown on the account's listings
+  (REQ-003-2). Only the two business fields are cast.
+  """
+  def business_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:business_name, :business_about])
+    |> update_change(:business_name, &trim/1)
+    |> update_change(:business_about, &trim/1)
+    |> validate_required([:business_name])
+    |> validate_length(:business_name, min: 2, max: 80)
+    |> validate_length(:business_about, max: 500)
+    |> check_constraint(:business_name, name: :users_business_name_length)
+  end
+
+  defp trim(nil), do: nil
+
+  defp trim(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
     end
   end
 

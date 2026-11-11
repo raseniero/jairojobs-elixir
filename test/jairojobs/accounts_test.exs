@@ -533,4 +533,119 @@ defmodule Jairojobs.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "business details (spec 003)" do
+    setup do
+      %{scope: Scope.for_user(user_fixture(role: "employer"))}
+    end
+
+    test "REQ-003-2: an employer saves business details", %{scope: scope} do
+      refute Accounts.business_details?(scope.user)
+
+      assert {:ok, user} =
+               Accounts.update_business_details(scope, %{
+                 business_name: "  Kape Isla  ",
+                 business_about: "Family-run café since 2019."
+               })
+
+      assert user.business_name == "Kape Isla"
+      assert user.business_about == "Family-run café since 2019."
+      assert Accounts.business_details?(user)
+      assert Accounts.get_user!(user.id).business_name == "Kape Isla"
+    end
+
+    test "REQ-003-2: an admin saves business details" do
+      assert {:ok, user} =
+               Accounts.update_business_details(admin_scope_fixture(), %{
+                 business_name: "jairojobs"
+               })
+
+      assert user.business_name == "jairojobs"
+    end
+
+    test "REQ-003-2: business name is required", %{scope: scope} do
+      for name <- ["", "   ", nil] do
+        assert {:error, changeset} =
+                 Accounts.update_business_details(scope, %{business_name: name})
+
+        assert "can't be blank" in errors_on(changeset).business_name
+      end
+
+      assert {:error, changeset} = Accounts.update_business_details(scope, %{business_name: "K"})
+      assert "should be at least 2 character(s)" in errors_on(changeset).business_name
+
+      assert {:error, changeset} =
+               Accounts.update_business_details(scope, %{
+                 business_name: String.duplicate("a", 81)
+               })
+
+      assert "should be at most 80 character(s)" in errors_on(changeset).business_name
+
+      refute Accounts.business_details?(Accounts.get_user!(scope.user.id))
+    end
+
+    test "REQ-003-2: about the business is optional and at most 500 characters", %{scope: scope} do
+      assert {:error, changeset} =
+               Accounts.update_business_details(scope, %{
+                 business_name: "Kape Isla",
+                 business_about: String.duplicate("a", 501)
+               })
+
+      assert "should be at most 500 character(s)" in errors_on(changeset).business_about
+
+      assert {:ok, user} =
+               Accounts.update_business_details(scope, %{
+                 business_name: "Kape Isla",
+                 business_about: String.duplicate("a", 500)
+               })
+
+      assert {:ok, user} =
+               Accounts.update_business_details(Scope.for_user(user), %{
+                 business_name: "Kape Isla",
+                 business_about: ""
+               })
+
+      assert user.business_about == nil
+    end
+
+    test "REQ-003-2: a candidate cannot save business details" do
+      candidate = user_fixture(role: "candidate")
+
+      for scope <- [Scope.for_user(candidate), nil, Scope.system()] do
+        assert {:error, :unauthorized} =
+                 Accounts.update_business_details(scope, %{business_name: "Kape Isla"})
+      end
+
+      refute Accounts.business_details?(Accounts.get_user!(candidate.id))
+    end
+
+    test "REQ-003-2: other account fields cannot be changed through business details", %{
+      scope: scope
+    } do
+      assert {:ok, user} =
+               Accounts.update_business_details(scope, %{
+                 business_name: "Kape Isla",
+                 role: "admin",
+                 email: "other@example.com"
+               })
+
+      assert user.role == :employer
+      assert user.email == scope.user.email
+    end
+
+    test "REQ-003-2: change_business_details/2 returns a changeset for the form", %{scope: scope} do
+      assert %Ecto.Changeset{} =
+               changeset = Accounts.change_business_details(scope.user, %{business_name: "K"})
+
+      refute changeset.valid?
+    end
+
+    test "REQ-003-2: the database refuses a business name outside 2–80 characters", %{
+      scope: scope
+    } do
+      assert_raise Ecto.ConstraintError, ~r/users_business_name_length/, fn ->
+        scope.user |> Ecto.Changeset.change(business_name: "K") |> Repo.update()
+      end
+    end
+  end
 end

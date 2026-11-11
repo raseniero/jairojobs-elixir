@@ -246,6 +246,37 @@ defmodule Jairojobs.Accounts do
   end
 
   # The system scope is honoured here and nowhere else (plan §Authorization).
+  ## Business details (spec 003)
+
+  @doc """
+  `true` once the user has said which business they post listings for.
+  """
+  def business_details?(%User{business_name: name}), do: is_binary(name)
+
+  @doc """
+  A changeset for the business details form.
+  """
+  def change_business_details(%User{} = user, attrs \\ %{}) do
+    User.business_changeset(user, attrs)
+  end
+
+  @doc """
+  Saves the scoped user's business details (REQ-003-2). Returns:
+
+    * `{:ok, user}`
+    * `{:error, changeset}` — name blank or outside 2–80 characters, about over 500
+    * `{:error, :unauthorized}` — the scope is not an Employer or Admin
+  """
+  def update_business_details(scope, attrs) do
+    if Scope.poster?(scope) do
+      scope.user
+      |> User.business_changeset(attrs)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
   defp can_manage_admins?(scope), do: Scope.admin?(scope) or Scope.system?(scope)
 
   ## Session

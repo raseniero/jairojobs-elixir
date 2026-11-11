@@ -10,7 +10,7 @@ see them fail, then implement.
 
 ## Phase A — Accounts and the listing context
 
-- [ ] **T1** — Business details on the account (REQ-003-2)
+- [x] **T1** — Business details on the account (REQ-003-2) — done 2026-11-11
   - `mix ecto.gen.migration add_business_details_to_users`: `business_name`,
     `business_about`, CHECK `users_business_name_length`
   - `User`: fields + `business_changeset/2` (name required, trimmed, 2–80; about ≤ 500)

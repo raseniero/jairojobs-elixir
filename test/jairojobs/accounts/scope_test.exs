@@ -43,4 +43,17 @@ defmodule Jairojobs.Accounts.ScopeTest do
       refute Scope.admin?(%Scope{user: nil})
     end
   end
+
+  describe "poster?/1" do
+    test "REQ-003-1: employers and admins may post listings" do
+      assert Scope.poster?(Scope.for_user(user_fixture(role: "employer")))
+      assert Scope.poster?(Scope.for_user(admin_fixture()))
+    end
+
+    test "REQ-003-1: candidates, visitors and the system scope may not" do
+      refute Scope.poster?(Scope.for_user(user_fixture(role: "candidate")))
+      refute Scope.poster?(nil)
+      refute Scope.poster?(Scope.system())
+    end
+  end
 end
