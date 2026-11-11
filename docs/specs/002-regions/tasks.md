@@ -91,7 +91,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `REQ-002-4: unhide a region`
   - Commit: `feat(web): admin regions list with hide/show (REQ-002-1, REQ-002-4)`
 
-- [ ] **T8** — New and Edit forms (REQ-002-2, REQ-002-3)
+- [x] **T8** — New and Edit forms (REQ-002-2, REQ-002-3) — done 2026-11-10
   - Router: `live "/regions/new", RegionLive.Form, :new`,
     `live "/regions/:id/edit", RegionLive.Form, :edit`
   - `lib/jairojobs_web/live/admin/region_live/form.ex`: `#region-form` with `<.input

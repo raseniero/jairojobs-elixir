@@ -68,6 +68,8 @@ defmodule JairojobsWeb.Router do
       on_mount: [{JairojobsWeb.UserAuth, :require_admin}] do
       live "/", HomeLive
       live "/regions", RegionLive.Index, :index
+      live "/regions/new", RegionLive.Form, :new
+      live "/regions/:id/edit", RegionLive.Form, :edit
     end
   end
 

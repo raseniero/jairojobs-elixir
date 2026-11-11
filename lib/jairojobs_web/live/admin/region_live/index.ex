@@ -21,7 +21,7 @@ defmodule JairojobsWeb.Admin.RegionLive.Index do
 
       <div class="flex items-center justify-between gap-3">
         <h1 class="text-[22px] font-bold">Regions</h1>
-        <.button navigate="/admin/regions/new" id="add-region" variant="accent">
+        <.button navigate={~p"/admin/regions/new"} id="add-region" variant="accent">
           <.icon name="hero-plus" class="size-5" /> Add region
         </.button>
       </div>
@@ -56,7 +56,7 @@ defmodule JairojobsWeb.Admin.RegionLive.Index do
 
           <div class="flex shrink-0 gap-2">
             <.button
-              navigate={"/admin/regions/#{region.id}/edit"}
+              navigate={~p"/admin/regions/#{region.id}/edit"}
               id={"edit-region-#{region.id}"}
               aria-label={"Edit #{region.name}"}
             >
