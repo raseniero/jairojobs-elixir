@@ -45,6 +45,13 @@ defmodule JairojobsWeb.Admin.HomeLive do
         label: "Regions",
         hint: "The cities and areas the site serves.",
         href: ~p"/admin/regions"
+      },
+      # spec 003 — REQ-003-1: Admins post through the same screens as Employers.
+      %{
+        id: "my-listings",
+        label: "My listings",
+        hint: "Listings you have posted yourself.",
+        href: ~p"/my/listings"
       }
     ]
   end

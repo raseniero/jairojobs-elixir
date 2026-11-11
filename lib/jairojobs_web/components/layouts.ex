@@ -206,7 +206,7 @@ defmodule JairojobsWeb.Layouts do
       :employer ->
         [
           browse,
-          %{id: :listings, label: "My listings", href: "#", placeholder: "003"},
+          %{id: :listings, label: "My listings", href: ~p"/my/listings"},
           %{id: :post_job, label: "Post a job", href: "#", placeholder: "003", emphasis: :cta}
         ] ++ account_items()
 

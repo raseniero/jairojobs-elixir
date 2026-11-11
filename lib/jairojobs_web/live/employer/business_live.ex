@@ -50,7 +50,7 @@ defmodule JairojobsWeb.Employer.BusinessLive do
           </.button>
           <.link
             :if={!@first_time?}
-            navigate="/my/listings"
+            navigate={~p"/my/listings"}
             id="business-form-cancel"
             class="inline-flex min-h-11 items-center text-primary hover:underline"
           >
@@ -100,7 +100,7 @@ defmodule JairojobsWeb.Employer.BusinessLive do
 
   # First time: carry on to the listing the user came to post. Later: back to the list.
   defp next_path(true), do: "/my/listings/new"
-  defp next_path(false), do: "/my/listings"
+  defp next_path(false), do: ~p"/my/listings"
 
   # Params travel under "business" (not "user") so they can be filtered from logs.
   defp assign_form(socket, changeset) do

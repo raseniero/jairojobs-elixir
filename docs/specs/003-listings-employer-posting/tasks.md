@@ -100,7 +100,7 @@ see them fail, then implement.
     `REQ-003-1: visitor is redirected to log in`
   - Commit: `feat(web): poster access and business details screen (REQ-003-1, REQ-003-2)`
 
-- [ ] **T7** — My listings and navigation (REQ-003-1, -13, -14)
+- [x] **T7** — My listings and navigation (REQ-003-1, -13, -14) — done 2026-11-11
   - `JairojobsWeb.Format.salary_range/2,3`; `ListingComponents.status_badge/1`
   - Router: `live "/listings", ListingLive.Index, :index`
   - `Employer.ListingLive.Index` per the wireframe

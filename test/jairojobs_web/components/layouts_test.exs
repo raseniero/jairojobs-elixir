@@ -65,7 +65,16 @@ defmodule JairojobsWeb.LayoutsTest do
              "nav-logout"
            ]
 
-    assert placeholder_ids(html) == ["nav-listings", "nav-post-job"]
+    assert placeholder_ids(html) == ["nav-post-job"]
+  end
+
+  test "REQ-003-1: employer navigation links to My listings" do
+    html = render_app(Scope.for_user(user_fixture(role: "employer")))
+
+    assert html
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.query("#nav-drawer-menu #nav-listings")
+           |> LazyHTML.attribute("href") == ["/my/listings"]
   end
 
   test "REQ-001-12: admin navigation" do
