@@ -1,10 +1,11 @@
 # 003 — Listings: employer posting
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-11-10
+**Approved:** 2026-11-10
 **Owner:** Jairo
 **Related ADRs:** 0004 (UUID v7 keys)
-**Depends on:** 000 (product overview), 001 (Employer role, navigation), 002 (active regions)
+**Depends on:** 000 (product overview), 001 (Employer and Admin roles, navigation), 002 (active regions, Admin area)
 
 ## Problem / Why
 
@@ -37,7 +38,8 @@ the public pages are spec 005.
 - Applying to a listing and the emails that follow — spec 007.
 - Telling Admins that something is waiting, or telling Employers about a decision by email
   — specs 004 and 010. In this spec the Employer sees the outcome in "My listings".
-- Editing a listing while it is Pending or Published (see Open questions).
+- Editing a listing while it is Pending or Published. To change a Live listing the Employer
+  closes it and posts a new one.
 - Reopening a Closed listing, or copying an old listing into a new draft. Closed is final;
   to hire again the Employer posts a new listing.
 - Automatic expiry. Listings end only when the Employer closes them or an Admin takes them
@@ -48,8 +50,9 @@ the public pages are spec 005.
 
 ## Personas involved
 
-- **Employer** — the only persona with screens in this spec.
-- **Admin** — acts on what the Employer submits, in spec 004.
+- **Employer** — the main persona; every screen in this spec is written for them.
+- **Admin** — may post listings through the same screens (REQ-003-1); acts on submitted
+  listings in spec 004.
 - **Candidate**, **Visitor** — never see anything from this spec until a listing is
   Published (spec 005).
 
@@ -110,6 +113,11 @@ the public pages are spec 005.
 - I want a limit on how many listings one free account can have open at once,
 - so that the board stays fair and a paid plan later has something to offer.
 
+**US-003-12**
+- As an Admin,
+- I want to post a listing myself,
+- so that I can add an opening to the board without keeping a second account.
+
 ## Listing lifecycle
 
 A Listing is in exactly one status. Solid arrows are Employer actions specified here; dashed
@@ -146,6 +154,7 @@ must agree with this diagram.
 | US-003-9 delete | My listings → Listing (Draft / Needs changes) → Delete → My listings |
 | US-003-10 see it as a job seeker will | Listing form → Listing (owner view) |
 | US-003-11 limit | My listings shows "x of 3 open listings used"; Listing → Submit → message when the limit is reached |
+| US-003-12 Admin posts | Admin area → Post a job → same path as US-003-2 and US-003-4 |
 
 *Source: `diagrams/screenflow-posting.puml`.*
 
@@ -183,12 +192,13 @@ visual design):
 
 ## Requirements
 
-### REQ-003-1: Posting is for Employers only
+### REQ-003-1: Posting is for Employers and Admins
 
-**Serves:** US-003-2, US-003-5
+**Serves:** US-003-2, US-003-5, US-003-12
 
 "My listings", "Post a job" and every screen behind them are reachable only by a logged-in
-Employer.
+Employer or Admin. Wherever this spec says "Employer", an Admin posting a listing is treated
+the same way unless a rule says otherwise.
 
 ```gherkin
 Scenario: Employer opens My listings
@@ -196,8 +206,14 @@ Scenario: Employer opens My listings
   When I choose "My listings" in the menu
   Then I see the My listings page
 
-Scenario: Candidate or Admin is refused
-  Given I am logged in as a Candidate or an Admin
+Scenario: Admin posts a listing
+  Given I am logged in as an Admin
+  When I choose "Post a job" in the Admin area
+  Then I go through the same steps as an Employer
+  And a listing I submit is Waiting for approval like any other
+
+Scenario: Candidate is refused
+  Given I am logged in as a Candidate
   When I open My listings or Post a job
   Then I am refused and sent home with a message
 
@@ -211,7 +227,12 @@ Scenario: Visitor is redirected to log in
 **Rules**
 - The Employer menu items "My listings" and "Post a job" (placeholders since spec 001) now
   lead to these screens.
-- Admins do not post listings in this spec (see Open questions).
+- An Admin reaches the same screens from the Admin area (spec 002); the Admin menu from
+  spec 001 does not change.
+- An Admin posts under their own business details, exactly like an Employer (REQ-003-2).
+  Posting on behalf of another business is not part of this spec.
+- A listing posted by an Admin still needs an approval (spec 000 capability table); who may
+  approve it is decided in spec 004.
 
 ### REQ-003-2: Business details come first
 
@@ -551,7 +572,7 @@ Scenario: Other listings cannot be deleted
 
 ### REQ-003-12: Free-tier limit on open listings
 
-**Serves:** US-003-11
+**Serves:** US-003-11, US-003-12
 
 An Employer may have at most **3 open listings** at a time. A listing is *open* while it is
 Pending approval or Published.
@@ -577,11 +598,17 @@ Scenario: Closing or withdrawing frees a place
   Given I have 3 open listings
   When I close a Live one or withdraw a Pending one
   Then I can submit another listing
+
+Scenario: Admins are not limited
+  Given I am an Admin with 3 open listings
+  When I submit another complete listing
+  Then it is accepted
 ```
 
 **Rules**
 - Draft, Rejected, Closed and Taken down listings do not count.
 - The limit is one number for every Employer in this spec; spec 011 may vary it by plan.
+- The limit does not apply to Admins, and they are not shown the "x of 3" line.
 - Two submissions at the same moment must not take an Employer over the limit.
 
 ### REQ-003-13: My listings
@@ -653,25 +680,18 @@ Scenario: My listings shows only mine
 
 ## Open questions
 
-Each has a proposed answer, already written into the requirements above. Change the answer
-and the matching requirement before approval.
+- None.
 
-1. **Free-tier limit.** Proposed: 3 open listings (Pending + Published) per Employer
-   (REQ-003-12). This also answers the open question in spec 000.
-2. **Editing a Live listing.** Proposed: not possible; the Employer closes it and posts a new
-   one, or an Admin corrects it (spec 004). The alternative is "editing sends it back to
-   Waiting for approval and off the public site until re-approved".
-3. **Business details in this spec.** Proposed: yes, the minimum (name, optional "about"),
-   because a listing cannot be shown without an employer name. The alternative is a separate
-   small spec before this one.
-4. **Admins posting listings.** Spec 000's capability table says an Admin can post a listing.
-   Proposed: not in this spec; spec 004 decides whether Admins create listings or only edit
-   them.
-5. **Very wide salary ranges** such as ₱1,000–₱1,000,000. Proposed: no automatic rule; an
-   Admin rejects them with a reason. The alternative is a rule like "maximum at most double
-   the minimum".
-6. **Reopening a Closed listing.** Proposed: no (Non-goals). The alternative is "reopen sends
-   it back to Waiting for approval".
+## Decisions (resolved 2026-11-10)
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Free-tier limit | 3 open listings (Pending + Published) per Employer (REQ-003-12). Also settles the open question in spec 000 |
+| 2 | Editing a Live listing | Not possible; the Employer closes it and posts a new one (REQ-003-5) |
+| 3 | Business details in this spec | Yes — name plus optional "about" (REQ-003-2) |
+| 4 | Admins posting listings | Admins can, through the same screens and rules as an Employer, without the limit (REQ-003-1, REQ-003-12) |
+| 5 | Very wide salary ranges | No automatic rule; an Admin rejects them with a reason (spec 004) |
+| 6 | Reopening a Closed listing | Not possible; Closed is final (REQ-003-9) |
 
 ## Traceability
 
@@ -688,9 +708,12 @@ and the matching requirement before approval.
 | US-003-9 | REQ-003-11 |
 | US-003-10 | REQ-003-4, REQ-003-10 |
 | US-003-11 | REQ-003-12, REQ-003-13 |
+| US-003-12 | REQ-003-1, REQ-003-12 |
 
 ## Changelog
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created (Draft) with lifecycle, screen flow, wireframe and four activity diagrams |
+| 2026-11-10 | Open questions resolved; Admins can post (US-003-12, REQ-003-1, REQ-003-12) |
+| 2026-11-10 | Approved |

@@ -1,6 +1,6 @@
 @startuml screenflow-posting
 ' Spec 003 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
-' Every user story US-003-1..11 is a path through this diagram (see table in spec.md).
+' Every user story US-003-1..12 is a path through this diagram (see table in spec.md).
 
 hide empty description
 skinparam state {
@@ -11,11 +11,14 @@ skinparam state {
 }
 skinparam arrowFontSize 11
 
-title Spec 003 — screen flow (375 px, Employer)
+title Spec 003 — screen flow (375 px, Employer; Admin enters from the Admin area)
 
 state "Drawer (☰)" as Drawer <<public>>
 Drawer : Employer: Browse · My listings ·
 Drawer : [ + Post a job ] · Settings · Log out
+
+state "Admin area (spec 002)" as AdminArea <<public>>
+AdminArea : Regions · My listings · Post a job
 
 state "My listings" as Mine
 Mine : [ + Post a job ]
@@ -50,6 +53,9 @@ Listing : Live: Close listing
 Listing : Closed / Taken down: no actions
 
 [*] --> Drawer : logged in as Employer
+[*] --> AdminArea : logged in as Admin
+AdminArea --> Mine : My listings
+AdminArea --> Form : Post a job
 Drawer --> Mine : My listings
 Drawer --> Form : Post a job\n(business details saved)
 Drawer --> Business : Post a job\n(no business details yet)

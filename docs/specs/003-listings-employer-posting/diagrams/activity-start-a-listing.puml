@@ -10,7 +10,7 @@ if (Logged in?) then (no)
   stop
 else (yes)
 endif
-if (Employer?) then (no)
+if (Employer or Admin?) then (no)
   :Refuse — send home with message;
   stop
 else (yes)

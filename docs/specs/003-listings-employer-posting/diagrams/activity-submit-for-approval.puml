@@ -3,7 +3,7 @@
 title Submit for approval (REQ-003-4/6/12)
 
 start
-:Employer taps "Submit for approval"
+:Employer (or Admin) taps "Submit for approval"
 (or "Resubmit") on their own listing;
 if (Listing is Draft or Rejected?) then (no)
   :Refuse — nothing to submit;
@@ -25,7 +25,7 @@ if (Chosen region still active?) then (no)
   stop
 else (yes)
 endif
-if (Already 3 open listings?\n(Pending + Published)) then (yes)
+if (Employer with 3 open listings already?\n(Pending + Published; Admins have no limit)) then (yes)
   :Refuse — explain the limit and
   suggest closing a listing;
   stop

@@ -119,7 +119,7 @@ Phase 1 (001–007) is the minimum launchable product. Each row becomes `docs/sp
 |---|---|---|---|---|
 | 001 | **Accounts & authentication** — signup/login; role chosen at signup (Candidate / Employer); **admin user creation** via a privileged mechanism (mix task / release command / seed — never public signup); admin can promote/demote users | 1 | Done | [001](../001-accounts-authentication/spec.md) |
 | 002 | **Regions** — admin-managed list; seed Davao City, Cebu, Metro Manila | 1 | Done | [002](../002-regions/spec.md) |
-| 003 | **Listings — employer posting** — create/edit listing with required salary range (PHP), submit for approval, close | 1 | Draft | [003](../003-listings-employer-posting/spec.md) |
+| 003 | **Listings — employer posting** — create/edit listing with required salary range (PHP), submit for approval, close | 1 | Approved | [003](../003-listings-employer-posting/spec.md) |
 | 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit | 1 | Not started | |
 | 005 | **Public browse & search** — visitor-facing index by region, search/filter, listing detail page, shareable URLs, SEO basics, mobile-first | 1 | Not started | |
 | 006 | **Candidate profile & CV upload** — upload CV file, manually fill structured profile (auto-extraction from CV is a later enhancement) | 1 | Not started | |
@@ -158,12 +158,11 @@ Initial, community-scale targets; revise as data comes in.
 |---|---|
 | Authentication | Both email + password **and** magic link (detail in spec 001) |
 | Listing expiry | Employer-closed only; no automatic expiry |
-| Free tier | Limits apply from day one so a later subscription is meaningful (exact limits in spec 003 / 011) |
+| Free tier | Limits apply from day one so a later subscription is meaningful: 3 open listings (pending + published) per Employer (spec 003); paid tiers in spec 011 |
 | Fly.io region | Singapore (`sin`) |
 | Primary keys | UUID v7 everywhere + slugs for public listing URLs (ADR-0004) |
 | Domain / email | `jairojobs.com`; transactional email via Resend from `hello@jairojobs.com` (ADR-0005) |
 
 ## Open questions
 
-- Free tier exact limits (e.g. N active listings per employer)
 - Freelance gig marketplace (012): own context vs. a Listing type; whether payments are in scope
