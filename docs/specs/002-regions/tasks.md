@@ -1,7 +1,7 @@
 # 002 — Regions — Tasks
 
-**Status:** Draft
-**Plan:** [plan.md](./plan.md) (Draft — approve the plan and its "Decisions to confirm" first)
+**Status:** In Progress
+**Plan:** [plan.md](./plan.md) (Approved 2026-11-10)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
 Commit messages reference REQ IDs; test names follow `REQ-002-n: <scenario>`.
@@ -64,7 +64,6 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
     `REQ-002-1: non-admin is refused` (halted, redirected to `/`, flash set); admin and
     visitor tests unchanged
   - Add a line to spec 001 `tasks.md` notes pointing at this change
-  - Skip this task if decision 1 goes the other way; amend the spec scenario instead
   - Commit: `feat(web): require_admin plug redirects non-admins home (REQ-002-1)`
 
 - [ ] **T6** — Admin home and navigation link (REQ-002-1 rule)

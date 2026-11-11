@@ -1,8 +1,9 @@
 # 002 — Regions — Plan
 
-**Status:** Draft
+**Status:** Approved
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-10)
 **Created:** 2026-11-10
+**Approved:** 2026-11-10
 
 ## Approach
 
@@ -206,9 +207,9 @@ Notes:
 | Seeds are not run automatically in production | Called out above; `Release.seed/0` lands with the deployment work |
 | Stream order after Hide / Show | `stream_insert` keeps the row's position; name order is unaffected by the active flag |
 
-## Decisions to confirm
+## Decisions confirmed (2026-11-10)
 
-| # | Decision | Proposed | Hard to change later? |
+| # | Decision | Choice | Hard to change later? |
 |---|---|---|---|
 | 1 | Non-admin opening an admin URL directly: spec says "refused and sent home with a message", but the spec-001 `require_admin` plug renders a 403 page (only the LiveView hook redirects home) | Change the plug to redirect to `/` with the same flash as the hook, so both paths match the spec | no |
 | 2 | Scope on read functions | None — region data is not private | no |
@@ -229,5 +230,5 @@ Notes:
   installed and used for `users.email`, and it also gives case-insensitive `ORDER BY`.
 - **Single LiveView with the form swapped in via `live_action`** — rejected; two modules
   are simpler to read and match the three screens in the wireframe.
-- **Keep the 403 for direct visits and amend the spec scenario instead** — viable; it is
-  the other answer to decision 1.
+- **Keep the 403 for direct visits and amend the spec scenario instead** — rejected
+  (decision 1); the spec stays and the plug changes.
