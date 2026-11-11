@@ -1,7 +1,7 @@
 # 002 — Regions — Plan
 
-**Status:** In Progress
-**Spec:** [spec.md](./spec.md) (Approved 2026-11-10)
+**Status:** Done (2026-11-10)
+**Spec:** [spec.md](./spec.md) (Done 2026-11-10)
 **Created:** 2026-11-10
 **Approved:** 2026-11-10
 

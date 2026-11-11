@@ -1,6 +1,6 @@
 # 002 — Regions
 
-**Status:** In Progress
+**Status:** Done (2026-11-10)
 **Created:** 2026-11-05
 **Approved:** 2026-11-10
 **Owner:** Jairo
@@ -313,3 +313,4 @@ Scenario: Lookup by slug works for hidden regions
 | 2026-11-05 | Created |
 | 2026-11-10 | Added Salt wireframe of the admin Regions screens (list, New, Edit) |
 | 2026-11-10 | Approved |
+| 2026-11-10 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
