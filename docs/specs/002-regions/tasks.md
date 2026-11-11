@@ -66,7 +66,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
   - Add a line to spec 001 `tasks.md` notes pointing at this change
   - Commit: `feat(web): require_admin plug redirects non-admins home (REQ-002-1)`
 
-- [ ] **T6** — Admin home and navigation link (REQ-002-1 rule)
+- [x] **T6** — Admin home and navigation link (REQ-002-1 rule) — done 2026-11-10
   - Router: `live "/", HomeLive` inside the existing `live_session :require_admin`
   - `lib/jairojobs_web/live/admin/home_live.ex`: `<Layouts.app flash={@flash}
     current_scope={@current_scope}>`, `#admin-sections` with one row `#admin-section-regions`

@@ -213,7 +213,7 @@ defmodule JairojobsWeb.Layouts do
       :admin ->
         [
           browse,
-          %{id: :admin, label: "Admin", href: "#", placeholder: "004", emphasis: :strong}
+          %{id: :admin, label: "Admin", href: ~p"/admin", emphasis: :strong}
         ] ++ account_items()
     end
   end

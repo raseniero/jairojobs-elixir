@@ -72,7 +72,16 @@ defmodule JairojobsWeb.LayoutsTest do
     html = render_app(Scope.for_user(admin_fixture()))
 
     assert ids(html) == ["nav-browse", "nav-admin", "nav-settings", "nav-logout"]
-    assert placeholder_ids(html) == ["nav-admin"]
+    assert placeholder_ids(html) == []
+  end
+
+  test "REQ-002-1: admin navigation links to the admin area" do
+    html = render_app(Scope.for_user(admin_fixture()))
+
+    assert html
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.query("#nav-drawer-menu #nav-admin")
+           |> LazyHTML.attribute("href") == ["/admin"]
   end
 
   test "REQ-001-12: every drawer item is at least 44px tall and the menu button is labelled" do

@@ -59,13 +59,14 @@ defmodule JairojobsWeb.Router do
     post "/users/update-password", UserSessionController, :update_password
   end
 
-  ## Admin routes (spec 001, plan decision 7) — populated by specs 004 and 008.
+  ## Admin routes (spec 001, plan decision 7) — first used by spec 002; 004 and 008 add more.
   # Every admin-only LiveView goes inside this one `live_session :require_admin`.
   scope "/admin", JairojobsWeb.Admin do
     pipe_through [:browser, :require_admin]
 
     live_session :require_admin,
       on_mount: [{JairojobsWeb.UserAuth, :require_admin}] do
+      live "/", HomeLive
     end
   end
 
