@@ -191,3 +191,9 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   403 for signed-in non-admins; it redirects to `/` with the same flash as the `:require_admin`
   hook, to satisfy REQ-002-1 "Non-admin is refused". The test
   `REQ-001-9: candidate and employer get 403` was replaced by `REQ-002-1: non-admin is refused`.
+- 2026-11-12, spec-vs-code check after spec 003: the Definition of Done line "every REQ has a passing,
+  REQ-named test" was not fully true. Two scenarios had no test — "New email already taken"
+  (REQ-001-6) and "Role change takes effect on next request" (REQ-001-9) — and two described
+  behaviour the generator does not have. Tests were added in `settings_test.exs` for the first
+  two; the spec was amended for the others (REQ-001-7 recent log-in instead of a current
+  password; REQ-001-3 no fresh link on a password attempt). No application code changed.

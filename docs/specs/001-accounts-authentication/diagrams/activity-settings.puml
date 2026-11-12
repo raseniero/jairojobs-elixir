@@ -39,14 +39,8 @@ case (Change email)
   :Email changed;
   stop
 case (Change / set password)
-  :Enter current password
-  (if one exists) + new password;
-  if (Current password correct
-  (or none set yet)?) then (no)
-    :Reject change;
-    stop
-  else (yes)
-  endif
+  :Enter new password + confirmation
+  (no current password is asked);
   if (New password 12–72 chars?) then (no)
     :Show validation error;
     stop

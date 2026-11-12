@@ -269,4 +269,70 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert message == "You must log in to access this page."
     end
   end
+
+  # Added 2026-11-12 after checking spec 001 against the code: two scenarios had no test, and
+  # REQ-001-7 was amended to describe what the generator really does (recent log-in, no
+  # "current password" field).
+  describe "spec 001 follow-ups" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "REQ-001-6: new email already taken", %{conn: conn, user: user} do
+      other = user_fixture()
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#email_form", %{"user" => %{"email" => other.email}})
+        |> render_submit()
+
+      assert result =~ "has already been taken"
+      refute result =~ "A link to confirm your email"
+      assert Accounts.get_user!(user.id).email == user.email
+    end
+
+    test "REQ-001-7: changing the password requires a recent log-in", %{user: user} do
+      stale =
+        log_in_user(build_conn(), user,
+          token_authenticated_at: DateTime.add(DateTime.utc_now(), -11, :minute)
+        )
+
+      assert {:error, {:redirect, %{to: "/users/log-in", flash: flash}}} =
+               live(stale, ~p"/users/settings")
+
+      assert flash["error"] == "You must re-authenticate to access this page."
+    end
+
+    test "REQ-001-7: the current password is not asked for", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      assert has_element?(lv, "#password_form input[name='user[password]']")
+      assert has_element?(lv, "#password_form input[name='user[password_confirmation]']")
+      refute has_element?(lv, "#password_form input[name='user[current_password]']")
+    end
+
+    test "REQ-001-9: role change takes effect on next request", %{conn: conn, user: user} do
+      # A second admin, so the promoted user is not the last one and can be demoted again.
+      admin_fixture()
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      assert lv |> element("#account_type") |> render() =~ "Candidate"
+      assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin")
+
+      {:ok, admin} = Accounts.promote_to_admin(Accounts.Scope.system(), user)
+
+      # same session, next request: the new role is in effect
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      assert lv |> element("#account_type") |> render() =~ "Admin"
+      assert {:ok, _lv, _html} = live(conn, ~p"/admin")
+
+      {:ok, _user} = Accounts.demote_admin(Accounts.Scope.system(), admin)
+
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      assert lv |> element("#account_type") |> render() =~ "Candidate"
+      assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin")
+    end
+  end
 end

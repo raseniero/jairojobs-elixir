@@ -216,7 +216,7 @@ relevant generated tests to the `REQ-001-n: <scenario>` convention.
 | 4 | Request + use magic link; unregistered email neutral; used/expired link | `accounts_test.exs`, `live/user_live/login_test.exs` | context + LiveView |
 | 5 | Set password then log in; wrong password; unconfirmed refused | `accounts_test.exs`, `live/user_live/settings_test.exs`, `controllers/user_session_controller_test.exs` | all three |
 | 6 | Request change; confirm new email; new email taken | `accounts_test.exs`, `live/user_live/settings_test.exs` | context + LiveView |
-| 7 | Change password; wrong current password | `accounts_test.exs`, `controllers/user_session_controller_test.exs` | context + controller |
+| 7 | Change password; changing the password requires a recent log-in (amended 2026-11-12) | `accounts_test.exs`, `controllers/user_session_controller_test.exs`, `live/user_live/settings_test.exs` | context + controller + LiveView |
 | 8 | Log out | `controllers/user_session_controller_test.exs` | controller |
 | 9 | Role in scope; role label in settings; role change next request | `accounts/scope_test.exs` (new), `settings_test.exs` | unit + LiveView |
 | 10 | Promote; demote; unknown email; unconfirmed user; last admin | `test/mix/tasks/jairojobs.admin_test.exs` (new) | mix task |
