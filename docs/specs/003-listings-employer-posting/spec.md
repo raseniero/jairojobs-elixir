@@ -708,6 +708,7 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 004 | Hiding a region changes no listing's status; spec 004 decides whether a Pending listing in a hidden region can still be approved. |
 | 004 | Who may approve a listing that an Admin posted is decided in spec 004 (REQ-003-1). |
 | 005 | Hiding a region changes no listing's status; spec 005 decides whether a Published listing in a hidden region stays visible. |
+| 005 | Public listing addresses use a slug only, never the UUID (constitution §4.8). Spec 005 designs the slug: unique within its region, and old links keep working when a title changes. |
 | 007 | Applications to a listing are emailed to the account that owns it, whatever its role; an Admin who posts a listing receives its applications like an Employer. |
 
 ## Traceability
@@ -737,3 +738,4 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-11 | Consistency pass after review: decision emails belong to spec 004; hand-offs table added; salary display in rows vs. page; owner view has no trust line; limit message mentions withdrawing; diagrams aligned (Admin business gate, rejected branch, legend, wording) |
 | 2026-11-12 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-12 | Wireframe brought in line with the app: status pill at the right of each row, no separate region line in the owner view, salary hint wording |
+| 2026-11-12 | Hand-off added for spec 005: public addresses use a slug only |

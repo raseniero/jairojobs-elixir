@@ -9,7 +9,7 @@ this page is the readable summary.
 ## Conventions
 
 - Primary keys: UUID v7 (`:binary_id`), app-generated; all FKs `:binary_id` (ADR-0004)
-- Public listing URLs: UUID + unique slug
+- Public listing URLs use a unique slug only; the UUID stays the primary key and appears only in private addresses (constitution §4.8, ADR-0004)
 - Regions: unique slug set once at creation; hidden via `active = false`, never deleted
 - Timestamps: `inserted_at` / `updated_at` (`utc_datetime_usec`)
 - Soft deletes: not used unless a spec requires it

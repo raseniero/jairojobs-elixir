@@ -1,10 +1,13 @@
 # Constitution
 
 **Status:** Accepted
-**Last updated:** 2026-11-11 (example REQ ids aligned with spec 003; no rule changed)
+**Last updated:** 2026-11-12 (change process per ADR-0006; region citation corrected; no other rule changed)
 
 Non-negotiable principles for jairojobs. Every spec, plan, and PR is measured against this file.
-Change it deliberately, via an ADR.
+Change it deliberately (ADR-0006):
+- **§1 Stack, §2 Principles, §5 What we deliberately do NOT do** — only through an ADR.
+- **§3 Testing rules, §4 Code conventions, §6 How specs are written, §7 Definition of Done**
+  — may be edited directly; record the date and what changed in "Last updated" above.
 
 ## 1. Stack
 
@@ -14,7 +17,7 @@ Change it deliberately, via an ADR.
 | Web | Phoenix 1.8, LiveView | Server-rendered first; LiveView for interactivity |
 | UI | Stock `CoreComponents` + Tailwind v4 + daisyUI `jairojobs` theme | No third-party component library (ADR-0001); look & feel per `docs/design.md` |
 | Database | PostgreSQL 17 via Ecto; UUID v7 primary keys | (ADR-0002, ADR-0004) |
-| Deployment | Fly.io, region Singapore (`sin`) | (ADR-0003) |
+| Deployment | Fly.io, region Singapore (`sin`) | Fly.io: ADR-0003; region: spec 000, product decisions |
 | Background jobs | None yet | Evaluate Oban via ADR when a spec needs it |
 | Email | Swoosh; Resend in production, sender `hello@jairojobs.com` | Local dev mailbox at `/dev/mailbox` (ADR-0005) |
 
