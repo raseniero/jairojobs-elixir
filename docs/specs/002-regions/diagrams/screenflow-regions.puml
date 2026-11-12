@@ -19,6 +19,7 @@ Drawer : Admin: Browse · Admin · Settings · Log out
 
 state "Admin" as Admin
 Admin : Regions
+Admin : My listings · Post a job (added by spec 003)
 Admin : (more sections arrive with 004 / 008)
 
 state "Regions" as Regions

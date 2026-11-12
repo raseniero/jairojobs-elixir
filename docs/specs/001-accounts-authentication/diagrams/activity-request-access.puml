@@ -1,5 +1,6 @@
 @startuml activity-request-access
 ' Spec 001 — every request: mount scope, decide access, render role-aware nav (REQ-001-1, -9, -12)
+' Updated 2026-11-12: non-admins are sent home (spec 002, was 403); posting area added (spec 003).
 title Request access and role-aware navigation (REQ-001-1, REQ-001-9, REQ-001-12)
 
 start
@@ -25,7 +26,17 @@ if (Route requires login?) then (yes)
   endif
   if (Route requires admin?) then (yes)
     if (scope.user.role == admin?) then (no)
-      :403 / not found;
+      :Send home with a
+      "not authorized" message;
+      stop
+    else (yes)
+    endif
+  else (no)
+  endif
+  if (Route is in the posting area?\n(Employer or Admin — spec 003)) then (yes)
+    if (role is employer or admin?) then (no)
+      :Send home with a
+      "not authorized" message;
       stop
     else (yes)
     endif

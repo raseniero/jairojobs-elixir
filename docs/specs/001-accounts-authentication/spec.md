@@ -550,3 +550,4 @@ Scenario: Admin navigation
 | 2026-10-31 | Consistency pass: token lifetimes aligned to generator defaults (7 d email-change, 14 d session, 10 min sudo); Employer nav includes "Post a job" |
 | 2026-11-04 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred to the bootstrap plan Phase 4 |
 | 2026-11-12 | Amended to match the implementation, after a spec-vs-code check: REQ-001-7 now describes the recent-log-in rule instead of a "current password" field ("Wrong current password" dropped); REQ-001-3 no longer says a fresh link is emailed when an unconfirmed account tries a password. Tests added for "New email already taken" (REQ-001-6) and "Role change takes effect on next request" (REQ-001-9) |
+| 2026-11-12 | Diagrams brought in line with the app: log-in activity (no email on a refused password attempt), request-access activity (non-admins sent home; posting area), navigation wireframe (Employer and Admin items are live) |

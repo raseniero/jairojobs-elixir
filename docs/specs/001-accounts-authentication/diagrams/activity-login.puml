@@ -15,9 +15,8 @@ wants to use it?) then (password)
   else (yes)
   endif
   if (Email confirmed?) then (no)
-    :Refuse login;
-    :Send magic-link email
-    (so they can confirm);
+    :Refuse login with the same
+    generic message (no email is sent);
     stop
   else (yes)
   endif

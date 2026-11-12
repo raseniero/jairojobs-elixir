@@ -13,23 +13,19 @@
       { <b>My listings</b> | . | [ + Post a job ] }
       { <i>2 of 3 open listings used</i> }
       --
-      { <b>Barista (full-time)</b> }
+      { <b>Barista (full-time)</b> | . | <i>(Live)</i> }
       { Davao City · ₱14,000–16,000/mo }
-      { <i>Live</i> }
       --
-      { <b>Cashier</b> }
+      { <b>Cashier</b> | . | <i>(Waiting for approval)</i> }
       { Cebu · ₱12,000–13,000/mo }
-      { <i>Waiting for approval</i> }
       --
-      { <b>Line cook</b> }
+      { <b>Line cook</b> | . | <i>(Needs changes)</i> }
       { Davao City · ₱15,000–18,000/mo }
-      { <i>Needs changes</i> }
       --
-      { <b>Dishwasher</b> }
+      { <b>Dishwasher</b> | . | <i>(Draft)</i> }
       { <i>Not finished yet</i> }
-      { <i>Draft</i> }
       --
-      { Kape Isla · Edit business details }
+      { Posting as Kape Isla · Edit business details }
     } |
     {+ <b>Listing form</b> (REQ-003-3, -4)
       { [≡] | <b>jairojobs</b> | (●) }
@@ -43,7 +39,8 @@
       { "Matina                     " }
       { Salary per month (PHP) }
       { "₱ 14,000 " | to | "₱ 16,000 " }
-      { <i>Shown on the listing. Required.</i> }
+      { <i>Shown on the listing. Needed</i> }
+      { <i>before you can submit it.</i> }
       { Type }
       { ^Full-time               ^ }
       { Schedule <i>(optional)</i> }
@@ -69,7 +66,6 @@
       --
       { <b>Barista (full-time)</b> }
       { Kape Isla }
-      { Davao City }
       ..
       { Salary | ₱14,000–16,000 / month }
       { Location | Matina, Davao City }
@@ -94,7 +90,7 @@
     ++ Region offers active regions only (spec 002)
     ++ Owner view: a status box on top, then the listing as visitors will see it
     ++ The status box changes with status: Waiting for approval → Withdraw; Needs changes → reason + Edit + Resubmit; Live → Close listing
-    ++ Status labels: Draft, Waiting for approval, Live, Needs changes, Closed, Taken down
+    ++ Status labels: Draft, Waiting for approval, Live, Needs changes, Closed, Taken down — shown as a pill at the right of each row
   }
 }
 @endsalt

@@ -45,7 +45,7 @@
       { <b>Error state</b> }
       { Name }
       { "cebu                   " }
-      { <i>! That region already exists.</i> }
+      { <i>! is already used by another region</i> }
     } |
     {+ <b>Edit region</b> (REQ-002-3)
       { [≡] | <b>jairojobs</b> | (●) }
