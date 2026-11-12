@@ -1,6 +1,6 @@
 # 003 — Listings: employer posting — Tasks
 
-**Status:** In Progress
+**Status:** Done (2026-11-12)
 **Plan:** [plan.md](./plan.md) (Approved 2026-11-11)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
@@ -167,13 +167,13 @@ see them fail, then implement.
 
 ## Phase C — Close
 
-- [ ] **T10** — Docs and Definition of Done — docs done 2026-11-11; close-out waits for the push and CI
+- [x] **T10** — Docs and Definition of Done — done 2026-11-12
   - [x] `docs/architecture/diagrams/src/erd-jairojobs.puml`: `listings`, the two new `users`
     columns, relationships; SVG re-rendered
   - [x] `docs/architecture/data-model.md`, `overview.md`: `listings` and `Jairojobs.Listings`
     → implemented (employer side)
   - [x] `README.md`: one paragraph on posting a listing in development
-  - [ ] Push; CI green on `main`; `spec.md`, `plan.md`, `tasks.md` → `Done`; feature map → Done
+  - [x] Push; CI green on `main`; `spec.md`, `plan.md`, `tasks.md` → `Done`; feature map → Done
   - Commit: `docs(spec 003): mark done`
 
 ## Definition of Done (constitution §7) — walked 2026-11-11
@@ -185,14 +185,15 @@ see them fail, then implement.
   candidate, `nil` and system scopes; another account's listing is "not found" for get, edit,
   delete, submit, withdraw and close, for Employers and Admins alike; all five `/my` routes
   refuse Candidates and visitors
-- [ ] `mix precommit` green locally **and** CI green on `main` — green locally (20 full runs
-  in a row); **not pushed yet**, so no CI run
+- [x] `mix precommit` green locally **and** CI green on `main` — run 43298671838
+  (commit f8402ed); 20 clean full local runs in a row
 - [x] Works at 375 px width — My listings, business details, the listing form and the owner
   view (draft, rejected, live) checked in headless Chromium at a 375 px viewport: no
   horizontal overflow, buttons 44 px tall
 - [x] No new deps without a justification line in `plan.md` — none added
 - [x] `docs/architecture/` updated — ERD, data-model, overview
-- [ ] `tasks.md` checked off; spec status set to `Done` — after CI
+- [x] `tasks.md` checked off; spec status set to `Done` — spec, plan, tasks and the spec 000
+  feature map all updated
 - [ ] Deployed to Fly.io and smoke-checked — **deferred**, no deployment exists yet
 
 ## Notes / deviations from plan

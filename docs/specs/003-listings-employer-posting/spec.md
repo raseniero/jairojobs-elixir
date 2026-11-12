@@ -1,6 +1,6 @@
 # 003 — Listings: employer posting
 
-**Status:** In Progress
+**Status:** Done (2026-11-12)
 **Created:** 2026-11-10
 **Approved:** 2026-11-10
 **Owner:** Jairo
@@ -735,3 +735,4 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-10 | Open questions resolved; Admins can post (US-003-12, REQ-003-1, REQ-003-12) |
 | 2026-11-10 | Approved |
 | 2026-11-11 | Consistency pass after review: decision emails belong to spec 004; hand-offs table added; salary display in rows vs. page; owner view has no trust line; limit message mentions withdrawing; diagrams aligned (Admin business gate, rejected branch, legend, wording) |
+| 2026-11-12 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |

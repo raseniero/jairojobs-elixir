@@ -1,7 +1,7 @@
 # 003 — Listings: employer posting — Plan
 
-**Status:** Approved
-**Spec:** [spec.md](./spec.md) (Approved 2026-11-10)
+**Status:** Done (2026-11-12)
+**Spec:** [spec.md](./spec.md) (Done 2026-11-12)
 **Created:** 2026-11-11
 **Approved:** 2026-11-11
 
