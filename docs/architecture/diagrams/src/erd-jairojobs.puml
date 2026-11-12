@@ -6,7 +6,7 @@
 ' Legend:  PK  primary key (UUID v7, ADR-0004)   FK foreign key   UK unique
 '          *   not null
 
-title jairojobs — Entity-Relationship (after spec 002)
+title jairojobs — Entity-Relationship (after spec 003)
 
 skinparam linetype ortho
 hide circle
@@ -19,6 +19,32 @@ entity "users" as users {
   * role : string  {candidate | employer | admin}
     previous_role : string
     confirmed_at : utc_datetime_usec
+    business_name : string  {2-80; spec 003}
+    business_about : string  {up to 500; spec 003}
+  * inserted_at : utc_datetime_usec
+  * updated_at : utc_datetime_usec
+}
+
+entity "listings" as listings {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>  {owner; on_delete: restrict}
+    region_id : uuid <<FK>>  {on_delete: restrict}
+  * status : string  {draft | pending | published | rejected | closed | taken_down}
+  * title : string  {5-100}
+    area : string
+    salary_min_centavos : integer
+    salary_max_centavos : integer
+    employment_type : string  {full_time | part_time | contract | temporary | internship}
+    schedule : string
+    description : text
+    requirements : text
+    benefits : text
+    business_name : string  {copied from the owner on submit}
+    business_about : text  {copied from the owner on submit}
+    rejection_reason : text  {written by spec 004}
+    submitted_at : utc_datetime_usec
+    closed_at : utc_datetime_usec
   * inserted_at : utc_datetime_usec
   * updated_at : utc_datetime_usec
 }
@@ -45,11 +71,14 @@ entity "regions" as regions {
 }
 
 users ||--o{ users_tokens : "has"
+users ||--o{ listings : "owns"
+regions |o--o{ listings : "located in"
 
 note bottom of users
   Spec 001. Indexes: unique(email), index(role).
   CHECK role IN ('candidate','employer','admin').
   CHECK previous_role IS NULL OR IN ('candidate','employer').
+  Spec 003. CHECK business_name IS NULL OR 2-80 characters.
 end note
 
 note bottom of users_tokens
@@ -63,8 +92,18 @@ note bottom of regions
   No delete: regions are hidden, never removed.
 end note
 
+note bottom of listings
+  Spec 003 (employer side). Indexes: index(user_id, status), index(region_id).
+  Salary in centavos, whole pesos only: both NULL, or
+  100000 <= min <= max <= 100000000.
+  CHECK status and employment_type are one of the listed values.
+  CHECK only draft / rejected may lack region, area, salary,
+  type, description or business_name.
+  Deleted only while draft or rejected.
+end note
+
 ' --- Planned (not yet designed; added by their specs) ---
-' 003 listings  (-> users [employer], -> regions)
+' 004 listings: who decided and when; 005 listings: public slug, published_at
 ' 006 profiles  (-> users [candidate]), cv files
 ' 007 applications (-> listings, -> users/profiles)
 ' 011 subscriptions (-> users)

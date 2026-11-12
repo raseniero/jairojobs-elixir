@@ -17,6 +17,15 @@ Cebu and Metro Manila (spec 002, REQ-002-5). The seed is safe to run again: it o
 what is missing and never undoes an admin's rename or hide. Admins manage the list at
 `/admin/regions`.
 
+## Posting a listing
+
+Sign up as an Employer (or use an Admin account), then choose "Post a job". The first time
+you are asked for your business name; after that you can save a draft with only a title,
+finish it later, and submit it for approval. Your listings and their status are at
+`/my/listings`. An Employer can have 3 listings open (waiting for approval or live) at a
+time. Approving listings is spec 004, so until that ships a submitted listing stays
+"Waiting for approval".
+
 ## Admin accounts
 
 There is no admin sign-up. Admins are created and removed by the operator from the command

@@ -167,28 +167,56 @@ see them fail, then implement.
 
 ## Phase C — Close
 
-- [ ] **T10** — Docs and Definition of Done
-  - `docs/architecture/diagrams/src/erd-jairojobs.puml`: `listings`, the two new `users`
-    columns, relationships; run `scripts/render-diagrams.sh`
-  - `docs/architecture/data-model.md`, `overview.md`: `listings` and `Jairojobs.Listings`
-    → *Implemented (employer side)*
-  - `README.md`: one paragraph on posting a listing in development
-  - Push; CI green on `main`; `spec.md`, `plan.md`, `tasks.md` → `Done`; feature map → Done
+- [ ] **T10** — Docs and Definition of Done — docs done 2026-11-11; close-out waits for the push and CI
+  - [x] `docs/architecture/diagrams/src/erd-jairojobs.puml`: `listings`, the two new `users`
+    columns, relationships; SVG re-rendered
+  - [x] `docs/architecture/data-model.md`, `overview.md`: `listings` and `Jairojobs.Listings`
+    → implemented (employer side)
+  - [x] `README.md`: one paragraph on posting a listing in development
+  - [ ] Push; CI green on `main`; `spec.md`, `plan.md`, `tasks.md` → `Done`; feature map → Done
   - Commit: `docs(spec 003): mark done`
 
-## Definition of Done (constitution §7)
+## Definition of Done (constitution §7) — walked 2026-11-11
 
-- [ ] Every REQ in the spec has a passing, REQ-named test
-- [ ] Authorization tests present for any private resource
-- [ ] `mix precommit` green locally **and** CI green on `main`
-- [ ] Works at 375 px width (phone) before desktop
-- [ ] No new deps without a justification line in `plan.md`
-- [ ] `docs/architecture/` updated if contexts or data model changed
-- [ ] `tasks.md` checked off; spec status set to `Done`
-- [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
+- [x] Every REQ in the spec has a passing, REQ-named test — REQ-003-1…14, all 50 Gherkin
+  scenarios, plus the deferred half of REQ-002-4 (371 tests in the suite, 149 added by this
+  spec)
+- [x] Authorization tests present for any private resource — every context function refuses
+  candidate, `nil` and system scopes; another account's listing is "not found" for get, edit,
+  delete, submit, withdraw and close, for Employers and Admins alike; all five `/my` routes
+  refuse Candidates and visitors
+- [ ] `mix precommit` green locally **and** CI green on `main` — green locally (20 full runs
+  in a row); **not pushed yet**, so no CI run
+- [x] Works at 375 px width — My listings, business details, the listing form and the owner
+  view (draft, rejected, live) checked in headless Chromium at a 375 px viewport: no
+  horizontal overflow, buttons 44 px tall
+- [x] No new deps without a justification line in `plan.md` — none added
+- [x] `docs/architecture/` updated — ERD, data-model, overview
+- [ ] `tasks.md` checked off; spec status set to `Done` — after CI
+- [ ] Deployed to Fly.io and smoke-checked — **deferred**, no deployment exists yet
 
 ## Notes / deviations from plan
 
 <!-- Record anything that changed during implementation and why. -->
 
-- 
+- T2: the schema, type and context were drafted before the tests in this task (the other
+  tasks were tests-first). The tests then found a real bug in the first migration: the salary
+  CHECK let a row through with only one end of the range set, because a comparison with NULL
+  is not false. Fixed in the migration before it was committed.
+- T2: an extra `index(:listings, [:region_id])` beyond the plan, for the foreign key.
+- T2: `Jairojobs.Pesos` also accepts thousands commas and a leading "₱" ("₱14,000"), as the
+  plan's risk table proposed.
+- T3–T5: every write re-reads the stored row by id and owner instead of trusting the struct it
+  was handed, so a stale copy cannot be used to edit or resubmit a listing that has since been
+  locked. Tests cover the stale-copy case.
+- T4: `Listing.submit_changeset/3` takes the locked owner row and the time (the plan sketched
+  `/1`); completeness lives in `Listing.missing_fields/1`. The business details copied at submit
+  come from the locked row, not from the caller's scope, which may be stale.
+- T4: the concurrency test fails 5 times out of 5 with the row lock removed and passes with it;
+  it leaves no rows behind.
+- T7: the public home page is a controller, not a LiveView, so the "menu links to…" tests
+  assert the link's address in the rendered page instead of clicking through.
+- T9: the status box reads "Draft — only you can see this" and so on: the status label followed
+  by a short phrase, then one sentence on what happens next.
+- T9: test fixtures gained `admin_poster_scope_fixture/1` and `listing_in_status_fixture/3`
+  on top of the three named in the plan.

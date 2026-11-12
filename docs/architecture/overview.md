@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-10 (Regions context and the `/admin` area implemented by spec 002)
+**Last updated:** 2026-11-11 (Listings context, employer side, and the `/my` posting area implemented by spec 003)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -48,9 +48,9 @@ Status becomes *Implemented* when the introducing spec is Done.
 
 | Context | Responsibility | Introduced by spec | Status |
 |---|---|---|---|
-| `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion | 001 | Implemented |
+| `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion, business details of accounts that post listings | 001 | Implemented |
 | `Jairojobs.Regions` | Admin-managed list of PH regions/cities: slugs, hide / show, launch-region seed; active regions are what other contexts offer users | 002 | Implemented |
-| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), approval, slugs, salary range, free-tier limit of 3 open listings | 003, 004, 005 | Planned |
+| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), approval, slugs, salary range, free-tier limit of 3 open listings | 003, 004, 005 | Employer side implemented (003); moderation 004 and public pages 005 planned |
 | `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |
 | `Jairojobs.Applications` | Candidate applies to listing; email delivery (phase 1), on-platform tracking (phase 2) | 007, 009 | Planned |
 | `Jairojobs.Billing` | Employer subscriptions; varies the open-listing limit by plan | 011 | Future |
