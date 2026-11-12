@@ -17,7 +17,10 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 - [ ] **T3** — <LiveView + tests> (REQ-NNN-1, REQ-NNN-2)
   - 
 - [ ] **T4** — <wire routes, nav, auth> 
-- [ ] **T5** — update `docs/architecture/` if data model or boundaries changed
+- [ ] **T5** — docs: update `docs/architecture/` if data model or boundaries changed;
+  re-read every diagram in this spec against the built screens and code and fix what drifted
+  (reconcile the wireframes — `docs/README.md`, Diagrams rule 6); update diagrams in earlier
+  specs that this spec changed, and note it in their changelogs
 - [ ] **T6** — push; CI green on `main`; set spec, plan and tasks status to `Done`; feature
   map in spec 000 → Done
 
@@ -32,6 +35,7 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 - [ ] Works at 375 px width (phone) before desktop
 - [ ] No new deps without a justification line in `plan.md`
 - [ ] `docs/architecture/` updated if contexts or data model changed
+- [ ] Diagrams in this spec and in earlier specs it changed match the built screens and code
 - [ ] `tasks.md` checked off; spec status set to `Done`
 - [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
 

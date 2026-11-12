@@ -28,7 +28,12 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
    LiveViews, migrations, test strategy.
 3. **Tasks** — break the plan into `tasks.md`: ordered, checkable, each small enough for one commit.
 4. **Implement** — work through tasks. Reference requirement IDs in test names and commit messages.
-5. **Close** — set status to `Done`; update `architecture/` if boundaries or data model changed.
+5. **Close** — before setting status to `Done`:
+   - update `architecture/` if boundaries or data model changed;
+   - re-read **every diagram in this spec** against the built screens and code, and fix what
+     drifted — wireframes included (see Diagrams, rule 6);
+   - update **diagrams in earlier specs** that this spec changed (a new menu item, a changed
+     access rule, a new row on someone else's screen), and note it in that spec's changelog.
 
 ## Conventions
 
@@ -51,6 +56,15 @@ Format: `REQ-<spec#>-<n>`, e.g. `REQ-001-3` is the third requirement of spec 001
 - Never renumber; mark removed ones as `(dropped)`.
 - Reference in ExUnit test names: `test "REQ-001-3: <scenario name>"`.
 - Reference in commits: `feat(auth): password reset (REQ-001-3)`.
+
+### Amending a requirement
+When a requirement or scenario changes after approval — in this spec or because a later spec
+changes it — update, in the same commit:
+- every diagram mapped to that requirement in the spec's **Flows** table;
+- the state diagram, screen flow and wireframe, if they show the changed behaviour;
+- the spec's changelog.
+
+Search by requirement, not by wording: a diagram can show the same step in different words.
 
 ### Writing style
 
@@ -121,7 +135,7 @@ specific part of it visible and must agree with it.
 | Requirements + Gherkin scenarios (`REQ-NNN-n`) | **Activity diagrams** — every REQ covered, grouped 3–6 per spec | yes |
 | Entity lifecycle (status fields) | **State diagram** | yes, if an entity has a lifecycle |
 | Flows touching ≥ 3 parties (email, external services) | **Sequence diagram** in `plan.md` | yes, when it applies |
-| Individual screen layout at 375 px | **Salt wireframe** | optional |
+| Individual screen layout at 375 px | **Salt wireframe** | optional; reconciled with the built screen at close |
 | Personas → capabilities (product level) | **Use case** (spec 000) | once |
 | System boundaries, containers, data model | **C4, ERD** in `architecture/` | kept current via DoD |
 
@@ -142,7 +156,11 @@ specific part of it visible and must agree with it.
    table mapping each diagram to the REQs it covers. No swimlanes — name the actor in the
    step text instead; they tangle once a flow branches. Object diagrams remain opt-in.
 6. **Wireframes (Salt) are optional in `spec.md`** for a new screen; sketch the 375 px layout
-   before building when it isn't obvious. Not a substitute for the real UI.
+   before building when it isn't obvious. Not a substitute for the real UI. **Once a wireframe
+   exists it is reconciled, not thrown away:** when the spec closes, the wireframe must match
+   the built screen — element order, labels, example wording and messages. Change the
+   wireframe (or the screen) until they agree, and never leave an element in a wireframe that
+   no requirement asks for.
 7. **Every spec with user-facing screens has one screen-flow diagram** (`screenflow-<subject>`):
    a state diagram where each state is a screen listing its key elements and each arrow is a
    user action. It sits in `spec.md` with a table mapping every user story to its path. Shade

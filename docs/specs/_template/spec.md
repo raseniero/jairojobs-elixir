@@ -63,7 +63,8 @@
 
 ### Wireframe: <screens>
 
-<!-- Optional. A Salt wireframe of the new screens at 375 px — layout only, not visual design. -->
+<!-- Optional. A Salt wireframe of the new screens at 375 px — layout only, not visual design.
+     If you add one, it must match the built screen when the spec closes (README, Diagrams rule 6). -->
 
 ![<Screens> wireframe](diagrams/wireframe-<subject>.svg)
 
