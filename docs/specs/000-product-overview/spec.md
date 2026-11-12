@@ -3,6 +3,7 @@
 **Status:** Approved
 **Created:** 2026-10-29
 **Approved:** 2026-10-29
+**Last updated:** 2026-11-12 (see Changelog)
 
 The root spec. Every feature spec refers back to the personas and glossary defined here.
 
@@ -166,3 +167,16 @@ Initial, community-scale targets; revise as data comes in.
 ## Open questions
 
 - Freelance gig marketplace (012): own context vs. a Listing type; whether payments are in scope
+
+## Changelog
+
+Reconstructed from the commit history on 2026-11-12; feature-map status changes are not listed.
+
+| Date | Change |
+|---|---|
+| 2026-10-29 | Created and approved: vision, personas, glossary, feature map |
+| 2026-10-30 | Product use case diagram added |
+| 2026-10-31 | Domain / email decision added (ADR-0005: Resend, `hello@jairojobs.com`) |
+| 2026-11-10 | Free-tier limit resolved: 3 open listings per Employer (spec 003); removed from Open questions |
+| 2026-11-11 | Glossary: a Listing may be posted by an Admin, needs a salary range before it is submitted, lifecycle has no "Expired". Capability table: an Admin receives applications to their own listings. Feature map: spec 004 emails the employer each decision |
+| 2026-11-12 | Changelog and "Last updated" added |

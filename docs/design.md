@@ -1,7 +1,7 @@
 # Design Guide
 
 **Status:** Accepted
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-12 (status labels pattern added from spec 003)
 **Brief:** "A clean, trustworthy, modern craigslist.org."
 
 The single reference for how jairojobs looks and feels. Agents and humans build every screen
@@ -132,6 +132,27 @@ full-width on mobile, `type="email"` + `autocomplete` where relevant, inline err
 ### Navigation
 Per `specs/001-accounts-authentication/diagrams/wireframe-nav`: header with ☰, wordmark,
 and one contextual button; drawer below `md`, inline links at `md+`.
+
+### Status labels
+A status is always written out in words inside a pill (`badge badge-sm rounded-full`); colour
+only reinforces it (§6). One component renders them all:
+`JairojobsWeb.ListingComponents.status_badge/1`. Do not invent new labels or colours per screen.
+
+| Listing status | Label the owner sees | Pill |
+|---|---|---|
+| Draft | Draft | `badge-ghost` (neutral) |
+| Pending approval | Waiting for approval | `badge-warning` (amber) |
+| Published | Live | `badge-success` (emerald) |
+| Rejected | Needs changes | `badge-error` (red) |
+| Closed | Closed | `badge-ghost` (neutral) |
+| Taken down | Taken down | `badge-ghost` (neutral) |
+
+A hidden Region uses the same neutral pill with the word "hidden". The amber pill is a state,
+not an action, so it does not count against "one accent CTA per screen".
+
+On a page about one item (e.g. a listing's owner view) the pill sits in a **status box** at the
+top — `bg-base-200`, bordered, 12 px padding: the pill, a short phrase ("— only you can see
+this"), one plain sentence on what happens next, then only the actions that status allows.
 
 ### Empty / loading / error states
 Plain sentences, no illustrations. Loading uses skeleton rows of the same height as listing

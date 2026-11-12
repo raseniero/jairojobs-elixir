@@ -193,7 +193,7 @@ Scenario-first (constitution §3.12). Every Gherkin scenario gets a test named
 Notes:
 - "Hidden region keeps its data" can only assert that the region still exists and still
   resolves by slug. The "its listings still exist" half gets its test in spec 003, when
-  listings exist.
+  listings exist. (Done in spec 003, T4.)
 - Slug derivation edge cases (diacritics, punctuation runs, symbols-only name) are extra
   context tests under REQ-002-2.
 - Fixtures go through `Regions.create_region(admin_scope, attrs)` (constitution §3.3).

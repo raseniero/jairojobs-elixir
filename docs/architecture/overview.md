@@ -27,7 +27,7 @@ flowchart LR
 
 ![System context](diagrams/out/c4-context-system.svg)
 
-**Level 2 — Containers** (planned deployment; CV storage and email provider still TBD)
+**Level 2 — Containers** (planned deployment; CV storage still TBD — spec 006)
 
 ![Containers](diagrams/out/c4-container-system.svg)
 
@@ -80,7 +80,19 @@ flowchart TD
   **and** magic link; roles `candidate` / `employer` / `admin`. Admin created via privileged
   mechanism only. Details in spec 001.
 - **Authorization:** every context function touching private data takes the current `Scope`
-  first (constitution §4.3).
+  first (constitution §4.3) and checks role and ownership itself; the router is never the
+  only guard. The router groups LiveViews into one `live_session` per audience, each with a
+  matching plug and `on_mount` hook in `JairojobsWeb.UserAuth`:
+
+  | `live_session` | Who gets in | Routes | Since |
+  |---|---|---|---|
+  | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in | 001 |
+  | `:require_authenticated_user` | any logged-in account | `/users/settings` | 001 |
+  | `:require_admin` | Admins | `/admin`, `/admin/regions…` | 001 (first used by 002) |
+  | `:require_poster` | Employers and Admins | `/my/listings…`, `/my/business` | 003 |
+
+  A visitor is sent to log in and returned afterwards; a signed-in account without the
+  right role is sent home with a message.
 - **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
 - **Email:** Swoosh; local adapter in dev (`/dev/mailbox`); Resend in production from
   `hello@jairojobs.com` (ADR-0005).

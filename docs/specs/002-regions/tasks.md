@@ -145,4 +145,7 @@ fail, then implement. T6 (markup-only page) may add its tests in the same commit
   same unique names deadlocked about once in ten full runs. Found after T8; the T1–T8 commits
   before the fix carry the flaky async setting.
 - T8: the tests were written before the implementation but first run after it (they passed).
-
+- T3 (closed later by spec 003, T4, 2026-11-11): the "its listings still exist" half of
+  `REQ-002-4: hidden region keeps its data` now has its test in
+  `test/jairojobs/listings_test.exs` — listings in every status are unchanged after their
+  region is hidden.

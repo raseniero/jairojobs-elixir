@@ -2,8 +2,10 @@
 
 **Status:** Draft
 **Created:** YYYY-MM-DD
+<!-- Add `**Approved:** YYYY-MM-DD` under Created when the spec is approved. -->
 **Owner:** 
 **Related ADRs:** 
+**Depends on:** <!-- e.g. 000 (product overview), 001 (roles) -->
 
 ## Problem / Why
 
@@ -37,6 +39,16 @@
 - I want <goal>,
 - so that <benefit>.
 
+## <Entity> lifecycle
+
+<!-- Required if an entity has a status field; delete this section otherwise. State the
+     statuses, embed the state diagram, and say which requirements must agree with it.
+     Draw transitions owned by another spec dashed and name that spec. -->
+
+![<Entity> states](diagrams/state-<entity>.svg)
+
+*Source: `diagrams/state-<entity>.puml`.*
+
 ## Screen flow
 
 <!-- Required if the spec has user-facing screens. Every user story must have a row. -->
@@ -46,6 +58,16 @@
 | Story | Path through the screen flow |
 |---|---|
 | US-NNN-1 | <screen> → <screen> → … |
+
+*Source: `diagrams/screenflow-<subject>.puml`.*
+
+### Wireframe: <screens>
+
+<!-- Optional. A Salt wireframe of the new screens at 375 px — layout only, not visual design. -->
+
+![<Screens> wireframe](diagrams/wireframe-<subject>.svg)
+
+*Source: `diagrams/wireframe-<subject>.puml`.*
 
 ## Flows (activity diagrams)
 
@@ -102,7 +124,20 @@ Scenario: <short name>
 
 ## Open questions
 
+<!-- Mandatory, even if empty ("- None."). Give each question a proposed answer and write that
+     answer into the requirements, so approving the spec settles it. Once resolved, move them
+     to a "Decisions (resolved YYYY-MM-DD)" table: # | Question | Decision. -->
+
 - 
+
+## Hand-offs to later specs
+
+<!-- Sentences that later specs inherit from this one (who decides what, what stays true).
+     Delete if there are none. -->
+
+| Spec | Inherits |
+|---|---|
+| NNN | |
 
 ## Traceability
 

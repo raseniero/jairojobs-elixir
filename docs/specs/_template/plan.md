@@ -3,6 +3,7 @@
 **Status:** Draft
 **Spec:** [spec.md](./spec.md) (must be `Approved`)
 **Created:** YYYY-MM-DD
+<!-- Add `**Approved:** YYYY-MM-DD` under Created when the plan is approved. -->
 
 ## Approach
 
@@ -34,6 +35,16 @@ erDiagram
 |---|---|---|---|
 | live | `/...` | `JairojobsWeb.<Name>Live.Index` | |
 
+<!-- For every route say which scope, pipeline and `live_session` it goes in, and why. -->
+
+### DOM ids (fixed now so tests can be written first)
+
+<!-- constitution §3.12: decide the ids of key elements before writing LiveView tests. -->
+
+| Element | id |
+|---|---|
+| | `#...` |
+
 ## Authorization
 
 <!-- Who can do what. Scopes. -->
@@ -55,7 +66,18 @@ erDiagram
 
 ## Risks & mitigations
 
-- 
+| Risk | Mitigation |
+|---|---|
+| | |
+
+## Decisions to confirm
+
+<!-- Choices the owner should confirm before implementation. Rename to
+     "Decisions confirmed (YYYY-MM-DD)" and change "Proposed" to "Choice" on approval. -->
+
+| # | Decision | Proposed | Hard to change later? |
+|---|---|---|---|
+| 1 | | | |
 
 ## Alternatives considered
 
