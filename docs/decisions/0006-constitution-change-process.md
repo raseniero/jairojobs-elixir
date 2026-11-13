@@ -1,7 +1,7 @@
-# 0006 — How the constitution changes: ADRs for stack and principles, direct edits for process rules
+# 0006 — How the constitution changes: ADRs for stack, principles and any loosening; direct edits only to tighten process rules
 
 **Status:** Accepted
-**Date:** 2026-11-12
+**Date:** 2026-11-12 (amended 2026-11-13, before it was first pushed)
 **Supersedes:** —
 **Superseded by:** —
 
@@ -27,8 +27,13 @@ adjust and are expected to be tuned as the project learns.
 - **§1 Stack, §2 Principles and §5 What we deliberately do NOT do** change only through an
   ADR. These are the rules that are costly to reverse or that define what the project is.
 - **§3 Testing rules, §4 Code conventions, §6 How specs are written and §7 Definition of
-  Done** may be edited directly. Each such edit is recorded in the constitution's
-  "Last updated" line with the date and a few words on what changed.
+  Done** may be edited directly **only to add a rule or make one stricter**. Removing or
+  relaxing a rule in these sections needs an ADR, like the sections above. Clarifying the
+  wording or fixing an example without changing what the rule requires is a direct edit.
+- **Every edit to the constitution needs the owner's explicit approval** and goes in its own
+  commit, never together with feature work that the change would make easier to pass.
+- **Every edit is recorded in a Changelog table at the end of the constitution** (date and
+  what changed), in place of a single "Last updated" note.
 - A code convention that fixes an architecture choice (for example the money type or the
   shape of public addresses) is treated as a stack rule and gets an ADR.
 - The three process rules added without an ADR in October 2026 stand as they are.
@@ -40,15 +45,22 @@ adjust and are expected to be tuned as the project learns.
 - ADRs stay reserved for decisions worth a dated record of context and alternatives.
 - Process improvements found during a spec can be adopted in the same commit.
 
+- The quality bar cannot be lowered quietly: loosening always leaves an ADR behind, and no
+  rule changes in the same commit as the work it governs.
+
 **Negative / trade-offs**
-- Process rules have no record of the alternatives considered; the commit message and the
-  "Last updated" note are the only trail.
-- The line between a convention and an architecture choice needs judgement.
+- Added process rules have no record of the alternatives considered; the commit message and
+  the Changelog entry are the only trail.
+- The line between a convention and an architecture choice, and between clarifying a rule
+  and relaxing it, needs judgement. When in doubt, write the ADR.
 
 ## Alternatives considered
 
 - **Keep "via an ADR" for every section and follow it strictly** — rejected; an ADR per
   process tweak is more ceremony than a one-person project will sustain.
 - **Leave the header as it was** — rejected; the rule and the practice would keep disagreeing.
+- **Let process rules be edited directly in both directions** — the first draft of this ADR.
+  Rejected the next day, before it was pushed: it made deleting a testing rule or a Definition of Done item as
+  easy as adding one, with nothing requiring the owner's approval.
 - **Drop ADRs for the constitution entirely** — rejected; stack decisions are exactly where
   the reasoning is worth keeping.

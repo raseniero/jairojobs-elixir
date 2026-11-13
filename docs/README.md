@@ -172,7 +172,9 @@ Not used: timing, composite structure, Gantt, mind map / WBS, JSON/YAML renders.
 ### ADRs
 Short. Status / Context / Decision / Consequences. Once `Accepted`, do not edit —
 write a new ADR that supersedes it. Which parts of the constitution need an ADR to change is
-set by ADR-0006: stack, principles and "what we don't do" do; process rules do not.
+set by ADR-0006: stack, principles, "what we don't do" and any removal or relaxing of a rule do;
+adding or tightening a process rule does not. Every edit needs the owner's approval, its own
+commit, and a line in the constitution's Changelog.
 
 ## Relationship to other files
 - `AGENTS.md` (repo root) — Phoenix/Elixir coding conventions for AI agents; points here.

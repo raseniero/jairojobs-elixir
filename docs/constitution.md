@@ -1,13 +1,16 @@
 # Constitution
 
 **Status:** Accepted
-**Last updated:** 2026-11-12 (change process per ADR-0006; region citation corrected; no other rule changed)
+**Last updated:** 2026-11-13 (see Changelog)
 
 Non-negotiable principles for jairojobs. Every spec, plan, and PR is measured against this file.
 Change it deliberately (ADR-0006):
 - **§1 Stack, §2 Principles, §5 What we deliberately do NOT do** — only through an ADR.
 - **§3 Testing rules, §4 Code conventions, §6 How specs are written, §7 Definition of Done**
-  — may be edited directly; record the date and what changed in "Last updated" above.
+  — a rule may be **added or made stricter** by a direct edit; **removing or relaxing** one
+  needs an ADR.
+- **Every edit** needs the owner's explicit approval, goes in its own commit (never with
+  feature work it would make easier to pass), and is recorded in the Changelog at the end.
 
 ## 1. Stack
 
@@ -123,3 +126,20 @@ A task or feature is Done only when all of the following hold:
 - [ ] `docs/architecture/` updated if contexts or data model changed
 - [ ] `tasks.md` checked off; spec status set to `Done`
 - [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
+
+## Changelog
+
+Entries before 2026-11-12 were reconstructed from the commit history.
+
+| Date | Change | Via |
+|---|---|---|
+| 2026-10-29 | Created with the documentation structure | — |
+| 2026-10-30 | Principles, testing rules, code conventions, non-goals and Definition of Done written | — |
+| 2026-10-30 | Gherkin acceptance scenarios required (§3.2, §6) | direct edit |
+| 2026-10-31 | Stack: transactional email via Resend | ADR-0005 |
+| 2026-10-31 | §3.12 scenario-first testing added | direct edit |
+| 2026-10-31 | Stack: UI row points to `docs/design.md` | direct edit |
+| 2026-10-31 | §6: which diagram visualizes which part of a spec | direct edit |
+| 2026-11-11 | Example REQ ids in §3.2 and §4.11 aligned with spec 003; no rule changed | direct edit |
+| 2026-11-12 | Change process defined; region citation corrected (Fly.io: ADR-0003; region: spec 000) | ADR-0006 |
+| 2026-11-13 | Change process tightened: removing or relaxing a rule needs an ADR; every edit needs the owner's approval and its own commit; Changelog added | ADR-0006 (amended) |
