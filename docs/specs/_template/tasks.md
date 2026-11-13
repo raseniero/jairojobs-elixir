@@ -35,6 +35,7 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 - [ ] Works at 375 px width (phone) before desktop
 - [ ] No new deps without a justification line in `plan.md`
 - [ ] `docs/architecture/` updated if contexts or data model changed
+- [ ] Diagrams in this spec and in earlier specs it changed match the built screens and code
 - [ ] `tasks.md` checked off; spec status set to `Done`
 - [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
 

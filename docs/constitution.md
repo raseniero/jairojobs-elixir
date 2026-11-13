@@ -124,6 +124,7 @@ A task or feature is Done only when all of the following hold:
 - [ ] Works at 375 px width (phone) before desktop
 - [ ] No new deps without a justification line in `plan.md`
 - [ ] `docs/architecture/` updated if contexts or data model changed
+- [ ] Diagrams in this spec and in earlier specs it changed match the built screens and code
 - [ ] `tasks.md` checked off; spec status set to `Done`
 - [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
 
@@ -143,3 +144,4 @@ Entries before 2026-11-12 were reconstructed from the commit history.
 | 2026-11-11 | Example REQ ids in §3.2 and §4.11 aligned with spec 003; no rule changed | direct edit |
 | 2026-11-12 | Change process defined; region citation corrected (Fly.io: ADR-0003; region: spec 000) | ADR-0006 |
 | 2026-11-13 | Change process tightened: removing or relaxing a rule needs an ADR; every edit needs the owner's approval and its own commit; Changelog added | ADR-0006 (amended) |
+| 2026-11-13 | §7 Definition of Done: added "Diagrams in this spec and in earlier specs it changed match the built screens and code" (new rule; approved by the owner) | direct edit |
