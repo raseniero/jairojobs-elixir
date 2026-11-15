@@ -662,9 +662,11 @@ Scenario: Withdrawing sends nothing
 - **Mobile-first:** every screen is usable at 375 px — one column, rows and buttons ≥ 44 px.
   An Admin can clear the queue from a phone.
 - **Design:** follows `docs/design.md` — list rows with dividers, one accent action per
-  screen ("Approve"; on the reject, take-down and edit forms it is the form's own button),
-  the status pills from `status_badge`, plain sentences for empty states. The reject,
-  take-down and edit forms are pages or sections, not modals.
+  screen ("Approve" on the Admin view, "Save changes" on the edit form). The "Reject listing"
+  and "Take down" buttons on their forms use the destructive (error) style, not the accent,
+  so those two forms have no accent action. Status pills come from `status_badge`, and
+  empty states are plain sentences. The reject, take-down and edit forms are pages or
+  sections, not modals.
 - **Authorization:** every moderation action is checked against the current Admin in the
   domain layer, not only in the screens (constitution §2.7, §4.3). Tests prove an Employer
   and a Candidate cannot read the Admin views or decide (constitution §3.4).
@@ -720,7 +722,9 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 003 REQ-003-6, REQ-003-8 and `activity-submit-for-approval` | submitting also emails the Admins (REQ-004-10) |
   | 003 REQ-003-10, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
   | 003 `state-listing` | stays correct as drawn; re-check it against this spec's diagram |
-  | `architecture/overview.md`, `data-model.md`, ERD | Listings context gains moderation; the `:require_admin` routes; what is recorded per decision |
+  | `architecture/overview.md`, `data-model.md`, ERD | Listings context gains moderation; the `:require_admin` routes; what is recorded per decision. The ERD's planning comment puts the published time under spec 005; the approval time recorded here is that time, so the comment moves it to 004 |
+  | `c4-context-system`, `c4-container-system` | Resend also delivers moderation emails (decisions to the Employer, submissions to Admins); the Admin reads an inbox too |
+  | `usecase-product` | the Admin use case reads "Approve / reject / edit / take down listing", matching spec 000's capability table |
 
 ## Hand-offs to later specs
 
@@ -758,3 +762,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Created (Draft) with the extended lifecycle, screen flow and four activity diagrams; ten open questions, each with a proposed answer written into the requirements |
 | 2026-11-14 | Open questions resolved: the owner chose the proposed answer for all ten; no requirement or diagram changed |
 | 2026-11-14 | All six diagrams checked against the requirements, scenario by scenario, and brought in line; the spec text did not change |
+| 2026-11-14 | Checked against the architecture documents and the design guide: reject and take-down buttons use the destructive style, not the accent; C4, use case and the ERD's published-time comment added to the earlier documents this spec changes |
