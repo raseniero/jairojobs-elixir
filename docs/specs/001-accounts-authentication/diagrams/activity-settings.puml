@@ -23,6 +23,13 @@ case (Change email)
     stop
   else (yes)
   endif
+  if (Logged in within
+  last 20 min?) then (no)
+    :Ask to log in again
+    (no link sent);
+    stop
+  else (yes)
+  endif
   :Create change-email token
   (carries new email, expires 7 days);
   :Send confirmation link
@@ -43,6 +50,13 @@ case (Change / set password)
   (no current password is asked);
   if (New password 12–72 chars?) then (no)
     :Show validation error;
+    stop
+  else (yes)
+  endif
+  if (Logged in within
+  last 20 min?) then (no)
+    :Ask to log in again
+    (nothing changed);
     stop
   else (yes)
   endif

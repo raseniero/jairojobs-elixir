@@ -66,7 +66,7 @@ state "Settings" as Settings
 Settings : Account type: Candidate (read-only)
 Settings : Email: you@…  [Change]
 Settings : Password: set / not set  [Set / Change]
-Settings : (sudo: re-auth if last login > 10 min)
+Settings : (opens within 10 min of log-in;\nsubmit within 20 min, else log in again)
 
 state "Email: confirm new address" as EmailChange <<email>>
 EmailChange : [ Confirm new email ]

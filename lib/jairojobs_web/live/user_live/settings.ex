@@ -135,22 +135,23 @@ defmodule JairojobsWeb.UserLive.Settings do
   def handle_event("update_email", params, socket) do
     %{"user" => user_params} = params
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
-      %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
-        )
+    with_recent_log_in(socket, fn ->
+      case Accounts.change_user_email(user, user_params) do
+        %{valid?: true} = changeset ->
+          Accounts.deliver_user_update_email_instructions(
+            Ecto.Changeset.apply_action!(changeset, :insert),
+            user.email,
+            &url(~p"/users/settings/confirm-email/#{&1}")
+          )
 
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info)}
+          info = "A link to confirm your email change has been sent to the new address."
+          {:noreply, socket |> put_flash(:info, info)}
 
-      changeset ->
-        {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
-    end
+        changeset ->
+          {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
+      end
+    end)
   end
 
   def handle_event("validate_password", params, socket) do
@@ -168,14 +169,29 @@ defmodule JairojobsWeb.UserLive.Settings do
   def handle_event("update_password", params, socket) do
     %{"user" => user_params} = params
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_password(user, user_params) do
-      %{valid?: true} = changeset ->
-        {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
+    with_recent_log_in(socket, fn ->
+      case Accounts.change_user_password(user, user_params) do
+        %{valid?: true} = changeset ->
+          {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
 
-      changeset ->
-        {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+        changeset ->
+          {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+      end
+    end)
+  end
+
+  # spec 001 (REQ-001-6, REQ-001-7): the page opens within 10 minutes of logging in; a
+  # change submitted from it is accepted until 20 minutes after. Later than that, ask the
+  # user to log in again and change nothing.
+  defp with_recent_log_in(socket, fun) do
+    if Accounts.sudo_mode?(socket.assigns.current_scope.user) do
+      fun.()
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "You must re-authenticate to access this page.")
+       |> redirect(to: ~p"/users/log-in")}
     end
   end
 end

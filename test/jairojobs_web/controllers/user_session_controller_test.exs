@@ -205,4 +205,73 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"
     end
   end
+
+  # spec 001, amended 2026-11-13: Settings opens within 10 minutes of logging in; a change
+  # submitted from an open page is accepted until 20 minutes after log-in. After that the
+  # user is asked to log in again and nothing changes (it used to crash).
+  describe "POST /users/update-password" do
+    defp logged_in(conn, user, minutes_ago) do
+      log_in_user(conn, user,
+        token_authenticated_at: DateTime.add(DateTime.utc_now(), -minutes_ago, :minute)
+      )
+    end
+
+    test "REQ-001-7: change password", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> logged_in(user, 1)
+        |> post(~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "password" => "new valid password",
+            "password_confirmation" => "new valid password"
+          }
+        })
+
+      assert redirected_to(conn) == ~p"/users/settings"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Password updated successfully"
+      assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
+    end
+
+    test "REQ-001-7: a change submitted within 20 minutes of logging in is accepted", %{
+      conn: conn,
+      user: user
+    } do
+      conn =
+        conn
+        |> logged_in(user, 19)
+        |> post(~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "password" => "new valid password",
+            "password_confirmation" => "new valid password"
+          }
+        })
+
+      assert redirected_to(conn) == ~p"/users/settings"
+      assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
+    end
+
+    test "REQ-001-7: a change submitted too late asks to log in again", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> logged_in(user, 21)
+        |> post(~p"/users/update-password", %{
+          "user" => %{
+            "email" => user.email,
+            "password" => "new valid password",
+            "password_confirmation" => "new valid password"
+          }
+        })
+
+      assert redirected_to(conn) == ~p"/users/log-in"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
+               "You must re-authenticate to access this page."
+
+      refute Accounts.get_user_by_email_and_password(user.email, "new valid password")
+      # the session is kept: logging in again is a re-authentication, not a fresh start
+      assert get_session(conn, :user_token)
+    end
+  end
 end

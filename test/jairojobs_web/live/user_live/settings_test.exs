@@ -335,4 +335,68 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
       assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin")
     end
   end
+
+  # spec 001, amended 2026-11-13: a change submitted from an open Settings page more than
+  # 20 minutes after logging in asks the user to log in again (it used to crash).
+  describe "late submit from an open Settings page" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    # The page was opened in time; make the log-in look 21 minutes old without sleeping.
+    defp age_log_in(lv) do
+      old = DateTime.add(DateTime.utc_now(), -21, :minute)
+
+      :sys.replace_state(lv.pid, fn state ->
+        update_in(state.socket.assigns.current_scope, fn scope ->
+          %{scope | user: %{scope.user | authenticated_at: old}}
+        end)
+      end)
+
+      lv
+    end
+
+    test "REQ-001-6: an email change submitted too late asks to log in again", %{
+      conn: conn,
+      user: user
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      {:ok, conn} =
+        lv
+        |> age_log_in()
+        |> form("#email_form", %{"user" => %{"email" => unique_user_email()}})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert conn.resp_body =~ "You must re-authenticate to access this page."
+      assert Accounts.get_user!(user.id).email == user.email
+      # only the session token exists: no change-email link was created or sent
+      assert Jairojobs.Repo.aggregate(Accounts.UserToken, :count) == 1
+    end
+
+    test "REQ-001-7: a password change submitted too late asks to log in again", %{
+      conn: conn,
+      user: user
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      {:ok, conn} =
+        lv
+        |> age_log_in()
+        |> form("#password_form", %{
+          "user" => %{
+            "email" => user.email,
+            "password" => "new valid password",
+            "password_confirmation" => "new valid password"
+          }
+        })
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert conn.resp_body =~ "You must re-authenticate to access this page."
+      refute Accounts.get_user_by_email_and_password(user.email, "new valid password")
+    end
+  end
 end
