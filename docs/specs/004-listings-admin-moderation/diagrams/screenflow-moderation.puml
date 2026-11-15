@@ -30,7 +30,7 @@ Listings : Cashier · Kape Isla · Cebu · ₱12,000–13,000/mo
 Listings : submitted 3 h ago
 Listings : Barista · Lutong Bahay · Davao City · ₱14,000–16,000/mo
 Listings : submitted 20 min ago · Your listing
-Listings : 50 rows at a time · Show more
+Listings : 50 rows at a time · [ Show more ]
 Listings : (empty) "Nothing is waiting for approval."
 
 state "Listing (Admin view)" as Review
@@ -38,26 +38,26 @@ Review : status, who posted it (business, account email),
 Review : when it was submitted, "Your listing" if it is mine
 Review : latest decision: what, when, by which Admin
 Review : the listing as visitors will see it
-Review : Waiting for approval: [ Approve ] Reject · Edit
-Review : Live: Take down · Edit
+Review : Waiting for approval: **[ Approve ]** [ Reject ] [ Edit ]
+Review : Live: [ Take down ] [ Edit ]
 Review : Needs changes / Taken down: the reason, no actions
 Review : Closed: no actions
 
 state "Reject" as Reject
 Reject : "What needs to change?" ___________
 Reject : "The employer will see this."
-Reject : [ Reject listing ]   Cancel
+Reject : <color:#dc2626>[ Reject listing ]</color>   Cancel
 
 state "Take down" as TakeDown
 TakeDown : "Why is it being taken down?" ______
 TakeDown : "This cannot be undone."
-TakeDown : [ Take down ]   Cancel
+TakeDown : <color:#dc2626>[ Take down ]</color>   Cancel
 
 state "Edit listing (Admin)" as Edit
 Edit : same fields as the Employer's form
 Edit : plus Business name and About the business
 Edit : "The employer will be told what you changed."
-Edit : [ Save changes ]   Cancel
+Edit : **[ Save changes ]**   Cancel
 
 state "Email to the Employer" as MailEmployer <<email>>
 MailEmployer : Your listing is live
@@ -105,5 +105,8 @@ legend right
   | amber | an email, not a screen |
   | blue | a screen from spec 003, seen by the Employer |
   | dotted arrow | sent by the app, not a tap |
+  | [ brackets ] | a button |
+  | **[ bold ]** | the screen's accent action |
+  | <color:#dc2626>[ red ]</color> | a destructive action |
 endlegend
 @enduml

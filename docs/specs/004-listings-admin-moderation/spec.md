@@ -27,8 +27,9 @@ Spec 000 sets the target: median approval time under 24 hours.
 - An Admin can read a listing in full, and see who posted it, before deciding.
 - Approving a clear listing takes two taps from the queue: open it, approve it.
 - A rejection or a take-down always carries a reason the Employer can read.
-- The Employer learns of every decision by email, without having to check the site.
-- Admins learn of every submission by email.
+- The Employer is emailed each decision on their listing, so they do not have to check the
+  site.
+- Admins are emailed each submission.
 - Only Admins can do any of this, and each decision records who made it and when.
 - Specs 005, 007 and 008 get a clear contract: what "approved" means and what is recorded.
 
@@ -561,7 +562,8 @@ Scenario: The listing changed while I was editing
 
 **Serves:** US-004-9, US-004-10
 
-Each Admin action on a listing sends one email to the account that owns it.
+An Admin action on someone else's listing sends one email to the account that owns it.
+The exceptions are in the rules below.
 
 ```gherkin
 Scenario: Approved email
@@ -721,7 +723,9 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 002 `screenflow-regions` | the Admin screen gains the "Listings" row |
   | 003 REQ-003-6, REQ-003-8 and `activity-submit-for-approval` | submitting also emails the Admins (REQ-004-10) |
   | 003 REQ-003-10, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
-  | 003 `state-listing` | stays correct as drawn; re-check it against this spec's diagram |
+  | 003 REQ-003-5 | the rule becomes "An Employer can edit only Draft and Rejected listings; an Admin's edit is REQ-004-8". Its scenarios already speak for the Employer and do not change |
+  | 003 `state-listing` | "locked — cannot be edited" on Pending and Published becomes "locked for the Employer"; then re-check the whole diagram against this spec's |
+  | 003 REQ-003-2 | the rule gains an exception: a listing shows the business details it was last submitted with, unless an Admin has since edited that listing's copy (REQ-004-8). Its scenario does not change |
   | `architecture/overview.md`, `data-model.md`, ERD | Listings context gains moderation; the `:require_admin` routes; what is recorded per decision. The ERD's planning comment puts the published time under spec 005; the approval time recorded here is that time, so the comment moves it to 004 |
   | `c4-context-system`, `c4-container-system` | Resend also delivers moderation emails (decisions to the Employer, submissions to Admins); the Admin reads an inbox too |
   | `usecase-product` | the Admin use case reads "Approve / reject / edit / take down listing", matching spec 000's capability table |
@@ -763,3 +767,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Open questions resolved: the owner chose the proposed answer for all ten; no requirement or diagram changed |
 | 2026-11-14 | All six diagrams checked against the requirements, scenario by scenario, and brought in line; the spec text did not change |
 | 2026-11-14 | Checked against the architecture documents and the design guide: reject and take-down buttons use the destructive style, not the accent; C4, use case and the ERD's published-time comment added to the earlier documents this spec changes |
+| 2026-11-14 | Four contradictions resolved with the owner: screen flow marks buttons in brackets, the accent one bold and destructive ones red; REQ-003-5, REQ-003-2 and spec 003's state diagram added to the earlier documents this spec changes; Goals and REQ-004-9's opening no longer promise an email in every case |
