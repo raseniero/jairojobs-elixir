@@ -218,13 +218,14 @@ Scenario: Invalid email format
 
 **Serves:** US-001-2, US-001-3
 
-Clicking the emailed link confirms the email address and logs the user in. Until confirmed,
-the account cannot log in by any method.
+Clicking the emailed link confirms the email address and logs the user in. Until then the
+only way in is that link: a password is refused, and asking for a new link does not open a
+session by itself.
 
 ```gherkin
 Scenario: Unconfirmed account cannot log in
   Given I signed up and have not yet clicked the link
-  When I try to log in by magic link or password
+  When I try to log in with a password, or without using the emailed link
   Then I do not get a session
 
 Scenario: First link confirms and logs in
@@ -575,3 +576,4 @@ Scenario: Admin navigation
 | 2026-11-12 | Diagrams brought in line with the app: log-in activity (no email on a refused password attempt), request-access activity (non-admins sent home; posting area), navigation wireframe (Employer and Admin items are live) |
 | 2026-11-14 | After reading every rule against the code: REQ-001-6 and REQ-001-7 now state the two recent-log-in windows (open within 10 min, submit within 20 min) and gain a scenario each for a late submit; the code was changed so a late submit asks to log in again instead of crashing. Security note reworded to match |
 | 2026-11-14 | Privacy requirement made specific: emails, passwords and tokens filtered from logged parameters; no request log line for the sign-in and confirm-new-email links |
+| 2026-11-14 | REQ-001-3 wording tightened: an unconfirmed account cannot log in with a password or without using the emailed link (using the link is what confirms it). State diagram and sign-up sequence note aligned. No behaviour change |

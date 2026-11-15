@@ -11,7 +11,8 @@ skinparam state {
 state "User account" as Account {
   state "Confirmation" as Conf {
     [*] --> Unconfirmed : sign up (email + role)
-    Unconfirmed : cannot log in by any method
+    Unconfirmed : can only get in by using the emailed link
+    Unconfirmed : a password is refused
     Unconfirmed : asking for a login link sends a new one
     Unconfirmed --> Confirmed : click first magic link\n(all tokens revoked)
     Confirmed : magic-link login
