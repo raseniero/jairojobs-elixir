@@ -29,6 +29,8 @@ if (Action?) then (take down)
     The employer posts a new listing.
     The listing is kept, never deleted.
   end note
+  :Stay on the listing's Admin view, now
+  Taken down, with a confirmation;
   stop
 else (edit)
   if (Pending approval or Published?) then (no)
@@ -66,6 +68,12 @@ else (edit)
   No second approval is needed;
   :The account's business details are untouched;
   :Email the employer which parts changed (REQ-004-9);
+  :Back on the listing's Admin view
+  with a confirmation;
+  note right
+    Two Admins saving at the same time:
+    the later save replaces the earlier one.
+  end note
   stop
 endif
 @enduml

@@ -51,7 +51,7 @@ endif
 business name, region, salary range, how long ago;
 note right
   The chosen status is part of the address,
-  so "Back" from a listing returns to this list.
+  so "Back" from a listing returns to the same list.
 end note
 :Admin taps a row;
 if (Listing exists and is not a Draft?) then (no)
@@ -66,6 +66,16 @@ and "Your listing" if it is the Admin's own;
 by which Admin, and the reason if any
 (none after a resubmission, until the next decision);
 :Show the listing as visitors will see it;
+if (Its region is hidden?) then (yes)
+  :Mark the region "hidden";
+  if (Pending approval?) then (yes)
+    :Say it cannot be approved as it is, and how to go on:
+    show the region again, change the region (Edit),
+    or reject with a reason. Approve is still offered;
+  else (no)
+  endif
+else (no)
+endif
 :Say in one plain sentence what each
 offered action will do;
 switch (Status)

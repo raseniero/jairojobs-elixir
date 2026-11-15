@@ -262,6 +262,17 @@ Scenario: My own listing is marked
   Given I am an Admin and I submitted a listing myself
   When I open the queue
   Then its row says "Your listing"
+
+Scenario: The Admin area shows how many are waiting
+  Given 2 listings are Waiting for approval
+  When I open the Admin area
+  Then the "Listings" row says "2 waiting for approval"
+  And the Listings page shows 2 next to "Waiting for approval"
+
+Scenario: Nothing waiting
+  Given no listing is Waiting for approval
+  When I open the Admin area
+  Then the "Listings" row says "Nothing waiting"
 ```
 
 **Rules**
@@ -301,6 +312,11 @@ Scenario: A long list is shown in parts
   When I choose "Live"
   Then I see the first 50
   And I can ask for more
+
+Scenario: Back returns to the same list
+  Given I chose "Live" and opened a listing from that list
+  When I go back
+  Then I am on the Live list again
 ```
 
 **Rules**
@@ -338,6 +354,13 @@ Scenario: The latest decision is shown
   When I open its Admin view
   Then I see that it was rejected, when, by "ana@example.com", and the reason
 
+Scenario: A hidden region is flagged
+  Given a listing is Waiting for approval in region "Baguio", which is hidden
+  When I open its Admin view
+  Then the region is marked "hidden"
+  And I am told the listing cannot be approved as it is, and what I can do instead
+  And Approve is still offered
+
 Scenario: A Draft is not found
   Given a listing is a Draft, or was withdrawn after I opened the queue
   When I open its Admin view
@@ -353,6 +376,10 @@ Scenario: A Draft is not found
   Admin who made it. A listing that was rejected and sent again shows no decision until the
   next one; the old reason is gone (REQ-003-8).
 - An Admin's own listing is marked "Your listing" here as well.
+- A hidden region is marked with the neutral "hidden" pill from the design guide, on a
+  listing in any status. The warning about approval is shown only while the listing is
+  Waiting for approval, and names the three ways forward in REQ-004-5. Tapping Approve
+  anyway is refused as REQ-004-5 says.
 
 ### REQ-004-5: Approve a listing
 
@@ -454,6 +481,7 @@ Scenario: Take down with a reason
   And it is no longer visible to the public
   And its Employer sees it marked "Taken down" with that reason
   And the time and my account are recorded as the take-down
+  And I am on the listing's Admin view, which shows it as Taken down, with a confirmation
 
 Scenario: A reason is required
   Given a listing is Live
@@ -504,12 +532,14 @@ Scenario: Fix a waiting listing
   When I change its title and save
   Then the listing shows the new title
   And it is still Waiting for approval, at the same place in the queue
+  And I am back on the listing's Admin view with a confirmation
 
 Scenario: Fix a live listing
   Given a listing is Live
   When I change its "About the job" text and save
   Then the listing shows the new text
   And it is still Live
+  And I am back on the listing's Admin view with a confirmation
 
 Scenario: The listing must stay complete
   Given a listing is Waiting for approval
@@ -557,6 +587,8 @@ Scenario: The listing changed while I was editing
 - An Admin edit never changes the account's business details and never needs a second
   approval; the Admin who saves it is the approver.
 - The form tells the Admin: "The employer will be told what you changed."
+- If two Admins edit the same listing at the same time, the later save replaces the
+  earlier one. This is accepted while there are few Admins.
 
 ### REQ-004-9: The Employer is emailed each decision
 
@@ -612,6 +644,9 @@ Scenario: The decision stands if the email cannot be sent
 - The edit email names the parts that changed, using the form's labels. It does not quote
   the old or new text.
 - Nobody is emailed about an action they took themselves.
+- The email goes to the owner whatever their role is now. An owner who can no longer open
+  My listings (an Admin demoted to Candidate, spec 001) still gets the email, but the link
+  will refuse them. That case is not handled here; it is handed to spec 008.
 - The decision is saved before the email is sent and is never undone because of it. There
   is no automatic second attempt; the Employer still sees the outcome in My listings.
 - Subjects: "Your listing is live: <title>", "Your listing needs changes: <title>",
@@ -742,6 +777,8 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 005 | An Admin can still edit or take down a Published listing in a hidden region; whether the public sees it is for spec 005 (also in spec 003's hand-offs). |
 | 007 | A Taken down listing accepts no new applications. What happens to applications already sent is decided in spec 007. |
 | 008 | Each decision records when it was made and by which Admin, and each listing the time it was submitted; the "median approval time" in spec 000 is measured from these. A full decision history, if wanted, is decided in spec 008. |
+| 008 | When promoting and demoting move to the screen, spec 008 decides what happens to the listings of an Admin who is demoted to Candidate: they still own them and are emailed each decision, but cannot open My listings. |
+| 008 | Two Admins saving an edit to the same listing at the same time is not guarded: the later save wins (REQ-004-8). Revisit when there are several Admins. |
 | 010 | Emails in this spec are sent once, at the moment of the action, with no preferences. Spec 010 may add preferences, digests or delivery in the background. |
 
 ## Traceability
@@ -770,3 +807,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Checked against the architecture documents and the design guide: reject and take-down buttons use the destructive style, not the accent; C4, use case and the ERD's published-time comment added to the earlier documents this spec changes |
 | 2026-11-14 | Four contradictions resolved with the owner: screen flow marks buttons in brackets, the accent one bold and destructive ones red; REQ-003-5, REQ-003-2 and spec 003's state diagram added to the earlier documents this spec changes; Goals and REQ-004-9's opening no longer promise an email in every case |
 | 2026-11-14 | Table of earlier documents completed (spec 000, two more spec 003 activity diagrams); US-004-11 also traced to REQ-004-6 and REQ-004-7 |
+| 2026-11-14 | Gaps closed with the owner: scenarios for the waiting count, for where the Admin lands after a take-down or edit, for "Back", and for a hidden region flagged on the Admin view; rules for two Admins editing at once and for an owner who can no longer open My listings, both handed to spec 008 |
