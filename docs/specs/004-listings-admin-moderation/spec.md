@@ -36,10 +36,10 @@ Spec 000 sets the target: median approval time under 24 hours.
 
 - Public listing pages, the "✓ Approved" badge and the posted date — spec 005. Until then a
   Live listing is visible only to its owner and to Admins.
-- Restoring a Taken down listing. Taken down is final, like Closed (question 1).
+- Restoring a Taken down listing. Taken down is final, like Closed (decision 1).
 - Seeing or touching Drafts. A Draft belongs to its Employer alone (REQ-003-3).
 - Admin editing of a Rejected, Closed or Taken down listing.
-- A history of every decision on a listing. Only the latest decision is kept (question 9);
+- A history of every decision on a listing. Only the latest decision is kept (decision 9);
   a fuller log can come with spec 008 if it is needed.
 - Ready-made rejection reasons, bulk approve, search inside the Admin lists, filters other
   than status.
@@ -679,86 +679,25 @@ Scenario: Withdrawing sends nothing
 
 ## Open questions
 
-Each question has a proposed answer, and that answer is already written into the
-requirements above. Approving the spec settles them; choosing another option means changing
-the requirement named in brackets. Questions 1–3 are the ones spec 003's hand-offs left to
-this spec; 4–10 came up while drafting.
+- None.
 
-**1. Can an Admin restore a Taken down listing?** *(hand-off from 003; REQ-004-7)*
-- a) **No — Taken down is final, like Closed. (proposed)** The take-down asks for a reason
-  and says it cannot be undone. The Employer posts a new listing.
-- b) Yes — an Admin can put it back to Live. Needs a fifth email, a rule for when the
-  Employer has since filled their 3 places, and a rule for hidden regions.
-- Why a: one less transition, and it matches "Closed is final". The cost: an Admin who
-  takes down the wrong listing cannot undo it, and the Employer has to type it again.
+## Decisions (resolved 2026-11-14)
 
-**2. Can a Pending listing in a hidden region be approved?** *(hand-off from 003; REQ-004-5)*
-- a) **No. (proposed)** The Admin is told why and can show the region again, move the
-  listing to an active region, or reject it with a reason.
-- b) Yes — the Admin's approval overrides the hidden region.
-- Why a: the Employer could not have submitted it there today (REQ-003-6), and a hidden
-  region is "no longer offered to employers or visitors" (REQ-002-4).
+Questions 1–3 are the ones spec 003's hand-offs left to this spec; 4–10 came up while
+drafting. The owner went through them one at a time and chose the proposed answer for each.
 
-**3. Who may approve a listing that an Admin posted?** *(hand-off from 003; REQ-004-5)*
-- a) **Any Admin, including the one who posted it. (proposed)** It still goes through the
-  queue and the approval is recorded.
-- b) Only a different Admin.
-- Why a: there is one Admin today, so b would make Admin posting impossible. Worth
-  revisiting when there are several.
-
-**4. Does a take-down need a reason the Employer can read?** *(REQ-004-7, REQ-004-9)*
-- a) **Yes, required, shown on the listing and in the email. (proposed)**
-- b) Optional.
-- c) No reason at all.
-- Why a: a take-down with no explanation is the least trustworthy thing the site can do to
-  an Employer. It adds a line to the Employer's owner view from spec 003.
-
-**5. Which listings can an Admin edit, and which fields?** *(REQ-004-8)*
-- a) **Waiting for approval and Live; every listing field plus the listing's business name
-  and "about". (proposed)**
-- b) Waiting for approval only.
-- c) Text fields only — never salary, region or type.
-- Why a: spec 000 says an Admin "can edit or take down listings", and the hand-off already
-  assumes business name and "about" are editable. The requirement says edits are for small
-  fixes; nothing enforces that beyond telling the Employer (question 6).
-
-**6. Is the Employer told when an Admin edits their listing?** *(REQ-004-8, REQ-004-9)*
-- a) **Yes, by an email naming the parts that changed. (proposed)**
-- b) No email; a note on the listing in My listings.
-- c) Not told.
-- Why a: spec 003's hand-off lists three emails (approved, rejected, taken down). This is
-  a fourth, added so that nothing is published under a business's name without its owner
-  knowing. It is the largest thing in this draft that the hand-offs did not ask for.
-
-**7. How do Admins learn that a listing is waiting?** *(REQ-004-10, REQ-004-1)*
-- a) **An email to every Admin on each submission, plus a count on the Admin area.
-  (proposed)**
-- b) The count only; Admins check the site.
-- c) One summary email a day — needs background jobs, which the constitution defers.
-- Why a: the 24-hour target in spec 000 should not depend on remembering to look. It adds
-  a step to the Employer's submit action from spec 003.
-
-**8. Is anyone emailed about their own action?** *(REQ-004-9, REQ-004-10)*
-- a) **No. (proposed)** An Admin who approves their own listing gets no "your listing is
-  live" email, and an Admin who submits one gets no "a listing is waiting" email.
-- b) Yes — always send, with no exception.
-- Why a: with one Admin, b sends two pointless emails for every listing he posts. b is one
-  rule fewer.
-
-**9. What is recorded about a decision?** *(REQ-004-4, REQ-004-5, -6, -7)*
-- a) **The latest decision only: what, when, which Admin, and the reason if any.
-  (proposed)**
-- b) A full history of every decision and edit on a listing.
-- c) Nothing beyond the status and the reason.
-- Why a: who and when cannot be filled in afterwards, and spec 008 will want approval
-  times. A full history has no reader yet. Admin edits are not recorded beyond the email.
-
-**10. What if the email cannot be sent?** *(REQ-004-9, REQ-004-10)*
-- a) **The decision or submission stands; the Admin is told the Employer could not be
-  emailed; no second attempt. (proposed)**
-- b) The action is refused until email works.
-- Why a: a mail outage should not stop moderation, and the Employer sees the outcome in My
-  listings anyway. A second attempt needs background jobs.
+| # | Question | Decision |
+|---|---|---|
+| 1 | Can an Admin restore a Taken down listing? | No. Taken down is final for everyone, like Closed; the take-down asks for a reason and says it cannot be undone (REQ-004-7). Known cost: a mistaken take-down means the Employer posts the listing again |
+| 2 | Can a Pending listing in a hidden region be approved? | No. The Admin is told why and can show the region again, move the listing to an active region, or reject it with a reason (REQ-004-5) |
+| 3 | Who may approve a listing that an Admin posted? | Any Admin, including the one who posted it. It still goes through the queue and the approval is recorded (REQ-004-5). Revisit when there are several Admins |
+| 4 | Does a take-down need a reason the Employer can read? | Yes: required, 10–500 characters, shown on the listing and in the email (REQ-004-7, REQ-004-9). There is no Admin-only note |
+| 5 | Which listings can an Admin edit, and which fields? | Waiting for approval and Live; every listing field plus the listing's business name and "about". Meant for small fixes; that is left to the Admin's judgement (REQ-004-8) |
+| 6 | Is the Employer told when an Admin edits their listing? | Yes, by an email naming the parts that changed, without quoting old or new text; one email per save (REQ-004-8, REQ-004-9). A fourth email beyond the three in spec 003's hand-off |
+| 7 | How do Admins learn that a listing is waiting? | An email to every Admin on each submission and resubmission, plus a count on the Admin area (REQ-004-10, REQ-004-1). Adds a step to spec 003's submit action |
+| 8 | Is anyone emailed about their own action? | No. An Admin gets no email for submitting, approving, rejecting, taking down or editing their own listing (REQ-004-9, REQ-004-10) |
+| 9 | What is recorded about a decision? | The latest decision only: what, when, which Admin, and the reason if any. No history; Admin edits are not recorded beyond the email (REQ-004-4 to REQ-004-7) |
+| 10 | What if the email cannot be sent? | The decision or submission stands; after a decision the Admin is told the Employer could not be emailed; no second attempt (REQ-004-9, REQ-004-10) |
 
 ## Notes for the plan
 
@@ -817,3 +756,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | Date | Change |
 |---|---|
 | 2026-11-14 | Created (Draft) with the extended lifecycle, screen flow and four activity diagrams; ten open questions, each with a proposed answer written into the requirements |
+| 2026-11-14 | Open questions resolved: the owner chose the proposed answer for all ten; no requirement or diagram changed |
