@@ -158,8 +158,10 @@ with this diagram, and it must stay in agreement with `state-listing` in spec 00
 
 *Source: `diagrams/screenflow-moderation.puml`.*
 
-No wireframe is included in this draft. The two new screens (a list of rows, and the
-owner view from spec 003 with a different box on top) follow patterns already built.
+No wireframe is included in this draft. The five new screens follow patterns already
+built: the Listings page is a list of rows; the listing's Admin view is the owner view from
+spec 003 with a different box on top; the reject and take-down forms are one text field
+each; and the Admin edit form is the Employer's listing form with two more fields.
 
 ## Flows (activity diagrams)
 
@@ -725,7 +727,8 @@ Scenario: Withdrawing sends nothing
 ## Decisions (resolved 2026-11-14)
 
 Questions 1–3 are the ones spec 003's hand-offs left to this spec; 4–10 came up while
-drafting. The owner went through them one at a time and chose the proposed answer for each.
+drafting; 11–15 came out of checking the draft against its diagrams and the earlier specs.
+The owner went through them one at a time and chose the proposed answer for each.
 
 | # | Question | Decision |
 |---|---|---|
@@ -739,6 +742,11 @@ drafting. The owner went through them one at a time and chose the proposed answe
 | 8 | Is anyone emailed about their own action? | No. An Admin gets no email for submitting, approving, rejecting, taking down or editing their own listing (REQ-004-9, REQ-004-10) |
 | 9 | What is recorded about a decision? | The latest decision only: what, when, which Admin, and the reason if any. No history; Admin edits are not recorded beyond the email (REQ-004-4 to REQ-004-7) |
 | 10 | What if the email cannot be sent? | The decision or submission stands; after a decision the Admin is told the Employer could not be emailed; no second attempt (REQ-004-9, REQ-004-10) |
+| 11 | Is the Admin warned about a hidden region before tapping Approve? | Yes. The Admin view marks the region "hidden" on a listing in any status and, while the listing is waiting, says it cannot be approved as it is and what to do. Approve stays visible; the queue rows are not marked (REQ-004-4) |
+| 12 | Where does the Admin land after each action? | After approve and reject, back on the queue; after a take-down or an edit, on the listing's Admin view. "Back" from a listing returns to the same status list (REQ-004-3, REQ-004-5 to REQ-004-8) |
+| 13 | What if two Admins edit the same listing at once? | The later save replaces the earlier one; nothing guards against it. Accepted while there are few Admins; handed to spec 008 (REQ-004-8) |
+| 14 | What about an owner who can no longer open My listings? | The email is sent whatever the owner's role is now; the link refuses an Admin who was demoted to Candidate. Not handled here; spec 008 decides what happens to such an account's listings (REQ-004-9) |
+| 15 | How are buttons marked in the screen flow? | Brackets for every button, bold for the screen's accent action, red for a destructive one, stated in the diagram's legend. Applies to this spec's screen flow only; the README and the screen flows of specs 002 and 003 are unchanged |
 
 ## Notes for the plan
 
@@ -812,3 +820,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Gaps closed with the owner: scenarios for the waiting count, for where the Admin lands after a take-down or edit, for "Back", and for a hidden region flagged on the Admin view; rules for two Admins editing at once and for an owner who can no longer open My listings, both handed to spec 008 |
 | 2026-11-14 | Minor points settled with the owner: REQ-004-7 says what "no longer visible to the public" means until spec 005; the C4 row also covers the inbox arrows missing since spec 001. Left as they are: the test-helper note (moves to plan.md) and the screen flow's example wording (reconciled at close) |
 | 2026-11-14 | Full pass of all six diagrams against the requirements after the day's edits: three diagrams brought in line (owner's role and the outcome in My listings in the emails flow; arriving by a listing's address; refusal messages and the hidden-region wording in the screen flow); the spec text did not change |
+| 2026-11-14 | "No wireframe" note names all five new screens; decisions 11–15 added to the Decisions table |
