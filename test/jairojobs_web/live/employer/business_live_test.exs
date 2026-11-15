@@ -107,5 +107,27 @@ defmodule JairojobsWeb.Employer.BusinessLiveTest do
                "id" => "123"
              }
     end
+
+    test "REQ-001: emails, passwords and tokens are filtered from logged parameters" do
+      params = %{
+        "user" => %{
+          "email" => "someone@example.com",
+          "password" => "secret secret",
+          "role" => "employer"
+        },
+        "token" => "magic-link-token",
+        "_csrf_token" => "csrf"
+      }
+
+      assert Phoenix.Logger.filter_values(params) == %{
+               "user" => %{
+                 "email" => "[FILTERED]",
+                 "password" => "[FILTERED]",
+                 "role" => "employer"
+               },
+               "token" => "[FILTERED]",
+               "_csrf_token" => "[FILTERED]"
+             }
+    end
   end
 end

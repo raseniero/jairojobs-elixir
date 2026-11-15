@@ -90,9 +90,11 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# spec 003 — listing text and business details are never written to logs
-# (constitution §4.12). Values under these form names are logged as "[FILTERED]".
-config :phoenix, :filter_parameters, ["password", "listing", "business"]
+# No personal data or secrets in logged request parameters (constitution §4.12). Any
+# parameter whose name contains one of these is logged as "[FILTERED]":
+#   password, email, token — accounts (spec 001); "token" also covers "_csrf_token"
+#   listing, business      — listing text and business details (spec 003)
+config :phoenix, :filter_parameters, ["password", "email", "token", "listing", "business"]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
