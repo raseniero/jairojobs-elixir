@@ -53,7 +53,8 @@ note right
   The chosen status is part of the address,
   so "Back" from a listing returns to the same list.
 end note
-:Admin taps a row;
+:Admin taps a row (or came straight to the
+listing's address, e.g. from the email);
 if (Listing exists and is not a Draft?) then (no)
   :Not found;
   stop

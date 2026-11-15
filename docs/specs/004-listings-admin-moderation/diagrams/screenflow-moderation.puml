@@ -38,7 +38,8 @@ Review : status, who posted it (business, account email),
 Review : when it was submitted, "Your listing" if it is mine
 Review : latest decision: what, when, by which Admin
 Review : the listing as visitors will see it
-Review : hidden region: "hidden" pill + why it cannot be approved
+Review : hidden region: "hidden" pill, and while it is
+Review : waiting, why it cannot be approved
 Review : Waiting for approval: **[ Approve ]** [ Reject ] [ Edit ]
 Review : Live: [ Take down ] [ Edit ]
 Review : Needs changes / Taken down: the reason, no actions
@@ -84,15 +85,15 @@ Review --> Listings : back
 Review --> Listings : Approve → Live\n(hidden region or no longer waiting → message, stays)
 Review --> Reject : Reject
 Reject --> Listings : reject with a reason → Needs changes
-Reject --> Reject : reason missing or too short
+Reject --> Reject : reason missing or too short\n(no longer waiting → message)
 Reject --> Review : cancel
 Review --> TakeDown : Take down
 TakeDown --> Review : take down with a reason → Taken down
-TakeDown --> TakeDown : reason missing or too short
+TakeDown --> TakeDown : reason missing or too short\n(no longer live → message)
 TakeDown --> Review : cancel
 Review --> Edit : Edit\n(Waiting for approval / Live)
 Edit --> Review : save changes
-Edit --> Edit : validation error
+Edit --> Edit : validation error\n(can no longer be edited → message)
 Edit --> Review : cancel
 
 Review -[dotted]-> MailEmployer : on approve, reject, take down or edit\n(not when the listing is the Admin's own)

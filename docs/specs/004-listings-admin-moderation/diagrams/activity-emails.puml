@@ -45,10 +45,17 @@ else (an Admin approved, rejected,\ntook down or edited a listing)
   :Send one email to the owner's account address from
   hello@jairojobs.com, with the title, what the employer can
   do next, and a link to the listing in My listings;
+  note right
+    Sent whatever the owner's role is now. An owner
+    who can no longer open My listings (an Admin
+    demoted to Candidate) is refused by the link.
+    Not handled here — handed to spec 008.
+  end note
   if (Email could be sent?) then (no)
     :The decision still stands. Tell the Admin
     the employer could not be emailed.
-    No second attempt;
+    No second attempt. The employer still
+    sees the outcome in My listings;
   else (yes)
   endif
   stop
