@@ -5,14 +5,17 @@ title Emails (REQ-004-9/10)
 start
 if (What happened?) then (an employer submitted\nor resubmitted a listing (003))
   :The submission is saved first;
+  note left
+    A withdrawal sends nothing.
+  end note
   :For every Admin except the person
   who submitted: send "A listing is
   waiting for approval" with the title,
   business, region and a link to its Admin view;
   if (Email could be sent?) then (no)
-    :The submission still stands.
-    The listing is in the queue and counted
-    on the Admin area;
+    :The submission still stands. The employer
+    sees nothing unusual. The listing is in the
+    queue and counted on the Admin area;
   else (yes)
   endif
   stop
@@ -29,19 +32,23 @@ else (an Admin approved, rejected,\ntook down or edited a listing)
     :"Your listing is live";
   case (rejected)
     :"Your listing needs changes"
-    with the reason;
+    with the reason, and that it can
+    be edited and sent again;
   case (taken down)
     :"Your listing was taken down"
     with the reason;
   case (edited)
     :"We edited your listing"
-    with the names of the parts changed;
+    with the names of the parts changed
+    (form labels, no old or new text);
   endswitch
-  :Send one email to the owner's account address,
-  with the title and a link to the listing in My listings;
+  :Send one email to the owner's account address from
+  hello@jairojobs.com, with the title, what the employer can
+  do next, and a link to the listing in My listings;
   if (Email could be sent?) then (no)
     :The decision still stands. Tell the Admin
-    the employer could not be emailed;
+    the employer could not be emailed.
+    No second attempt;
   else (yes)
   endif
   stop

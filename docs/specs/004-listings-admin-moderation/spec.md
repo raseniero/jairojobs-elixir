@@ -757,3 +757,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 |---|---|
 | 2026-11-14 | Created (Draft) with the extended lifecycle, screen flow and four activity diagrams; ten open questions, each with a proposed answer written into the requirements |
 | 2026-11-14 | Open questions resolved: the owner chose the proposed answer for all ten; no requirement or diagram changed |
+| 2026-11-14 | All six diagrams checked against the requirements, scenario by scenario, and brought in line; the spec text did not change |

@@ -5,6 +5,10 @@ title Find and review a listing (REQ-004-1/2/3/4)
 start
 :Someone opens "Listings" in the Admin area
 (or the address of a listing's Admin view);
+note right
+  The Admin area row reads "Listings" with
+  "2 waiting for approval" or "Nothing waiting".
+end note
 if (Logged in?) then (no)
   :Redirect to log in, then
   return to the page asked for;
@@ -13,11 +17,17 @@ else (yes)
 endif
 if (Admin?) then (no)
   :Refuse — send home with a message;
+  note right
+    The same holds for every action: a non-Admin who
+    tries to approve, reject, take down or Admin-edit
+    by any means is refused and the listing is unchanged.
+  end note
   stop
 else (yes)
 endif
-:Show "Waiting for approval" first
-(the approval queue);
+:Show "Waiting for approval" first (the approval queue),
+with the number waiting next to it. Choices: Waiting for
+approval, Live, Needs changes, Taken down, Closed — no Draft;
 if (Admin chooses another status?) then (yes)
   :Show Live, Needs changes, Taken down
   or Closed listings, most recently changed first;
@@ -28,6 +38,8 @@ else (no)
     Drafts are never listed.
     A withdrawn listing leaves the queue.
     The Admin's own listings say "Your listing".
+    Waiting counts from the latest submission.
+    An Admin edit does not move a listing.
   end note
 endif
 if (Any listings with that status?) then (no)
@@ -35,8 +47,12 @@ if (Any listings with that status?) then (no)
   stop
 else (yes)
 endif
-:Show 50 rows at a time: title, business name,
-region, salary range, how long ago;
+:Show 50 rows at a time, more on request: title,
+business name, region, salary range, how long ago;
+note right
+  The chosen status is part of the address,
+  so "Back" from a listing returns to this list.
+end note
 :Admin taps a row;
 if (Listing exists and is not a Draft?) then (no)
   :Not found;
@@ -44,10 +60,14 @@ if (Listing exists and is not a Draft?) then (no)
 else (yes)
 endif
 :Show status, who posted it (business name,
-account email), when it was submitted;
+account email), when it was submitted,
+and "Your listing" if it is the Admin's own;
 :Show the latest decision: what, when,
-by which Admin, and the reason if any;
+by which Admin, and the reason if any
+(none after a resubmission, until the next decision);
 :Show the listing as visitors will see it;
+:Say in one plain sentence what each
+offered action will do;
 switch (Status)
 case (Pending approval)
   :Offer Approve, Reject, Edit;

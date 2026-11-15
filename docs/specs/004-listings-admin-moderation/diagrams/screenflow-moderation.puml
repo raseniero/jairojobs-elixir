@@ -28,12 +28,14 @@ Listings : Waiting for approval (2) · Live · Needs changes ·
 Listings : Taken down · Closed
 Listings : Cashier · Kape Isla · Cebu · ₱12,000–13,000/mo
 Listings : submitted 3 h ago
-Listings : Barista · Your listing · Davao City · ₱14,000–16,000/mo
-Listings : submitted 20 min ago
+Listings : Barista · Lutong Bahay · Davao City · ₱14,000–16,000/mo
+Listings : submitted 20 min ago · Your listing
+Listings : 50 rows at a time · Show more
 Listings : (empty) "Nothing is waiting for approval."
 
 state "Listing (Admin view)" as Review
-Review : status, who posted it, when it was submitted
+Review : status, who posted it (business, account email),
+Review : when it was submitted, "Your listing" if it is mine
 Review : latest decision: what, when, by which Admin
 Review : the listing as visitors will see it
 Review : Waiting for approval: [ Approve ] Reject · Edit
@@ -75,7 +77,7 @@ Owner : Taken down + reason
 [*] --> Drawer : logged in as Admin
 Drawer --> AdminArea : Admin
 AdminArea --> Listings : Listings
-Listings --> Listings : choose a status
+Listings --> Listings : choose a status\nshow more
 Listings --> Review : tap a row
 Review --> Listings : back
 Review --> Listings : Approve → Live\n(hidden region or no longer waiting → message, stays)
@@ -92,10 +94,9 @@ Edit --> Review : save changes
 Edit --> Edit : validation error
 Edit --> Review : cancel
 
-Listings -[dotted]-> MailEmployer : on approve / reject
-Review -[dotted]-> MailEmployer : on take down / edit
+Review -[dotted]-> MailEmployer : on approve, reject, take down or edit\n(not when the listing is the Admin's own)
 MailEmployer --> Owner : employer follows the link\n(logs in if needed)
-Owner -[dotted]-> MailAdmins : employer submits\nor resubmits (003)
+Owner -[dotted]-> MailAdmins : employer submits\nor resubmits (003)\n(not to an Admin who submitted it)
 MailAdmins --> Review : Admin follows the link\n(logs in if needed)
 
 legend right

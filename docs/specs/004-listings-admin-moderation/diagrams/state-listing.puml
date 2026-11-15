@@ -23,19 +23,21 @@ state "Taken down" as TakenDown <<done>>
 [*] -[dashed]-> Draft : employer saves\na new listing (003)
 Draft : only the employer sees it
 Draft : Admins never see a Draft
-Draft -[dashed]-> Pending : submit (003)\nAdmins are emailed
+Draft -[dashed]-> Draft : edit (003)
+Draft -[dashed]-> Pending : submit (003)\n(complete, within the limit)\nAdmins are emailed
 Draft -[dashed]-> [*] : delete (003)
 
-Pending : in the approval queue, oldest first
+Pending : in the approval queue, longest-waiting first
 Pending : Admin can approve, reject or edit
 Pending -[dashed]-> Draft : withdraw (003)\nleaves the queue
 Pending --> Published : Admin approves\n(region must be active)\nemployer is emailed
 Pending --> Rejected : Admin rejects with a reason\nemployer is emailed the reason
 Pending --> Pending : Admin edits\nemployer is emailed
 
-Rejected : back with the employer
+Rejected : back with the employer, who sees the reason
 Rejected : Admin can read it, nothing else
-Rejected -[dashed]-> Pending : resubmit (003)\nAdmins are emailed
+Rejected -[dashed]-> Rejected : edit (003)
+Rejected -[dashed]-> Pending : resubmit (003)\n(complete, within the limit)\nAdmins are emailed
 Rejected -[dashed]-> [*] : delete (003)
 
 Published : visible to everyone (005)
@@ -44,9 +46,9 @@ Published -[dashed]-> Closed : employer closes (003)
 Published --> TakenDown : Admin takes down with a reason\nemployer is emailed the reason
 Published --> Published : Admin edits\nemployer is emailed
 
-Closed : final for everyone
+Closed : final for everyone; kept in My listings
 TakenDown : final for everyone — no restore
-TakenDown : employer sees the reason
+TakenDown : employer sees the reason; kept in My listings
 
 legend right
   |= Mark |= Meaning |
@@ -56,4 +58,10 @@ legend right
   | grey | final: no actions for anyone |
   | pale | not visible to Admins |
 endlegend
+
+note as N1
+  Nobody is emailed about their own action:
+  an Admin acting on their own listing sends no email,
+  and an Admin who submits one is not emailed (REQ-004-9, -10).
+end note
 @enduml

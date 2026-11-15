@@ -24,12 +24,16 @@ if (Decision?) then (approve)
   note right
     The listing's content is not changed.
     An Admin may approve their own listing.
+    The free-tier limit is not checked:
+    a waiting listing already counts as open.
+    The approval time is the "posted" date (005).
   end note
   :Email the employer (REQ-004-9);
   :Back to the queue with a confirmation;
   stop
 else (reject)
-  :Admin writes what needs to change;
+  :Admin writes what needs to change.
+  The form says "The employer will see this.";
   if (Reason is 10–500 characters?) then (no)
     :Validation error — stays
     Pending approval;
@@ -42,7 +46,8 @@ else (reject)
     stop
   else (yes)
   endif
-  :Status → Rejected, reason saved;
+  :Status → Rejected, reason saved.
+  The employer sees "Needs changes" and the reason;
   :Record the time and the Admin;
   :Frees one open-listing slot (003);
   :Email the employer the reason (REQ-004-9);

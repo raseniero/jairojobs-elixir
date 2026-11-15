@@ -18,7 +18,8 @@ if (Action?) then (take down)
     stop
   else (yes)
   endif
-  :Status → Taken down, reason saved;
+  :Status → Taken down, reason saved.
+  The employer sees "Taken down" and the reason;
   :Record the time and the Admin;
   :No longer public (005);
   :Frees one open-listing slot (003);
@@ -26,6 +27,7 @@ if (Action?) then (take down)
   note right
     Final. Nobody can restore it.
     The employer posts a new listing.
+    The listing is kept, never deleted.
   end note
   stop
 else (edit)
@@ -41,8 +43,10 @@ else (edit)
     plus the one the listing is already in.
     Status, owner and submission time
     cannot be changed.
+    The form says "The employer will be
+    told what you changed."
   end note
-  if (Still complete and valid? (REQ-003-4)) then (no)
+  if (Still complete and valid?\n(REQ-003-4, business name REQ-003-2)) then (no)
     :Validation error — nothing saved;
     stop
   else (yes)
@@ -58,7 +62,8 @@ else (edit)
     stop
   else (yes)
   endif
-  :Save. Status and place in the queue stay the same;
+  :Save. Status and place in the queue stay the same.
+  No second approval is needed;
   :The account's business details are untouched;
   :Email the employer which parts changed (REQ-004-9);
   stop
