@@ -1,0 +1,66 @@
+@startuml activity-take-down-and-edit
+' Spec 004 — taking down a live listing, and Admin edits (REQ-004-7, -8)
+title Take down and edit (REQ-004-7/8)
+
+start
+:Admin opens a listing's Admin view;
+if (Action?) then (take down)
+  :Admin writes why and is told
+  it cannot be undone;
+  if (Reason is 10–500 characters?) then (no)
+    :Validation error — stays Published;
+    stop
+  else (yes)
+  endif
+  if (Still Published?) then (no)
+    :Refuse — "This listing is
+    no longer live." Nothing changes;
+    stop
+  else (yes)
+  endif
+  :Status → Taken down, reason saved;
+  :Record the time and the Admin;
+  :No longer public (005);
+  :Frees one open-listing slot (003);
+  :Email the employer the reason (REQ-004-9);
+  note right
+    Final. Nobody can restore it.
+    The employer posts a new listing.
+  end note
+  stop
+else (edit)
+  if (Pending approval or Published?) then (no)
+    :Refuse — nothing to edit;
+    stop
+  else (yes)
+  endif
+  :Admin changes any listing field, or this
+  listing's business name or "about";
+  note right
+    Regions offered: the active ones,
+    plus the one the listing is already in.
+    Status, owner and submission time
+    cannot be changed.
+  end note
+  if (Still complete and valid? (REQ-003-4)) then (no)
+    :Validation error — nothing saved;
+    stop
+  else (yes)
+  endif
+  if (Still Pending approval or Published\nat the moment of saving?) then (no)
+    :Refuse — say the listing can no
+    longer be edited. Nothing saved;
+    stop
+  else (yes)
+  endif
+  if (Anything actually changed?) then (no)
+    :Nothing saved, no email;
+    stop
+  else (yes)
+  endif
+  :Save. Status and place in the queue stay the same;
+  :The account's business details are untouched;
+  :Email the employer which parts changed (REQ-004-9);
+  stop
+endif
+@enduml

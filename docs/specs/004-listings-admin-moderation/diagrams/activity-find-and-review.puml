@@ -1,0 +1,60 @@
+@startuml activity-find-and-review
+' Spec 004 — who may moderate, the queue, listings by status, the Admin view (REQ-004-1, -2, -3, -4)
+title Find and review a listing (REQ-004-1/2/3/4)
+
+start
+:Someone opens "Listings" in the Admin area
+(or the address of a listing's Admin view);
+if (Logged in?) then (no)
+  :Redirect to log in, then
+  return to the page asked for;
+  stop
+else (yes)
+endif
+if (Admin?) then (no)
+  :Refuse — send home with a message;
+  stop
+else (yes)
+endif
+:Show "Waiting for approval" first
+(the approval queue);
+if (Admin chooses another status?) then (yes)
+  :Show Live, Needs changes, Taken down
+  or Closed listings, most recently changed first;
+else (no)
+  :Show waiting listings,
+  longest-waiting first;
+  note right
+    Drafts are never listed.
+    A withdrawn listing leaves the queue.
+    The Admin's own listings say "Your listing".
+  end note
+endif
+if (Any listings with that status?) then (no)
+  :Say so in one plain sentence;
+  stop
+else (yes)
+endif
+:Show 50 rows at a time: title, business name,
+region, salary range, how long ago;
+:Admin taps a row;
+if (Listing exists and is not a Draft?) then (no)
+  :Not found;
+  stop
+else (yes)
+endif
+:Show status, who posted it (business name,
+account email), when it was submitted;
+:Show the latest decision: what, when,
+by which Admin, and the reason if any;
+:Show the listing as visitors will see it;
+switch (Status)
+case (Pending approval)
+  :Offer Approve, Reject, Edit;
+case (Published)
+  :Offer Take down, Edit;
+case (Rejected, Closed,\nTaken down)
+  :Read-only — no actions;
+endswitch
+stop
+@enduml

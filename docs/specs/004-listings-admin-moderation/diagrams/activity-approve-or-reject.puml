@@ -1,0 +1,52 @@
+@startuml activity-approve-or-reject
+' Spec 004 — approving and rejecting a waiting listing (REQ-004-5, -6)
+title Approve or reject (REQ-004-5/6)
+
+start
+:Admin has read a listing that
+is Waiting for approval;
+if (Decision?) then (approve)
+  if (Still Pending approval?) then (no)
+    :Refuse — "This listing is no longer
+    waiting for approval." Nothing changes;
+    stop
+  else (yes)
+  endif
+  if (Its region is active?) then (no)
+    :Refuse — the region is hidden. Suggest:
+    show the region again, change the region
+    (Edit), or reject with a reason;
+    stop
+  else (yes)
+  endif
+  :Status → Published;
+  :Record the time and the Admin;
+  note right
+    The listing's content is not changed.
+    An Admin may approve their own listing.
+  end note
+  :Email the employer (REQ-004-9);
+  :Back to the queue with a confirmation;
+  stop
+else (reject)
+  :Admin writes what needs to change;
+  if (Reason is 10–500 characters?) then (no)
+    :Validation error — stays
+    Pending approval;
+    stop
+  else (yes)
+  endif
+  if (Still Pending approval?) then (no)
+    :Refuse — "This listing is no longer
+    waiting for approval." Nothing changes;
+    stop
+  else (yes)
+  endif
+  :Status → Rejected, reason saved;
+  :Record the time and the Admin;
+  :Frees one open-listing slot (003);
+  :Email the employer the reason (REQ-004-9);
+  :Back to the queue with a confirmation;
+  stop
+endif
+@enduml

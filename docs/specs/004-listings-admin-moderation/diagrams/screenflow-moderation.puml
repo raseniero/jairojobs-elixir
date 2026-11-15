@@ -1,0 +1,108 @@
+@startuml screenflow-moderation
+' Spec 004 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
+' Every user story US-004-1..11 is a path through this diagram (see table in spec.md).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #f8fafc
+  BackgroundColor<<email>> #fef3c7
+  BackgroundColor<<other>> #e0e7ff
+  BorderColor #94a3b8
+  FontSize 12
+}
+skinparam arrowFontSize 11
+
+title Spec 004 — screen flow (375 px, Admin; the Employer appears where a decision reaches them)
+
+state "Drawer (☰)" as Drawer <<public>>
+Drawer : Admin: Browse · Admin · Settings · Log out
+
+state "Admin area (spec 002)" as AdminArea <<public>>
+AdminArea : Regions
+AdminArea : Listings — "2 waiting for approval"
+AdminArea : My listings · Post a job
+
+state "Listings (Admin)" as Listings
+Listings : Waiting for approval (2) · Live · Needs changes ·
+Listings : Taken down · Closed
+Listings : Cashier · Kape Isla · Cebu · ₱12,000–13,000/mo
+Listings : submitted 3 h ago
+Listings : Barista · Your listing · Davao City · ₱14,000–16,000/mo
+Listings : submitted 20 min ago
+Listings : (empty) "Nothing is waiting for approval."
+
+state "Listing (Admin view)" as Review
+Review : status, who posted it, when it was submitted
+Review : latest decision: what, when, by which Admin
+Review : the listing as visitors will see it
+Review : Waiting for approval: [ Approve ] Reject · Edit
+Review : Live: Take down · Edit
+Review : Needs changes / Taken down: the reason, no actions
+Review : Closed: no actions
+
+state "Reject" as Reject
+Reject : "What needs to change?" ___________
+Reject : "The employer will see this."
+Reject : [ Reject listing ]   Cancel
+
+state "Take down" as TakeDown
+TakeDown : "Why is it being taken down?" ______
+TakeDown : "This cannot be undone."
+TakeDown : [ Take down ]   Cancel
+
+state "Edit listing (Admin)" as Edit
+Edit : same fields as the Employer's form
+Edit : plus Business name and About the business
+Edit : "The employer will be told what you changed."
+Edit : [ Save changes ]   Cancel
+
+state "Email to the Employer" as MailEmployer <<email>>
+MailEmployer : Your listing is live
+MailEmployer : Your listing needs changes + the reason
+MailEmployer : Your listing was taken down + the reason
+MailEmployer : We edited your listing + what changed
+MailEmployer : link → the listing in My listings
+
+state "Email to Admins" as MailAdmins <<email>>
+MailAdmins : A listing is waiting for approval
+MailAdmins : link → the listing (Admin view)
+
+state "Employer: Listing (owner view, spec 003)" as Owner <<other>>
+Owner : Live / Needs changes + reason /
+Owner : Taken down + reason
+
+[*] --> Drawer : logged in as Admin
+Drawer --> AdminArea : Admin
+AdminArea --> Listings : Listings
+Listings --> Listings : choose a status
+Listings --> Review : tap a row
+Review --> Listings : back
+Review --> Listings : Approve → Live\n(hidden region or no longer waiting → message, stays)
+Review --> Reject : Reject
+Reject --> Listings : reject with a reason → Needs changes
+Reject --> Reject : reason missing or too short
+Reject --> Review : cancel
+Review --> TakeDown : Take down
+TakeDown --> Review : take down with a reason → Taken down
+TakeDown --> TakeDown : reason missing or too short
+TakeDown --> Review : cancel
+Review --> Edit : Edit\n(Waiting for approval / Live)
+Edit --> Review : save changes
+Edit --> Edit : validation error
+Edit --> Review : cancel
+
+Listings -[dotted]-> MailEmployer : on approve / reject
+Review -[dotted]-> MailEmployer : on take down / edit
+MailEmployer --> Owner : employer follows the link\n(logs in if needed)
+Owner -[dotted]-> MailAdmins : employer submits\nor resubmits (003)
+MailAdmins --> Review : Admin follows the link\n(logs in if needed)
+
+legend right
+  |= Mark |= Meaning |
+  | light grey | shared navigation |
+  | amber | an email, not a screen |
+  | blue | a screen from spec 003, seen by the Employer |
+  | dotted arrow | sent by the app, not a tap |
+endlegend
+@enduml

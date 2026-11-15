@@ -1,0 +1,819 @@
+# 004 — Listings: admin moderation
+
+**Status:** Draft
+**Created:** 2026-11-14
+**Owner:** Jairo
+**Related ADRs:** 0004 (UUID v7 keys), 0005 (transactional email via Resend)
+**Depends on:** 000 (product overview), 001 (Admin role, navigation), 002 (regions, Admin area), 003 (listings, lifecycle, hand-offs)
+
+## Problem / Why
+
+An Employer can write a listing and submit it, and then nothing happens: no screen lets an
+Admin see it, so every submitted listing stays "Waiting for approval" for ever and the board
+has nothing to show. The rule that makes the board trustworthy — **nothing an employer
+writes goes public without an Admin approving it** (constitution §2.9) — has only its first
+half built.
+
+This spec builds the second half. It gives Admins a queue of what is waiting, a page to read
+each listing the way a job seeker will, and four actions: approve it, reject it with a
+reason, take a live one down, or fix a small mistake themselves. It also makes sure the
+other side hears about it: the Employer is emailed each decision, and Admins are emailed
+when something is submitted, so approval does not depend on anyone remembering to look.
+Spec 000 sets the target: median approval time under 24 hours.
+
+## Goals
+
+- An Admin can see everything waiting for approval, longest-waiting first.
+- An Admin can read a listing in full, and see who posted it, before deciding.
+- Approving a clear listing takes two taps from the queue: open it, approve it.
+- A rejection or a take-down always carries a reason the Employer can read.
+- The Employer learns of every decision by email, without having to check the site.
+- Admins learn of every submission by email.
+- Only Admins can do any of this, and each decision records who made it and when.
+- Specs 005, 007 and 008 get a clear contract: what "approved" means and what is recorded.
+
+## Non-goals / Out of scope
+
+- Public listing pages, the "✓ Approved" badge and the posted date — spec 005. Until then a
+  Live listing is visible only to its owner and to Admins.
+- Restoring a Taken down listing. Taken down is final, like Closed (question 1).
+- Seeing or touching Drafts. A Draft belongs to its Employer alone (REQ-003-3).
+- Admin editing of a Rejected, Closed or Taken down listing.
+- A history of every decision on a listing. Only the latest decision is kept (question 9);
+  a fuller log can come with spec 008 if it is needed.
+- Ready-made rejection reasons, bulk approve, search inside the Admin lists, filters other
+  than status.
+- The queue updating by itself while an Admin is looking at it. It shows what was true when
+  it was opened; an action on a listing that has since changed is refused with a message.
+- Reports from the public ("report a listing") — a later idea in spec 000.
+- Suspending or banning an Employer account, and promote / demote screens — spec 008.
+- Email preferences, digests, or delivery in the background — spec 010 if needed. Each
+  email here is sent once, at the moment of the action.
+- Posting or editing a listing on behalf of another business beyond the small fixes in
+  REQ-004-8.
+
+## Personas involved
+
+- **Admin** — the main persona; every screen in this spec is written for them.
+- **Employer** — sees nothing new on screen except the reason on a Taken down listing;
+  receives the emails in REQ-004-9.
+- **Candidate**, **Visitor** — not involved. They see a listing only once it is Published
+  and spec 005 exists.
+
+## User stories
+
+**US-004-1**
+- As an Admin,
+- I want to see every listing that is waiting for approval, longest-waiting first,
+- so that nothing waits longer than it has to.
+
+**US-004-2**
+- As an Admin,
+- I want to read a waiting listing the way a job seeker will, and see who posted it,
+- so that I can judge it before it becomes public.
+
+**US-004-3**
+- As an Admin,
+- I want to approve a listing,
+- so that it goes live.
+
+**US-004-4**
+- As an Admin,
+- I want to reject a listing and say what needs to change,
+- so that the employer can fix it and send it again.
+
+**US-004-5**
+- As an Admin,
+- I want to take down a live listing and say why,
+- so that something that should not be public is removed at once.
+
+**US-004-6**
+- As an Admin,
+- I want to fix a small mistake in a waiting or live listing myself,
+- so that a typo does not cost the employer a rejection and a second wait.
+
+**US-004-7**
+- As an Admin,
+- I want to find any submitted listing by its status,
+- so that I can check on live listings and look up what was decided earlier.
+
+**US-004-8**
+- As an Admin,
+- I want to be emailed when a listing is submitted,
+- so that I can approve it within a day without watching the queue.
+
+**US-004-9**
+- As an Employer,
+- I want an email when my listing is approved, rejected or taken down,
+- so that I know where it stands without checking the site.
+
+**US-004-10**
+- As an Employer,
+- I want to be told when jairojobs changed something in my listing,
+- so that nothing is published under my business name without my knowing.
+
+**US-004-11**
+- As the Operator,
+- I want only Admins to be able to decide, and each decision to record who made it and when,
+- so that the approval rule can be trusted and questions can be answered later.
+
+## Listing lifecycle
+
+This is spec 003's lifecycle with the Admin half filled in. The statuses and the Employer's
+transitions are unchanged. Solid arrows are Admin actions specified here; dashed arrows are
+Employer actions specified in spec 003. The scenarios in REQ-004-5 to REQ-004-8 must agree
+with this diagram, and it must stay in agreement with `state-listing` in spec 003.
+
+![Listing states](diagrams/state-listing.svg)
+
+*Source: `diagrams/state-listing.puml`.*
+
+| Status | Label (same as the Employer sees) | Admin can see it | Admin actions |
+|---|---|---|---|
+| Draft | Draft | no | none |
+| Pending approval | Waiting for approval | yes, in the queue | Approve, Reject, Edit |
+| Published | Live | yes | Take down, Edit |
+| Rejected | Needs changes | yes, with the reason | none — it is back with the Employer |
+| Closed | Closed | yes | none — final |
+| Taken down | Taken down | yes, with the reason | none — final |
+
+## Screen flow
+
+![Screen flow](diagrams/screenflow-moderation.svg)
+
+| Story | Path through the screen flow |
+|---|---|
+| US-004-1 see the queue | Drawer → Admin area → Listings (opens on Waiting for approval) |
+| US-004-2 read before deciding | Listings → tap a row → Listing (Admin view) |
+| US-004-3 approve | Listing (Admin view) → Approve → Listings |
+| US-004-4 reject with a reason | Listing (Admin view) → Reject → write the reason → Listings |
+| US-004-5 take down | Listings → Live → Listing (Admin view) → Take down → write the reason → Listing (Taken down) |
+| US-004-6 fix a small mistake | Listing (Admin view) → Edit → Edit listing → save → Listing (Admin view) |
+| US-004-7 find by status | Listings → choose a status → tap a row → Listing (Admin view) |
+| US-004-8 told of a submission | Employer submits (spec 003) → Email to Admins → link → Listing (Admin view) |
+| US-004-9 told of a decision | Approve / Reject / Take down → Email to the Employer → link → Employer's listing (owner view, spec 003) |
+| US-004-10 told of an edit | Edit listing → save → Email to the Employer ("We edited your listing") |
+| US-004-11 only Admins, on record | Every screen sits behind the Admin area; Listing (Admin view) shows the latest decision, when, and by which Admin |
+
+*Source: `diagrams/screenflow-moderation.puml`.*
+
+No wireframe is included in this draft. The two new screens (a list of rows, and the
+owner view from spec 003 with a different box on top) follow patterns already built.
+
+## Flows (activity diagrams)
+
+| Flow | Covers | Diagram |
+|---|---|---|
+| Find and review a listing | REQ-004-1, -2, -3, -4 | [activity-find-and-review](diagrams/activity-find-and-review.svg) |
+| Approve or reject | REQ-004-5, -6 | [activity-approve-or-reject](diagrams/activity-approve-or-reject.svg) |
+| Take down and edit | REQ-004-7, -8 | [activity-take-down-and-edit](diagrams/activity-take-down-and-edit.svg) |
+| Emails | REQ-004-9, -10 | [activity-emails](diagrams/activity-emails.svg) |
+
+### Find and review a listing
+![Find and review a listing](diagrams/activity-find-and-review.svg)
+
+### Approve or reject
+![Approve or reject](diagrams/activity-approve-or-reject.svg)
+
+### Take down and edit
+![Take down and edit](diagrams/activity-take-down-and-edit.svg)
+
+### Emails
+![Emails](diagrams/activity-emails.svg)
+
+*Sources: `diagrams/activity-*.puml`.*
+
+## Requirements
+
+### REQ-004-1: Moderation is for Admins only
+
+**Serves:** US-004-1, US-004-11
+
+The Admin "Listings" page and every screen and action behind it are reachable only by a
+logged-in Admin.
+
+```gherkin
+Scenario: Admin opens Listings
+  Given I am logged in as an Admin
+  When I choose "Listings" in the Admin area
+  Then I see the Listings page, opened on "Waiting for approval"
+
+Scenario: Employer or Candidate is refused
+  Given I am logged in as an Employer or a Candidate
+  When I open the Admin Listings page or a listing's Admin view
+  Then I am refused and sent home with a message
+
+Scenario: Visitor is redirected to log in
+  Given I am not logged in
+  When I open the Admin Listings page or a listing's Admin view
+  Then I am redirected to the log-in page
+  And after logging in as an Admin I land on the page I asked for
+
+Scenario: Only an Admin can decide
+  Given I am an Employer, and a listing of mine is Waiting for approval
+  When I try to approve, reject, take down or Admin-edit it by any means
+  Then it is refused
+  And the listing is unchanged
+```
+
+**Rules**
+- The Admin area (spec 002) gains a "Listings" row. It says how many listings are waiting,
+  e.g. "2 waiting for approval", or "Nothing waiting" when there are none.
+- The check is made where the decision is carried out, not only by the screens
+  (constitution §2.7): an Employer cannot approve their own listing however the request is
+  made.
+
+### REQ-004-2: The approval queue
+
+**Serves:** US-004-1, US-004-8
+
+The Listings page opens on the listings that are Waiting for approval. This is the queue.
+
+```gherkin
+Scenario: Longest-waiting first
+  Given "Cashier" was submitted 3 hours ago and "Barista" 20 minutes ago
+  When I open the queue
+  Then "Cashier" is listed above "Barista"
+
+Scenario: What a row shows
+  Given a listing is Waiting for approval
+  When I open the queue
+  Then its row shows the title, the business name, the region, the salary range
+  And how long ago it was submitted
+
+Scenario: Empty queue
+  Given no listing is Waiting for approval
+  When I open the queue
+  Then I see "Nothing is waiting for approval."
+
+Scenario: Drafts are not in the queue
+  Given an Employer has a Draft listing
+  When I open the queue
+  Then the Draft is not listed
+
+Scenario: A withdrawn listing leaves the queue
+  Given a listing is Waiting for approval
+  When its Employer withdraws it
+  And I open the queue
+  Then it is not listed
+
+Scenario: My own listing is marked
+  Given I am an Admin and I submitted a listing myself
+  When I open the queue
+  Then its row says "Your listing"
+```
+
+**Rules**
+- "How long it has waited" counts from the latest submission. A listing that was rejected
+  and sent again starts at the back.
+- An Admin edit (REQ-004-8) does not move a listing in the queue.
+- The number of waiting listings is shown next to "Waiting for approval" and on the Admin
+  area row (REQ-004-1).
+
+### REQ-004-3: Find a listing by status
+
+**Serves:** US-004-7
+
+Until the public pages exist (spec 005) this page is the only way for an Admin to reach a
+Live listing, so it lists every submitted listing, one status at a time.
+
+```gherkin
+Scenario: Choose a status
+  Given listings that are Live, Needs changes, Taken down and Closed
+  When I choose "Live" on the Listings page
+  Then I see only the Live listings
+  And the most recently changed is first
+
+Scenario: Each status can be chosen
+  Given I am on the Listings page
+  When I look at the choices
+  Then they are Waiting for approval, Live, Needs changes, Taken down and Closed
+  And there is no choice for Draft
+
+Scenario: Nothing with that status
+  Given no listing is Taken down
+  When I choose "Taken down"
+  Then I see a plain sentence saying there are none
+
+Scenario: A long list is shown in parts
+  Given 60 listings are Live
+  When I choose "Live"
+  Then I see the first 50
+  And I can ask for more
+```
+
+**Rules**
+- Status labels are the ones in `docs/design.md` (Status labels); no new ones.
+- Rows show the title, business name, region and salary range, as in the queue, and how
+  long ago the listing last changed.
+- The choice of status is part of the page's address, so "Back" from a listing returns to
+  the same list.
+
+### REQ-004-4: Review a listing
+
+**Serves:** US-004-2, US-004-7, US-004-11
+
+Each submitted listing has an Admin view: a box on top with its status, who posted it and
+the latest decision, then the listing laid out as visitors will see it (the same layout as
+the Employer's owner view, REQ-003-10).
+
+```gherkin
+Scenario: Review a waiting listing
+  Given a listing is Waiting for approval
+  When I open its Admin view
+  Then I see its title, business name, "about the business", region, area, salary, type, schedule and text sections
+  And I see the email address of the account that posted it and when it was submitted
+  And I can Approve, Reject or Edit it
+
+Scenario: Actions follow the status
+  Given listings in each status other than Draft
+  When I open each one's Admin view
+  Then Waiting for approval offers Approve, Reject and Edit
+  And Live offers Take down and Edit
+  And Needs changes, Closed and Taken down offer nothing
+
+Scenario: The latest decision is shown
+  Given a listing was rejected by the Admin "ana@example.com" with the reason "Salary looks like a typo"
+  When I open its Admin view
+  Then I see that it was rejected, when, by "ana@example.com", and the reason
+
+Scenario: A Draft is not found
+  Given a listing is a Draft, or was withdrawn after I opened the queue
+  When I open its Admin view
+  Then I get "not found", exactly as for a listing that does not exist
+```
+
+**Rules**
+- "Approve" is the one accent action on the page (design guide, principle 4). Reject and
+  Take down are not accent buttons.
+- The box says in one plain sentence what each action will do, e.g. "Approving makes it
+  public and emails the employer."
+- The latest decision is one of: approved, rejected, taken down — with the time and the
+  Admin who made it. A listing that was rejected and sent again shows no decision until the
+  next one; the old reason is gone (REQ-003-8).
+- An Admin's own listing is marked "Your listing" here as well.
+
+### REQ-004-5: Approve a listing
+
+**Serves:** US-004-3, US-004-11
+
+Approval is the only way a listing becomes Published.
+
+```gherkin
+Scenario: Approve
+  Given a listing is Waiting for approval in an active region
+  When I approve it
+  Then its status is Published
+  And the time and my account are recorded as the approval
+  And its Employer sees it marked "Live" in My listings
+  And I am back on the queue with a confirmation
+
+Scenario: Approving does not change the listing
+  Given a listing is Waiting for approval
+  When I approve it
+  Then its title, salary, texts, region and business details are exactly as submitted
+
+Scenario: Hidden region blocks approval
+  Given a listing is Waiting for approval in region "Baguio"
+  And "Baguio" has been hidden since it was submitted
+  When I approve it
+  Then it stays Waiting for approval
+  And I am told the region is hidden and what I can do instead
+
+Scenario: Listing is no longer waiting
+  Given I have a listing's Admin view open
+  And its Employer has withdrawn it, or another Admin has already decided it
+  When I approve it
+  Then nothing changes
+  And I am told "This listing is no longer waiting for approval."
+
+Scenario: Admin approves their own listing
+  Given I am an Admin and my own listing is Waiting for approval
+  When I approve it
+  Then its status is Published
+```
+
+**Rules**
+- For a listing in a hidden region the Admin has three ways forward, and is told them:
+  show the region again (spec 002), move the listing to an active region (REQ-004-8), or
+  reject it with a reason so the Employer picks another region.
+- Any Admin may approve any waiting listing, including one they posted themselves. The
+  listing still passes through the queue and the approval is still recorded
+  (constitution §2.9 asks for an Admin's approval, which it then has).
+- Approval does not look at the free-tier limit: a waiting listing already counts as open
+  (REQ-003-12).
+- The approval time is the listing's "posted" date for spec 005.
+
+### REQ-004-6: Reject a listing with a reason
+
+**Serves:** US-004-4
+
+```gherkin
+Scenario: Reject with a reason
+  Given a listing is Waiting for approval
+  When I reject it with the reason "Salary looks like a typo — did you mean 14,000?"
+  Then its status is Rejected
+  And its Employer sees it marked "Needs changes" with that reason
+  And the time and my account are recorded as the rejection
+  And I am back on the queue with a confirmation
+
+Scenario: A reason is required
+  Given a listing is Waiting for approval
+  When I reject it with no reason, one shorter than 10 characters, or one longer than 500
+  Then I see a validation error
+  And it stays Waiting for approval
+
+Scenario: Only a waiting listing can be rejected
+  Given a listing is Live, Needs changes, Closed or Taken down, or has been withdrawn
+  When I try to reject it
+  Then nothing changes
+  And I am told "This listing is no longer waiting for approval."
+
+Scenario: Rejecting frees a place
+  Given an Employer has 3 open listings, one of them Waiting for approval
+  When I reject that one
+  Then the Employer can submit another listing
+```
+
+**Rules**
+- The reason is plain text, 10–500 characters, trimmed. It is written for the Employer:
+  the form says "The employer will see this."
+- What the Employer does next is spec 003: edit, resubmit or delete (REQ-003-8,
+  REQ-003-11).
+
+### REQ-004-7: Take down a live listing
+
+**Serves:** US-004-5
+
+```gherkin
+Scenario: Take down with a reason
+  Given a listing is Live
+  When I take it down with the reason "The business asked us to remove it."
+  Then its status is Taken down
+  And it is no longer visible to the public
+  And its Employer sees it marked "Taken down" with that reason
+  And the time and my account are recorded as the take-down
+
+Scenario: A reason is required
+  Given a listing is Live
+  When I take it down with no reason, one shorter than 10 characters, or one longer than 500
+  Then I see a validation error
+  And it stays Live
+
+Scenario: Taking down asks first
+  Given a listing is Live
+  When I choose "Take down"
+  Then I am asked for the reason and told it cannot be undone
+
+Scenario: Only a live listing can be taken down
+  Given a listing is Waiting for approval, Needs changes, Closed or Taken down
+  When I try to take it down
+  Then nothing changes
+  And I am told "This listing is no longer live."
+
+Scenario: Taken down is final
+  Given a listing is Taken down
+  When an Admin or its Employer opens it
+  Then there is no action that makes it Live again
+
+Scenario: Taking down frees a place
+  Given an Employer has 3 open listings, all Live
+  When I take one down
+  Then the Employer can submit another listing
+```
+
+**Rules**
+- The reason follows the same rule as a rejection reason (REQ-004-6) and is shown to the
+  Employer in the status box of the listing (an addition to the owner view of spec 003).
+- Taken down is final for everyone. To be listed again the Employer posts a new listing,
+  which goes through approval like any other.
+- A Taken down listing is kept, never deleted (REQ-003-11).
+
+### REQ-004-8: Fix a listing as an Admin
+
+**Serves:** US-004-6, US-004-10
+
+An Admin can correct a listing that is Waiting for approval or Live. This is meant for
+small fixes — a typo, a wrong area, stray formatting. Anything that changes what the
+Employer is offering is a reason to reject, not to edit.
+
+```gherkin
+Scenario: Fix a waiting listing
+  Given a listing is Waiting for approval
+  When I change its title and save
+  Then the listing shows the new title
+  And it is still Waiting for approval, at the same place in the queue
+
+Scenario: Fix a live listing
+  Given a listing is Live
+  When I change its "About the job" text and save
+  Then the listing shows the new text
+  And it is still Live
+
+Scenario: The listing must stay complete
+  Given a listing is Waiting for approval
+  When I empty its salary, or enter a maximum below the minimum, and save
+  Then I see a validation error
+  And nothing is saved
+
+Scenario: Business name changes on the listing only
+  Given a listing by an Employer whose business name is "Kape Isla Cafe"
+  When I change the listing's business name to "Kape Isla Café" and save
+  Then the listing shows "Kape Isla Café"
+  And the Employer's business details still say "Kape Isla Cafe"
+
+Scenario: Other listings cannot be edited
+  Given a listing is Needs changes, Closed or Taken down
+  When I try to save changes to it as an Admin
+  Then the changes are refused
+  And the listing is unchanged
+
+Scenario: Only active regions can be chosen
+  Given a Live listing in region "Baguio", which is hidden, and an active region "Cebu"
+  When I open the Admin edit form
+  Then I can keep "Baguio" or choose "Cebu"
+  And I cannot choose any other hidden region
+
+Scenario: Saving without changes does nothing
+  Given a listing is Live
+  When I open the Admin edit form and save without changing anything
+  Then nothing is saved
+  And no email is sent
+
+Scenario: The listing changed while I was editing
+  Given I have the Admin edit form open for a listing that is Waiting for approval
+  And its Employer withdraws it
+  When I save
+  Then the changes are refused
+  And I am told the listing can no longer be edited
+```
+
+**Rules**
+- Editable: every field in REQ-003-4's table, plus this listing's business name and
+  "about the business". The field rules are those of REQ-003-4 and REQ-003-2, and all
+  required fields must stay filled in.
+- Not editable: status, owner, time of submission.
+- An Admin edit never changes the account's business details and never needs a second
+  approval; the Admin who saves it is the approver.
+- The form tells the Admin: "The employer will be told what you changed."
+
+### REQ-004-9: The Employer is emailed each decision
+
+**Serves:** US-004-9, US-004-10
+
+Each Admin action on a listing sends one email to the account that owns it.
+
+```gherkin
+Scenario: Approved email
+  Given an Employer's listing "Barista (full-time)" is Waiting for approval
+  When an Admin approves it
+  Then the Employer receives an email saying the listing "Barista (full-time)" is live
+  And the email links to the listing in My listings
+
+Scenario: Rejected email carries the reason
+  Given an Employer's listing is Waiting for approval
+  When an Admin rejects it with the reason "Salary looks like a typo — did you mean 14,000?"
+  Then the Employer receives an email saying the listing needs changes
+  And the email contains that reason and says the listing can be edited and sent again
+
+Scenario: Taken-down email carries the reason
+  Given an Employer's listing is Live
+  When an Admin takes it down with the reason "The business asked us to remove it."
+  Then the Employer receives an email saying the listing was taken down
+  And the email contains that reason
+
+Scenario: Edit email names what changed
+  Given an Employer's listing is Live
+  When an Admin changes its job title and area and saves
+  Then the Employer receives an email saying jairojobs edited the listing
+  And the email names "Job title" and "Area" as the parts that changed
+
+Scenario: No email for your own action
+  Given I am an Admin and the listing is my own
+  When I approve, reject, take down or edit it
+  Then no email is sent
+
+Scenario: The decision stands if the email cannot be sent
+  Given an Employer's listing is Waiting for approval
+  And email cannot be delivered at the moment
+  When an Admin approves it
+  Then the listing is Published
+  And the Admin is told the employer could not be emailed
+```
+
+**Rules**
+- One email per action, sent to the owner account's email address, from
+  `hello@jairojobs.com` (ADR-0005), as part of the Admin's action.
+- Every email names the listing by its title, says in plain words what happened and what
+  the Employer can do next, and links to the listing in My listings. Following the link
+  asks the Employer to log in if they are not (REQ-003-1).
+- The edit email names the parts that changed, using the form's labels. It does not quote
+  the old or new text.
+- Nobody is emailed about an action they took themselves.
+- The decision is saved before the email is sent and is never undone because of it. There
+  is no automatic second attempt; the Employer still sees the outcome in My listings.
+- Subjects: "Your listing is live: <title>", "Your listing needs changes: <title>",
+  "Your listing was taken down: <title>", "We edited your listing: <title>".
+
+### REQ-004-10: Admins are emailed when a listing is submitted
+
+**Serves:** US-004-8
+
+```gherkin
+Scenario: Submission emails the Admins
+  Given two Admins exist
+  When an Employer submits the listing "Barista (full-time)" for approval
+  Then each Admin receives an email saying "Barista (full-time)" is waiting for approval
+  And the email links to the listing's Admin view
+
+Scenario: A resubmission emails the Admins again
+  Given an Employer has a Rejected listing
+  When the Employer resubmits it
+  Then each Admin receives the email again
+
+Scenario: The Admin who submitted is not emailed
+  Given two Admins exist
+  When one of them submits their own listing
+  Then the other Admin receives the email
+  And the Admin who submitted does not
+
+Scenario: The submission stands if the email cannot be sent
+  Given email cannot be delivered at the moment
+  When an Employer submits a complete listing
+  Then its status is Waiting for approval
+  And the Employer is told an admin will check it, as usual
+
+Scenario: Withdrawing sends nothing
+  Given a listing is Waiting for approval
+  When its Employer withdraws it
+  Then no email is sent
+```
+
+**Rules**
+- This adds a step to the Employer's "Submit for approval" and "Resubmit" in spec 003
+  (REQ-003-6, REQ-003-8). Nothing the Employer sees changes.
+- Subject: "A listing is waiting for approval: <title>". The email names the business and
+  the region and nothing else from the listing.
+- The Employer is never shown an email failure; the listing is in the queue either way and
+  is counted on the Admin area row (REQ-004-1).
+
+## Non-functional requirements
+
+- **Mobile-first:** every screen is usable at 375 px — one column, rows and buttons ≥ 44 px.
+  An Admin can clear the queue from a phone.
+- **Design:** follows `docs/design.md` — list rows with dividers, one accent action per
+  screen ("Approve"; on the reject, take-down and edit forms it is the form's own button),
+  the status pills from `status_badge`, plain sentences for empty states. The reject,
+  take-down and edit forms are pages or sections, not modals.
+- **Authorization:** every moderation action is checked against the current Admin in the
+  domain layer, not only in the screens (constitution §2.7, §4.3). Tests prove an Employer
+  and a Candidate cannot read the Admin views or decide (constitution §3.4).
+- **Emails are asserted** in tests for every scenario in REQ-004-9 and REQ-004-10
+  (constitution §3.7).
+- **Privacy:** listing text, reasons, business details and email addresses are not written
+  to logs (constitution §4.12). An Admin sees the poster's email address on the Admin view
+  only.
+- **Time:** times are shown in `Asia/Manila`, relative under 7 days and absolute after
+  (design guide, trust signals).
+- **Accessibility:** every status is conveyed in words, not by colour alone.
+
+## Open questions
+
+Each question has a proposed answer, and that answer is already written into the
+requirements above. Approving the spec settles them; choosing another option means changing
+the requirement named in brackets. Questions 1–3 are the ones spec 003's hand-offs left to
+this spec; 4–10 came up while drafting.
+
+**1. Can an Admin restore a Taken down listing?** *(hand-off from 003; REQ-004-7)*
+- a) **No — Taken down is final, like Closed. (proposed)** The take-down asks for a reason
+  and says it cannot be undone. The Employer posts a new listing.
+- b) Yes — an Admin can put it back to Live. Needs a fifth email, a rule for when the
+  Employer has since filled their 3 places, and a rule for hidden regions.
+- Why a: one less transition, and it matches "Closed is final". The cost: an Admin who
+  takes down the wrong listing cannot undo it, and the Employer has to type it again.
+
+**2. Can a Pending listing in a hidden region be approved?** *(hand-off from 003; REQ-004-5)*
+- a) **No. (proposed)** The Admin is told why and can show the region again, move the
+  listing to an active region, or reject it with a reason.
+- b) Yes — the Admin's approval overrides the hidden region.
+- Why a: the Employer could not have submitted it there today (REQ-003-6), and a hidden
+  region is "no longer offered to employers or visitors" (REQ-002-4).
+
+**3. Who may approve a listing that an Admin posted?** *(hand-off from 003; REQ-004-5)*
+- a) **Any Admin, including the one who posted it. (proposed)** It still goes through the
+  queue and the approval is recorded.
+- b) Only a different Admin.
+- Why a: there is one Admin today, so b would make Admin posting impossible. Worth
+  revisiting when there are several.
+
+**4. Does a take-down need a reason the Employer can read?** *(REQ-004-7, REQ-004-9)*
+- a) **Yes, required, shown on the listing and in the email. (proposed)**
+- b) Optional.
+- c) No reason at all.
+- Why a: a take-down with no explanation is the least trustworthy thing the site can do to
+  an Employer. It adds a line to the Employer's owner view from spec 003.
+
+**5. Which listings can an Admin edit, and which fields?** *(REQ-004-8)*
+- a) **Waiting for approval and Live; every listing field plus the listing's business name
+  and "about". (proposed)**
+- b) Waiting for approval only.
+- c) Text fields only — never salary, region or type.
+- Why a: spec 000 says an Admin "can edit or take down listings", and the hand-off already
+  assumes business name and "about" are editable. The requirement says edits are for small
+  fixes; nothing enforces that beyond telling the Employer (question 6).
+
+**6. Is the Employer told when an Admin edits their listing?** *(REQ-004-8, REQ-004-9)*
+- a) **Yes, by an email naming the parts that changed. (proposed)**
+- b) No email; a note on the listing in My listings.
+- c) Not told.
+- Why a: spec 003's hand-off lists three emails (approved, rejected, taken down). This is
+  a fourth, added so that nothing is published under a business's name without its owner
+  knowing. It is the largest thing in this draft that the hand-offs did not ask for.
+
+**7. How do Admins learn that a listing is waiting?** *(REQ-004-10, REQ-004-1)*
+- a) **An email to every Admin on each submission, plus a count on the Admin area.
+  (proposed)**
+- b) The count only; Admins check the site.
+- c) One summary email a day — needs background jobs, which the constitution defers.
+- Why a: the 24-hour target in spec 000 should not depend on remembering to look. It adds
+  a step to the Employer's submit action from spec 003.
+
+**8. Is anyone emailed about their own action?** *(REQ-004-9, REQ-004-10)*
+- a) **No. (proposed)** An Admin who approves their own listing gets no "your listing is
+  live" email, and an Admin who submits one gets no "a listing is waiting" email.
+- b) Yes — always send, with no exception.
+- Why a: with one Admin, b sends two pointless emails for every listing he posts. b is one
+  rule fewer.
+
+**9. What is recorded about a decision?** *(REQ-004-4, REQ-004-5, -6, -7)*
+- a) **The latest decision only: what, when, which Admin, and the reason if any.
+  (proposed)**
+- b) A full history of every decision and edit on a listing.
+- c) Nothing beyond the status and the reason.
+- Why a: who and when cannot be filled in afterwards, and spec 008 will want approval
+  times. A full history has no reader yet. Admin edits are not recorded beyond the email.
+
+**10. What if the email cannot be sent?** *(REQ-004-9, REQ-004-10)*
+- a) **The decision or submission stands; the Admin is told the Employer could not be
+  emailed; no second attempt. (proposed)**
+- b) The action is refused until email works.
+- Why a: a mail outage should not stop moderation, and the Employer sees the outcome in My
+  listings anyway. A second attempt needs background jobs.
+
+## Notes for the plan
+
+Not requirements; reminders for whoever writes `plan.md`.
+
+- **Sequence diagram required.** The decision emails and the submission email each touch
+  three parties (Admin or Employer → the app → the mail service → the other person), so
+  `plan.md` needs a sequence diagram for them (README, Diagrams rule 2), showing that the
+  change is saved before the email is sent and what happens when sending fails.
+- **Test helper to retire.** Tests reach Published, Rejected and Taken down through
+  `Jairojobs.ListingsFixtures.set_listing_status/3`. The first task replaces it with the
+  real functions from this spec and re-runs the suite (constitution §3.3).
+- **Earlier documents this spec changes.** To be updated in the same commits as the
+  behaviour, each with a changelog row (README, Feature lifecycle step 5):
+
+  | Document | Change |
+  |---|---|
+  | 001 `wireframe-nav` | the note listing what the Admin area holds gains "Listings" |
+  | 002 `screenflow-regions` | the Admin screen gains the "Listings" row |
+  | 003 REQ-003-6, REQ-003-8 and `activity-submit-for-approval` | submitting also emails the Admins (REQ-004-10) |
+  | 003 REQ-003-10, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
+  | 003 `state-listing` | stays correct as drawn; re-check it against this spec's diagram |
+  | `architecture/overview.md`, `data-model.md`, ERD | Listings context gains moderation; the `:require_admin` routes; what is recorded per decision |
+
+## Hand-offs to later specs
+
+| Spec | Inherits |
+|---|---|
+| 005 | Only a Published listing is public. Rejected, Closed and Taken down listings are never shown, whatever address is used. |
+| 005 | The time of approval is the listing's "posted" date, and an approval is what the "✓ Approved" badge stands for. |
+| 005 | Once public pages exist, the "Your listing is live" email also links to the public page; spec 005 amends REQ-004-9. |
+| 005 | An Admin looking at a public listing page gets a link to its Admin view, so a take-down is one step from where the problem is seen. |
+| 005 | An Admin can still edit or take down a Published listing in a hidden region; whether the public sees it is for spec 005 (also in spec 003's hand-offs). |
+| 007 | A Taken down listing accepts no new applications. What happens to applications already sent is decided in spec 007. |
+| 008 | Each decision records when it was made and by which Admin, and each listing the time it was submitted; the "median approval time" in spec 000 is measured from these. A full decision history, if wanted, is decided in spec 008. |
+| 010 | Emails in this spec are sent once, at the moment of the action, with no preferences. Spec 010 may add preferences, digests or delivery in the background. |
+
+## Traceability
+
+| Story | Requirements |
+|---|---|
+| US-004-1 | REQ-004-1, REQ-004-2 |
+| US-004-2 | REQ-004-4 |
+| US-004-3 | REQ-004-5 |
+| US-004-4 | REQ-004-6 |
+| US-004-5 | REQ-004-7 |
+| US-004-6 | REQ-004-8 |
+| US-004-7 | REQ-004-3, REQ-004-4 |
+| US-004-8 | REQ-004-2, REQ-004-10 |
+| US-004-9 | REQ-004-9 |
+| US-004-10 | REQ-004-8, REQ-004-9 |
+| US-004-11 | REQ-004-1, REQ-004-4, REQ-004-5 |
+
+## Changelog
+
+| Date | Change |
+|---|---|
+| 2026-11-14 | Created (Draft) with the extended lifecycle, screen flow and four activity diagrams; ten open questions, each with a proposed answer written into the requirements |

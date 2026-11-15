@@ -1,0 +1,59 @@
+@startuml state-listing
+' Spec 004 — listing lifecycle, extended from spec 003's diagram of the same name.
+' Must agree with REQ-004-5..8 here and with REQ-003-5..11 in spec 003.
+' Solid arrows: Admin actions, specified in spec 004.
+' Dashed arrows: Employer actions, specified in spec 003 (drawn here so the picture is whole).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #dcfce7
+  BackgroundColor<<done>> #E8E8E8
+  BackgroundColor<<unseen>> #f8fafc
+  BorderColor #94a3b8
+}
+
+state "Draft" as Draft <<unseen>>
+state "Pending approval" as Pending
+state "Published" as Published <<public>>
+state "Rejected" as Rejected
+state "Closed" as Closed <<done>>
+state "Taken down" as TakenDown <<done>>
+
+[*] -[dashed]-> Draft : employer saves\na new listing (003)
+Draft : only the employer sees it
+Draft : Admins never see a Draft
+Draft -[dashed]-> Pending : submit (003)\nAdmins are emailed
+Draft -[dashed]-> [*] : delete (003)
+
+Pending : in the approval queue, oldest first
+Pending : Admin can approve, reject or edit
+Pending -[dashed]-> Draft : withdraw (003)\nleaves the queue
+Pending --> Published : Admin approves\n(region must be active)\nemployer is emailed
+Pending --> Rejected : Admin rejects with a reason\nemployer is emailed the reason
+Pending --> Pending : Admin edits\nemployer is emailed
+
+Rejected : back with the employer
+Rejected : Admin can read it, nothing else
+Rejected -[dashed]-> Pending : resubmit (003)\nAdmins are emailed
+Rejected -[dashed]-> [*] : delete (003)
+
+Published : visible to everyone (005)
+Published : Admin can take down or edit
+Published -[dashed]-> Closed : employer closes (003)
+Published --> TakenDown : Admin takes down with a reason\nemployer is emailed the reason
+Published --> Published : Admin edits\nemployer is emailed
+
+Closed : final for everyone
+TakenDown : final for everyone — no restore
+TakenDown : employer sees the reason
+
+legend right
+  |= Mark |= Meaning |
+  | solid arrow | Admin action (this spec) |
+  | dashed arrow | Employer action (spec 003) |
+  | green | publicly visible |
+  | grey | final: no actions for anyone |
+  | pale | not visible to Admins |
+endlegend
+@enduml
