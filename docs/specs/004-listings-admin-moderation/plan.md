@@ -337,13 +337,17 @@ Scenario-first (constitution §3.12). Each of the 56 scenarios gets a test named
 
 Notes:
 
-- **The status helper is retired first.** Task 1 delivers the migrations and
-  `approve_listing`, `reject_listing` and `take_down_listing` (status change and recording
-  only, with their own tests), removes `ListingsFixtures.set_listing_status/3`, and makes
-  `listing_in_status_fixture/3` reach each status through the real functions with a
-  throwaway Admin. All 394 existing tests must pass in that commit. The functions have to
-  exist before the helper can go, so "first task" is read as "the first commit that has
-  the real functions"; no commit contains both (decision 8).
+- **The status helper is retired before anything is built on it.** The real functions
+  have to exist before the helper can go, so this takes two tasks (decision 8):
+  - Task 1 delivers the migrations and `approve_listing`, `reject_listing` and
+    `take_down_listing` — status change and recording only, with their own tests. They
+    return their final shape from the start, `{:ok, listing, email}`, with `email` fixed at
+    `:own_listing` (nothing sent) until the notifier exists, so the later email task
+    changes no call site. The helper is still there and the suite stays green.
+  - Task 2 removes `ListingsFixtures.set_listing_status/3` and makes
+    `listing_in_status_fixture/3` reach each status through the real functions with a
+    throwaway Admin. Nothing else is in that commit, and all existing tests must pass, so
+    a failure points at the swap alone.
 - **Fixtures send emails.** Reaching Published through the real functions sends "waiting"
   and "live" emails to the test process. `ListingsFixtures` empties the mailbox of
   `{:email, _}` messages before returning, so a test's `assert_email_sent` and
@@ -391,7 +395,7 @@ diagram.
 
 | Risk | Mitigation |
 |---|---|
-| Replacing the status helper changes what 394 tests build on | It is the first task and its own commit; the suite must be green before anything else is added |
+| Replacing the status helper changes what 394 tests build on | It is task 2 and a commit of its own, straight after the functions it needs; the suite must be green before anything else is added |
 | A decision email delays the Admin's click, or a submission email delays the Employer's, while Resend answers | One request per recipient, a handful of Admins. Accepted (spec decision 7); spec 010 may move delivery to the background |
 | Resend's free tier allows 100 emails a day (ADR-0005); this spec adds one per decision and one per Admin per submission | Fine at launch volume. A refused send is reported as `:failed` and logged, so hitting the cap is visible, not silent |
 | An exception inside the mail adapter crashes the LiveView after the decision is saved | The notifier call is wrapped; any error or raise becomes `:failed` |
@@ -413,7 +417,7 @@ diagram.
 | 5 | Manila time | Add eight hours in one helper; no time zone dependency | no — one function |
 | 6 | "Back returns to the same list" | Row links carry `?from=<status>`; the Admin view's back link uses it and defaults to the queue | no |
 | 7 | Reject and take-down forms | Two extra actions of the Admin view (`/reject`, `/take-down`), not separate LiveViews or modals | no |
-| 8 | "First task replaces the status helper" | Task 1 builds approve, reject and take down without emails and removes the helper in the same commit | no |
+| 8 | "First task replaces the status helper" | Two tasks: task 1 builds approve, reject and take down without emails; task 2 removes the helper and re-runs the suite, with nothing else in the commit (owner's choice, 2026-11-14) | no |
 | 9 | Names of changed parts in the edit email | Short names ("Area", "Salary"), not the form labels with their hints | no |
 | 10 | "Show more" | Appends the next 50 to the page; the count shown is not kept in the address, so Back returns to the first 50 | no |
 | 11 | Row locks on every status change, including spec 003's withdraw, close, edit and delete | Yes | no |
