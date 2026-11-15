@@ -1,7 +1,7 @@
 # Constitution
 
 **Status:** Accepted
-**Last updated:** 2026-11-13 (see Changelog)
+**Last updated:** 2026-11-14 (see Changelog)
 
 Non-negotiable principles for jairojobs. Every spec, plan, and PR is measured against this file.
 Change it deliberately (ADR-0006):
@@ -88,7 +88,9 @@ Change it deliberately (ADR-0006):
 10. **Migrations** — one concern per migration; additive; never edit a migration already on `main`.
 11. **Commit messages** — Conventional Commits with REQ IDs:
     `feat(listings): require salary range (REQ-003-4)`.
-12. **No PII in logs** — never log emails, names, or CV contents; log IDs only.
+12. **No PII or secrets in logs** — never log emails, names, CV contents, passwords, or
+    sign-in and email-change tokens; log IDs only. This includes request parameters and
+    request addresses that carry a token.
 
 ## 5. What we deliberately do NOT do
 
@@ -145,3 +147,4 @@ Entries before 2026-11-12 were reconstructed from the commit history.
 | 2026-11-12 | Change process defined; region citation corrected (Fly.io: ADR-0003; region: spec 000) | ADR-0006 |
 | 2026-11-13 | Change process tightened: removing or relaxing a rule needs an ADR; every edit needs the owner's approval and its own commit; Changelog added | ADR-0006 (amended) |
 | 2026-11-13 | §7 Definition of Done: added "Diagrams in this spec and in earlier specs it changed match the built screens and code" (new rule; approved by the owner) | direct edit |
+| 2026-11-14 | §4.12 widened from "No PII in logs" to "No PII or secrets in logs": passwords and sign-in / email-change tokens added, including in request addresses (stricter rule; approved by the owner) | direct edit |
