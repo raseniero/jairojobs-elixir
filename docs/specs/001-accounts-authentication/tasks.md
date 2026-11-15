@@ -201,3 +201,8 @@ then implement. T4 (generated), T10b and T11 (markup) are the allowed exceptions
   controller asserted the 20-minute recent-log-in check with `true = …` and crashed when it
   failed. They now flash "You must re-authenticate to access this page." and redirect to log
   in, changing nothing. Spec amended (REQ-001-6, REQ-001-7, security note); five tests added.
+- 2026-11-14, `mix jairojobs.spec_coverage` added: eight scenarios had tests that reworded the scenario
+  name. Seven tests were renamed to start with the scenario name (no behaviour change), the
+  context test for an unconfirmed account moved from REQ-001-5 to REQ-001-3, and one test was
+  added: "REQ-001-4: request and use a magic link", which requests a link through the form,
+  takes it from the email, uses it, and checks it works only once.

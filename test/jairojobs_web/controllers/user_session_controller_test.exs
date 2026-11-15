@@ -61,7 +61,7 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Welcome back!"
     end
 
-    test "REQ-001-1: protected page redirects to log in and returns after login", %{
+    test "REQ-001-1: protected page redirects and returns after login", %{
       conn: conn,
       user: user
     } do
@@ -89,7 +89,7 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       assert redirected_to(conn) == ~p"/users/log-in"
     end
 
-    test "REQ-001-5: password login is refused for an unconfirmed email", %{
+    test "REQ-001-5: password login requires confirmed email", %{
       conn: conn,
       unconfirmed_user: user
     } do
@@ -150,7 +150,10 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       assert response =~ ~p"/users/log-out"
     end
 
-    test "REQ-001-3: expired link does not log in", %{conn: conn, unconfirmed_user: user} do
+    test "REQ-001-3: expired or used link: an expired link does not log in", %{
+      conn: conn,
+      unconfirmed_user: user
+    } do
       {token, hashed_token} = generate_user_magic_link_token(user)
       offset_user_token(hashed_token, -16, :minute)
 
@@ -165,7 +168,10 @@ defmodule JairojobsWeb.UserSessionControllerTest do
       refute Accounts.get_user!(user.id).confirmed_at
     end
 
-    test "REQ-001-4: used link does not log in again", %{conn: conn, user: user} do
+    test "REQ-001-4: used or expired link: a used link does not log in again", %{
+      conn: conn,
+      user: user
+    } do
       {token, _hashed_token} = generate_user_magic_link_token(user)
 
       conn = post(conn, ~p"/users/log-in", %{"user" => %{"token" => token}})

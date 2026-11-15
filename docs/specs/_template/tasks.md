@@ -17,7 +17,8 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 - [ ] **T3** — <LiveView + tests> (REQ-NNN-1, REQ-NNN-2)
   - 
 - [ ] **T4** — <wire routes, nav, auth> 
-- [ ] **T5** — docs: update `docs/architecture/` if data model or boundaries changed;
+- [ ] **T5** — run `mix jairojobs.spec_coverage NNN`: every scenario must have a REQ-named
+  test; docs: update `docs/architecture/` if data model or boundaries changed;
   re-read every diagram in this spec against the built screens and code and fix what drifted
   (reconcile the wireframes — `docs/README.md`, Diagrams rule 6); update diagrams in earlier
   specs that this spec changed, and note it in their changelogs

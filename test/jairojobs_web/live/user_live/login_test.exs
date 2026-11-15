@@ -15,6 +15,31 @@ defmodule JairojobsWeb.UserLive.LoginTest do
   end
 
   describe "user login - magic link" do
+    test "REQ-001-4: request and use a magic link", %{conn: conn} do
+      user = user_fixture()
+      # the fixture confirmed the account through its own emailed link; set that email aside
+      assert_received {:email, _confirmation}
+
+      {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+
+      form(lv, "#login_form_magic", user: %{email: user.email}) |> render_submit()
+
+      # the link that was emailed
+      assert_received {:email, email}
+      assert email.to == [{"", user.email}]
+      [token] = Regex.run(~r{/users/log-in/([\w-]+)}, email.text_body, capture: :all_but_first)
+
+      # clicking it logs me in...
+      logged_in = post(conn, ~p"/users/log-in", %{"user" => %{"token" => token}})
+      assert get_session(logged_in, :user_token)
+      assert redirected_to(logged_in) == ~p"/"
+
+      # ...and it works only once
+      again = post(build_conn(), ~p"/users/log-in", %{"user" => %{"token" => token}})
+      refute get_session(again, :user_token)
+      assert redirected_to(again) == ~p"/users/log-in"
+    end
+
     test "REQ-001-4: request a magic link sends an email to a registered user", %{conn: conn} do
       user = user_fixture()
 

@@ -29,6 +29,8 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
 3. **Tasks** — break the plan into `tasks.md`: ordered, checkable, each small enough for one commit.
 4. **Implement** — work through tasks. Reference requirement IDs in test names and commit messages.
 5. **Close** — before setting status to `Done`:
+   - run `mix jairojobs.spec_coverage NNN`; every Gherkin scenario must have a test whose
+     name starts with `REQ-NNN-n: <scenario name>`;
    - update `architecture/` if boundaries or data model changed;
    - re-read **every diagram in this spec** against the built screens and code, and fix what
      drifted — wireframes included (see Diagrams, rule 6);

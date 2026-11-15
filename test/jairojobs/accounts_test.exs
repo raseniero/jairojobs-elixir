@@ -34,7 +34,7 @@ defmodule Jairojobs.AccountsTest do
                Accounts.get_user_by_email_and_password(user.email, valid_user_password())
     end
 
-    test "REQ-001-5: unconfirmed user cannot log in with a password" do
+    test "REQ-001-3: unconfirmed account cannot log in with a password" do
       user = unconfirmed_user_fixture() |> set_password()
       refute user.confirmed_at
       refute Accounts.get_user_by_email_and_password(user.email, valid_user_password())
@@ -452,7 +452,7 @@ defmodule Jairojobs.AccountsTest do
       assert same.previous_role == :employer
     end
 
-    test "REQ-001-11: non-admin cannot promote" do
+    test "REQ-001-11: non-admin cannot promote or demote (promote)" do
       target = user_fixture()
 
       for scope <- [
@@ -501,7 +501,7 @@ defmodule Jairojobs.AccountsTest do
       assert Accounts.get_user!(only_admin.id).role == :admin
     end
 
-    test "REQ-001-11: non-admin cannot demote" do
+    test "REQ-001-11: non-admin cannot promote or demote (demote)" do
       _other_admin = admin_fixture()
       target = admin_fixture()
 

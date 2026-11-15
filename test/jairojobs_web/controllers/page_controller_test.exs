@@ -3,7 +3,7 @@ defmodule JairojobsWeb.PageControllerTest do
 
   import Jairojobs.AccountsFixtures
 
-  test "REQ-001-1: public home page renders without login", %{conn: conn} do
+  test "REQ-001-1: public pages render without login (home page)", %{conn: conn} do
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
     assert html =~ ~s(id="home")

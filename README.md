@@ -26,6 +26,18 @@ finish it later, and submit it for approval. Your listings and their status are 
 time. Approving listings is spec 004, so until that ships a submitted listing stays
 "Waiting for approval".
 
+## Checking specs against tests
+
+Every Gherkin scenario in `docs/specs/` must have a test named `REQ-<id>: <scenario name>`
+(constitution §3.2). To list scenarios that have none:
+
+```bash
+mix jairojobs.spec_coverage        # all specs
+mix jairojobs.spec_coverage 003    # one spec
+```
+
+It exits non-zero if any scenario is uncovered. It is run by hand when closing a spec, not in CI.
+
 ## Admin accounts
 
 There is no admin sign-up. Admins are created and removed by the operator from the command
