@@ -1,7 +1,8 @@
 # 004 — Listings: admin moderation
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-11-14
+**Approved:** 2026-11-14
 **Owner:** Jairo
 **Related ADRs:** 0004 (UUID v7 keys), 0005 (transactional email via Resend)
 **Depends on:** 000 (product overview), 001 (Admin role, navigation), 002 (regions, Admin area), 003 (listings, lifecycle, hand-offs)
@@ -158,7 +159,7 @@ with this diagram, and it must stay in agreement with `state-listing` in spec 00
 
 *Source: `diagrams/screenflow-moderation.puml`.*
 
-No wireframe is included in this draft. The five new screens follow patterns already
+No wireframe is included. The five new screens follow patterns already
 built: the Listings page is a list of rows; the listing's Admin view is the owner view from
 spec 003 with a different box on top; the reject and take-down forms are one text field
 each; and the Admin edit form is the Employer's listing form with two more fields.
@@ -821,3 +822,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Minor points settled with the owner: REQ-004-7 says what "no longer visible to the public" means until spec 005; the C4 row also covers the inbox arrows missing since spec 001. Left as they are: the test-helper note (moves to plan.md) and the screen flow's example wording (reconciled at close) |
 | 2026-11-14 | Full pass of all six diagrams against the requirements after the day's edits: three diagrams brought in line (owner's role and the outcome in My listings in the emails flow; arriving by a listing's address; refusal messages and the hidden-region wording in the screen flow); the spec text did not change |
 | 2026-11-14 | "No wireframe" note names all five new screens; decisions 11–15 added to the Decisions table |
+| 2026-11-14 | Approved |
