@@ -41,7 +41,10 @@ defmodule JairojobsWeb.Endpoint do
     cookie_key: "request_logger"
 
   plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+
+  plug Plug.Telemetry,
+    event_prefix: [:phoenix, :endpoint],
+    log: {__MODULE__, :log_level, []}
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
@@ -52,4 +55,20 @@ defmodule JairojobsWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug JairojobsWeb.Router
+
+  @doc """
+  The level at which a request's "GET /path" and "Sent 200 in …" lines are
+  logged, or `false` to leave them out.
+
+  Two addresses carry a secret in the path — the magic sign-in link and the
+  confirm-new-email link (spec 001). Their request lines are not logged, so an
+  unused token can never be read from the logs (constitution §4.12). Parameters
+  are covered separately by `config :phoenix, :filter_parameters`.
+  """
+  def log_level(%Plug.Conn{path_info: ["users", "log-in", _token]}), do: false
+
+  def log_level(%Plug.Conn{path_info: ["users", "settings", "confirm-email", _token]}),
+    do: false
+
+  def log_level(%Plug.Conn{}), do: :info
 end

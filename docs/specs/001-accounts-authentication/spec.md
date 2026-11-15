@@ -526,7 +526,9 @@ Scenario: Admin navigation
   `type="email"` + `autocomplete`; no CAPTCHA in phase 1.
 - **Email delivery:** dev uses the local Swoosh mailbox; production sends via Resend from
   `hello@jairojobs.com` (ADR-0005). Magic-link emails must state the 15-minute expiry.
-- **Privacy:** no PII in logs (constitution §4.12).
+- **Privacy:** no PII in logs (constitution §4.12). Emails, passwords and tokens are filtered
+  from logged request parameters, and the request line is not logged for the two addresses
+  that carry a token (the sign-in link and the confirm-new-email link).
 
 ## Resolved questions
 
@@ -572,3 +574,4 @@ Scenario: Admin navigation
 | 2026-11-12 | Amended to match the implementation, after a spec-vs-code check: REQ-001-7 now describes the recent-log-in rule instead of a "current password" field ("Wrong current password" dropped); REQ-001-3 no longer says a fresh link is emailed when an unconfirmed account tries a password. Tests added for "New email already taken" (REQ-001-6) and "Role change takes effect on next request" (REQ-001-9) |
 | 2026-11-12 | Diagrams brought in line with the app: log-in activity (no email on a refused password attempt), request-access activity (non-admins sent home; posting area), navigation wireframe (Employer and Admin items are live) |
 | 2026-11-14 | After reading every rule against the code: REQ-001-6 and REQ-001-7 now state the two recent-log-in windows (open within 10 min, submit within 20 min) and gain a scenario each for a late submit; the code was changed so a late submit asks to log in again instead of crashing. Security note reworded to match |
+| 2026-11-14 | Privacy requirement made specific: emails, passwords and tokens filtered from logged parameters; no request log line for the sign-in and confirm-new-email links |
