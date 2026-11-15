@@ -407,7 +407,7 @@ Scenario: Admin approves their own listing
 
 ### REQ-004-6: Reject a listing with a reason
 
-**Serves:** US-004-4
+**Serves:** US-004-4, US-004-11
 
 ```gherkin
 Scenario: Reject with a reason
@@ -444,7 +444,7 @@ Scenario: Rejecting frees a place
 
 ### REQ-004-7: Take down a live listing
 
-**Serves:** US-004-5
+**Serves:** US-004-5, US-004-11
 
 ```gherkin
 Scenario: Take down with a reason
@@ -719,10 +719,11 @@ Not requirements; reminders for whoever writes `plan.md`.
 
   | Document | Change |
   |---|---|
+  | 000 feature map and glossary | the 004 row says it also emails Admins each submission and the Employer each Admin edit; the Listing entry says an Admin may edit a Pending or Published listing and that Taken down is final |
   | 001 `wireframe-nav` | the note listing what the Admin area holds gains "Listings" |
   | 002 `screenflow-regions` | the Admin screen gains the "Listings" row |
-  | 003 REQ-003-6, REQ-003-8 and `activity-submit-for-approval` | submitting also emails the Admins (REQ-004-10) |
-  | 003 REQ-003-10, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
+  | 003 REQ-003-6, REQ-003-8, `activity-submit-for-approval` and the resubmit branch of `activity-after-submitting` | submitting and resubmitting also email the Admins (REQ-004-10) |
+  | 003 REQ-003-10, `activity-my-listings`, `activity-after-submitting`, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
   | 003 REQ-003-5 | the rule becomes "An Employer can edit only Draft and Rejected listings; an Admin's edit is REQ-004-8". Its scenarios already speak for the Employer and do not change |
   | 003 `state-listing` | "locked — cannot be edited" on Pending and Published becomes "locked for the Employer"; then re-check the whole diagram against this spec's |
   | 003 REQ-003-2 | the rule gains an exception: a listing shows the business details it was last submitted with, unless an Admin has since edited that listing's copy (REQ-004-8). Its scenario does not change |
@@ -757,7 +758,7 @@ Not requirements; reminders for whoever writes `plan.md`.
 | US-004-8 | REQ-004-2, REQ-004-10 |
 | US-004-9 | REQ-004-9 |
 | US-004-10 | REQ-004-8, REQ-004-9 |
-| US-004-11 | REQ-004-1, REQ-004-4, REQ-004-5 |
+| US-004-11 | REQ-004-1, REQ-004-4, REQ-004-5, REQ-004-6, REQ-004-7 |
 
 ## Changelog
 
@@ -768,3 +769,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | All six diagrams checked against the requirements, scenario by scenario, and brought in line; the spec text did not change |
 | 2026-11-14 | Checked against the architecture documents and the design guide: reject and take-down buttons use the destructive style, not the accent; C4, use case and the ERD's published-time comment added to the earlier documents this spec changes |
 | 2026-11-14 | Four contradictions resolved with the owner: screen flow marks buttons in brackets, the accent one bold and destructive ones red; REQ-003-5, REQ-003-2 and spec 003's state diagram added to the earlier documents this spec changes; Goals and REQ-004-9's opening no longer promise an email in every case |
+| 2026-11-14 | Table of earlier documents completed (spec 000, two more spec 003 activity diagrams); US-004-11 also traced to REQ-004-6 and REQ-004-7 |
