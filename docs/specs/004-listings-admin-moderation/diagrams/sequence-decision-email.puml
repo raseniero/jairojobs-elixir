@@ -1,0 +1,65 @@
+@startuml sequence-decision-email
+' Spec 004 — an Admin decision and the email to the listing's owner (REQ-004-5..9).
+' Parties: Admin's browser, JairojobsWeb (Admin listing LiveView), Jairojobs.Listings, Postgres,
+' Mailer (Resend in production), the owner's inbox.
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor Admin
+participant "Browser" as B
+participant "JairojobsWeb\n(Admin.ListingLive)" as W
+participant "Jairojobs.Listings" as L
+database "Postgres" as DB
+participant "ListingNotifier\n+ Jairojobs.Mailer" as M
+participant "Resend" as R
+participant "Owner's inbox" as IN
+
+Admin -> B : Approve\n(or Reject / Take down with a reason,\nor Save changes)
+B -> W : event
+W -> L : approve_listing(scope, listing, owner_url)\n(reject_… / take_down_… / update_listing_as_admin)
+
+group one transaction
+  L -> DB : re-read the acting account,\nlock the listing row (FOR UPDATE)
+  alt not an Admin
+    L --> W : {:error, :unauthorized}
+  else status is not the one the action needs
+    L --> W : {:error, :not_pending}\n(:not_published / :not_editable)
+    W --> B : "This listing is no longer waiting for approval."
+  else region hidden (approve only)
+    L --> W : {:error, :region_hidden}
+  else reason or fields invalid
+    L --> W : {:error, changeset}
+    W --> B : validation error
+  else allowed
+    L -> DB : update status, decided_at, decided_by_id\n(+ published_at / reason / edited fields)
+    DB --> L : committed
+  end
+end
+
+note over L, DB : The decision is saved and committed\nbefore any email is attempted.
+
+alt the Admin owns the listing, or an edit changed nothing
+  L --> W : {:ok, listing, :own_listing}\n({:ok, listing, :unchanged})
+  W --> B : confirmation
+else someone else's listing
+  L -> M : deliver_approved(owner, listing, url)\n(rejected / taken down / edited)
+  M -> R : send
+  alt accepted
+    R -> IN : "Your listing is live: <title>"
+    M --> L : {:ok, email}
+    L --> W : {:ok, listing, :sent}
+    W --> B : confirmation
+  else refused, unreachable, or raises
+    M --> L : {:error, reason}
+    L -> L : log the listing id only
+    L --> W : {:ok, listing, :failed}
+    W --> B : confirmation +\n"The employer could not be emailed."
+  end
+end
+
+note over B, IN
+  No second attempt. The owner still sees the outcome in My listings.
+  After approve and reject the Admin is back on the queue; after take down and edit, on the listing.
+end note
+@enduml

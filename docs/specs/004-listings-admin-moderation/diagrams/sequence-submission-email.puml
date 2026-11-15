@@ -1,0 +1,52 @@
+@startuml sequence-submission-email
+' Spec 004 — an Employer's submission and the email to the Admins (REQ-004-10; REQ-003-6, -8).
+' Parties: Employer's browser, JairojobsWeb (Employer listing LiveView), Jairojobs.Listings, Postgres,
+' Mailer (Resend in production), each Admin's inbox.
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor Employer
+participant "Browser" as B
+participant "JairojobsWeb\n(Employer.ListingLive.Show)" as W
+participant "Jairojobs.Listings" as L
+database "Postgres" as DB
+participant "ListingNotifier\n+ Jairojobs.Mailer" as M
+participant "Resend" as R
+participant "Admins' inboxes" as IN
+
+Employer -> B : Submit for approval (or Resubmit)
+B -> W : event
+W -> L : submit_listing(scope, listing, admin_url)
+
+group one transaction (the checks of spec 003)
+  L -> DB : lock the owner row, check status,\ncompleteness, region, limit
+  alt a check fails
+    L --> W : {:error, reason}
+    W --> B : message, as in spec 003
+  else passes
+    L -> DB : status → pending, submitted_at,\nclear the previous decision
+    DB --> L : committed
+  end
+end
+
+note over L, DB : The submission is saved and committed\nbefore any email is attempted.
+
+L -> DB : Admin accounts, except the submitter
+loop each Admin
+  L -> M : deliver_submitted(admin, listing, url)
+  M -> R : send
+  alt accepted
+    R -> IN : "A listing is waiting for approval: <title>"
+  else refused, unreachable, or raises
+    L -> L : log the listing id only
+  end
+end
+L --> W : {:ok, listing}
+W --> B : "Submitted. An admin will check it\nbefore it goes live."
+
+note over B, IN
+  The Employer never sees an email failure. The listing is in the queue
+  and counted on the Admin area either way. A withdrawal sends nothing.
+end note
+@enduml

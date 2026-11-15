@@ -757,9 +757,6 @@ Not requirements; reminders for whoever writes `plan.md`.
   three parties (Admin or Employer → the app → the mail service → the other person), so
   `plan.md` needs a sequence diagram for them (README, Diagrams rule 2), showing that the
   change is saved before the email is sent and what happens when sending fails.
-- **Test helper to retire.** Tests reach Published, Rejected and Taken down through
-  `Jairojobs.ListingsFixtures.set_listing_status/3`. The first task replaces it with the
-  real functions from this spec and re-runs the suite (constitution §3.3).
 - **Earlier documents this spec changes.** To be updated in the same commits as the
   behaviour, each with a changelog row (README, Feature lifecycle step 5):
 
@@ -823,3 +820,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Full pass of all six diagrams against the requirements after the day's edits: three diagrams brought in line (owner's role and the outcome in My listings in the emails flow; arriving by a listing's address; refusal messages and the hidden-region wording in the screen flow); the spec text did not change |
 | 2026-11-14 | "No wireframe" note names all five new screens; decisions 11–15 added to the Decisions table |
 | 2026-11-14 | Approved |
+| 2026-11-14 | The test-helper note moved from "Notes for the plan" to `plan.md` (Test strategy), as agreed; no requirement changed |
