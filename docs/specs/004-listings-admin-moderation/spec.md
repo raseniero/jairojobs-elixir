@@ -517,6 +517,8 @@ Scenario: Taking down frees a place
 - Taken down is final for everyone. To be listed again the Employer posts a new listing,
   which goes through approval like any other.
 - A Taken down listing is kept, never deleted (REQ-003-11).
+- Until spec 005 there are no public pages. "No longer visible to the public" is met by the
+  status being Taken down; spec 005 must not show a Taken down listing.
 
 ### REQ-004-8: Fix a listing as an Admin
 
@@ -763,7 +765,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 003 `state-listing` | "locked — cannot be edited" on Pending and Published becomes "locked for the Employer"; then re-check the whole diagram against this spec's |
   | 003 REQ-003-2 | the rule gains an exception: a listing shows the business details it was last submitted with, unless an Admin has since edited that listing's copy (REQ-004-8). Its scenario does not change |
   | `architecture/overview.md`, `data-model.md`, ERD | Listings context gains moderation; the `:require_admin` routes; what is recorded per decision. The ERD's planning comment puts the published time under spec 005; the approval time recorded here is that time, so the comment moves it to 004 |
-  | `c4-context-system`, `c4-container-system` | Resend also delivers moderation emails (decisions to the Employer, submissions to Admins); the Admin reads an inbox too |
+  | `c4-context-system`, `c4-container-system` | Resend also delivers moderation emails (decisions to the Employer, submissions to Admins). In the context diagram every person reads the inbox, not only the Employer: all accounts get sign-in links (inaccurate since spec 001), and Admins now get submission emails |
   | `usecase-product` | the Admin use case reads "Approve / reject / edit / take down listing", matching spec 000's capability table |
 
 ## Hand-offs to later specs
@@ -808,3 +810,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Four contradictions resolved with the owner: screen flow marks buttons in brackets, the accent one bold and destructive ones red; REQ-003-5, REQ-003-2 and spec 003's state diagram added to the earlier documents this spec changes; Goals and REQ-004-9's opening no longer promise an email in every case |
 | 2026-11-14 | Table of earlier documents completed (spec 000, two more spec 003 activity diagrams); US-004-11 also traced to REQ-004-6 and REQ-004-7 |
 | 2026-11-14 | Gaps closed with the owner: scenarios for the waiting count, for where the Admin lands after a take-down or edit, for "Back", and for a hidden region flagged on the Admin view; rules for two Admins editing at once and for an owner who can no longer open My listings, both handed to spec 008 |
+| 2026-11-14 | Minor points settled with the owner: REQ-004-7 says what "no longer visible to the public" means until spec 005; the C4 row also covers the inbox arrows missing since spec 001. Left as they are: the test-helper note (moves to plan.md) and the screen flow's example wording (reconciled at close) |
