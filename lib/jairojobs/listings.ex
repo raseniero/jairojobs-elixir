@@ -1,11 +1,17 @@
 defmodule Jairojobs.Listings do
   @moduledoc """
-  Listings as their owner sees and manages them (spec 003).
+  Listings as their owner sees and manages them (spec 003), and as Admins
+  moderate them (spec 004).
 
   Every function that touches stored listings takes the current scope first.
   Only an Employer or Admin may post, and an account only ever reads or
   changes its own listings: someone else's listing is treated exactly like one
-  that does not exist (REQ-003-14). Admin moderation is spec 004.
+  that does not exist (REQ-003-14).
+
+  The moderation functions are the exception: they act on anyone's listing,
+  and only for an Admin. Each one checks the role itself, re-reads it from the
+  database, and locks the listing row before it looks at the status
+  (REQ-004-1).
   """
 
   import Ecto.Query, warn: false
@@ -206,6 +212,130 @@ defmodule Jairojobs.Listings do
   def close_listing(scope, %Listing{} = listing) do
     transition(scope, listing, :published, status: :closed, closed_at: DateTime.utc_now())
   end
+
+  ## Moderation (spec 004)
+
+  @doc """
+  A changeset for the reason on the reject and take-down forms: `reason`,
+  trimmed, 10–500 characters (REQ-004-6, REQ-004-7).
+  """
+  def change_reason(attrs \\ %{}), do: Listing.reason_changeset(attrs)
+
+  @doc """
+  Approves a Pending listing: it becomes Published, and the time and the Admin
+  are recorded (REQ-004-5). Nothing the Employer wrote is changed. Any Admin
+  may approve any waiting listing, their own included.
+
+  `owner_url` turns the listing into the address of its page in My listings,
+  for the email to its owner (REQ-004-9). Returns:
+
+    * `{:ok, listing, email}` — `email` says what happened to that email
+    * `{:error, :not_pending}` — no longer waiting: withdrawn, or already decided
+    * `{:error, :region_hidden}` — its region is hidden; nothing changes
+    * `{:error, :not_found}` — the listing no longer exists
+    * `{:error, :unauthorized}` — the scope is not an Admin
+  """
+  def approve_listing(scope, %Listing{} = listing, owner_url) when is_function(owner_url, 1) do
+    scope
+    |> moderate(listing, fn admin, listing ->
+      with :ok <- in_status(listing, [:pending], :not_pending),
+           :ok <- region_active(listing) do
+        listing |> Listing.approve_changeset(admin, DateTime.utc_now()) |> Repo.update()
+      end
+    end)
+    |> notify_owner(owner_url)
+  end
+
+  @doc """
+  Rejects a Pending listing with a reason its Employer will read (REQ-004-6).
+  It becomes Rejected and stops counting toward the Employer's limit.
+
+  `attrs` holds `reason`, as `change_reason/1` describes. Returns the same
+  shapes as `approve_listing/3`, without `:region_hidden`, plus
+  `{:error, changeset}` when the reason is missing, too short or too long.
+  """
+  def reject_listing(scope, %Listing{} = listing, attrs, owner_url)
+      when is_function(owner_url, 1) do
+    scope
+    |> moderate(listing, fn admin, listing ->
+      with :ok <- in_status(listing, [:pending], :not_pending),
+           {:ok, reason} <- reason(attrs) do
+        listing |> Listing.reject_changeset(admin, reason, DateTime.utc_now()) |> Repo.update()
+      end
+    end)
+    |> notify_owner(owner_url)
+  end
+
+  @doc """
+  Takes a Published listing down with a reason its Employer will read
+  (REQ-004-7). Taken down is final for everyone; the listing is kept.
+
+  Returns `{:ok, listing, email}`, `{:error, changeset}` for a bad reason,
+  `{:error, :not_published}` when the listing is no longer live, or
+  `{:error, :not_found}` / `{:error, :unauthorized}`.
+  """
+  def take_down_listing(scope, %Listing{} = listing, attrs, owner_url)
+      when is_function(owner_url, 1) do
+    scope
+    |> moderate(listing, fn admin, listing ->
+      with :ok <- in_status(listing, [:published], :not_published),
+           {:ok, reason} <- reason(attrs) do
+        listing |> Listing.take_down_changeset(admin, reason, DateTime.utc_now()) |> Repo.update()
+      end
+    end)
+    |> notify_owner(owner_url)
+  end
+
+  # Runs one Admin action in a transaction. The role is re-read from the
+  # database (the scope may be stale) and the listing row is locked and read
+  # fresh, so the status the action checks is the status it changes.
+  defp moderate(scope, %Listing{id: id}, action) do
+    if Scope.admin?(scope) do
+      Repo.transaction(fn ->
+        with {:ok, admin} <- fetch_admin(scope),
+             {:ok, listing} <- lock_listing(id),
+             {:ok, listing} <- action.(admin, listing) do
+          Repo.preload(listing, :region, force: true)
+        else
+          {:error, reason} -> Repo.rollback(reason)
+        end
+      end)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  defp fetch_admin(scope) do
+    case Repo.get(User, scope.user.id) do
+      %User{role: :admin} = admin -> {:ok, admin}
+      _demoted_or_gone -> {:error, :unauthorized}
+    end
+  end
+
+  # A Draft is locked and returned like any other row: an action on a listing
+  # its Employer has just withdrawn is refused for its status, not as "not found".
+  defp lock_listing(id) do
+    case Repo.one(from l in Listing, where: l.id == ^id, lock: "FOR UPDATE") do
+      %Listing{} = listing -> {:ok, listing}
+      nil -> {:error, :not_found}
+    end
+  end
+
+  defp in_status(%Listing{status: status}, allowed, refusal) do
+    if status in allowed, do: :ok, else: {:error, refusal}
+  end
+
+  defp reason(attrs) do
+    with {:ok, %{reason: reason}} <-
+           attrs |> Listing.reason_changeset() |> Ecto.Changeset.apply_action(:insert) do
+      {:ok, reason}
+    end
+  end
+
+  # The email to the listing's owner is added with the notifier (REQ-004-9).
+  # Until then nothing is sent, which is what `:own_listing` reports.
+  defp notify_owner({:ok, listing}, _owner_url), do: {:ok, listing, :own_listing}
+  defp notify_owner({:error, reason}, _owner_url), do: {:error, reason}
 
   defp transition(scope, listing, from, changes) do
     with {:ok, listing} <- fetch_mine(scope, listing) do

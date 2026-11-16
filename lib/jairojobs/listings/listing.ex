@@ -34,11 +34,17 @@ defmodule Jairojobs.Listings.Listing do
     field :business_name, :string
     field :business_about, :string
     field :rejection_reason, :string
+    field :takedown_reason, :string
     field :submitted_at, :utc_datetime_usec
     field :closed_at, :utc_datetime_usec
+    # spec 004: `published_at` is set once, on approval. `decided_at` / `decided_by`
+    # are the latest Admin decision; what it was follows from the status.
+    field :published_at, :utc_datetime_usec
+    field :decided_at, :utc_datetime_usec
 
     belongs_to :user, User
     belongs_to :region, Region
+    belongs_to :decided_by, User
 
     timestamps()
   end
@@ -104,7 +110,8 @@ defmodule Jairojobs.Listings.Listing do
   @doc """
   Changeset that moves a complete Draft or Rejected listing to Pending
   (REQ-003-6): stamps the submission time, clears any rejection reason and
-  copies the owner's business details onto the listing (REQ-003-2).
+  previous decision (REQ-004-4), and copies the owner's business details onto
+  the listing (REQ-003-2).
   """
   def submit_changeset(%__MODULE__{} = listing, %User{} = owner, %DateTime{} = now) do
     listing
@@ -112,9 +119,65 @@ defmodule Jairojobs.Listings.Listing do
       status: :pending,
       submitted_at: now,
       rejection_reason: nil,
+      decided_at: nil,
+      decided_by_id: nil,
       business_name: owner.business_name,
       business_about: owner.business_about
     )
+    |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
+  end
+
+  @reason_types %{reason: :string}
+
+  @doc """
+  Changeset for the reason an Admin gives when rejecting or taking down a
+  listing (REQ-004-6, REQ-004-7): plain text, trimmed, 10–500 characters. It
+  is written for the Employer, who sees it.
+  """
+  def reason_changeset(attrs) do
+    {%{}, @reason_types}
+    |> cast(attrs, [:reason])
+    |> trim([:reason])
+    |> validate_required([:reason])
+    |> validate_length(:reason, min: 10, max: 500)
+  end
+
+  @doc """
+  Changeset that publishes a Pending listing (REQ-004-5). Nothing the Employer
+  wrote is changed; only the status and the record of the decision.
+  """
+  def approve_changeset(%__MODULE__{} = listing, %User{} = admin, %DateTime{} = now) do
+    listing
+    |> change(status: :published, published_at: now)
+    |> decided(admin, now)
+  end
+
+  @doc """
+  Changeset that sends a Pending listing back to its Employer with `reason`
+  (REQ-004-6).
+  """
+  def reject_changeset(%__MODULE__{} = listing, %User{} = admin, reason, %DateTime{} = now)
+      when is_binary(reason) do
+    listing
+    |> change(status: :rejected, rejection_reason: reason)
+    |> decided(admin, now)
+  end
+
+  @doc """
+  Changeset that takes a Published listing down for good with `reason`
+  (REQ-004-7). `published_at` is kept.
+  """
+  def take_down_changeset(%__MODULE__{} = listing, %User{} = admin, reason, %DateTime{} = now)
+      when is_binary(reason) do
+    listing
+    |> change(status: :taken_down, takedown_reason: reason)
+    |> decided(admin, now)
+  end
+
+  # The latest decision: when, and by which Admin (REQ-004-4).
+  defp decided(changeset, %User{id: admin_id}, now) do
+    changeset
+    |> change(decided_at: now, decided_by_id: admin_id)
     |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
   end
 

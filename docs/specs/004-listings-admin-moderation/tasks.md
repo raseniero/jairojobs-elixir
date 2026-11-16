@@ -23,7 +23,7 @@ render-all script.
 
 ## Phase A — The context
 
-- [ ] **T1** — Decision columns; approve, reject, take down (REQ-004-5, -6, -7; part of -1)
+- [x] **T1** — Decision columns; approve, reject, take down (REQ-004-5, -6, -7; part of -1) — done 2026-11-16
   - `mix ecto.gen.migration add_moderation_to_listings`: `takedown_reason`, `published_at`,
     `decided_at`, `decided_by_id` (`on_delete: :nilify_all`),
     `index(:listings, [:status, :submitted_at])`. No CHECKs yet (they are T3)
@@ -339,4 +339,10 @@ render-all script.
 
 <!-- Record anything that changed during implementation and why. -->
 
-- 
+- T1: the reason's rules live in `Listing.reason_changeset/1`; `Listings.change_reason/1` is the
+  context's name for it, as the plan lists. The three decision changesets take the already
+  validated reason as text, not the form's params.
+- T1: the status is checked before the reason, so a reject of a listing that is no longer
+  waiting answers `:not_pending` even when the reason is also bad.
+- T1: 21 tests, all in `listings_moderation_test.exs`. They were run before the code existed
+  and failed to compile, as expected; the suite went from 394 to 415.
