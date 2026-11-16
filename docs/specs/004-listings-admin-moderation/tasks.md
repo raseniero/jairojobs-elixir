@@ -259,7 +259,7 @@ render-all script.
     → moderation implemented)
   - Commit: `feat(web): admin edit form (REQ-004-8)`
 
-- [ ] **T12** — Emails to Admins on submission (REQ-004-10)
+- [x] **T12** — Emails to Admins on submission (REQ-004-10) — done 2026-11-16
   - `ListingNotifier.deliver_submitted/3`; `Listings.submit_listing/3` emails every Admin
     except the submitter after it commits, and never fails because of it
   - `Employer.ListingLive.Show` passes the Admin-view address; the 28 test call sites of
@@ -417,3 +417,9 @@ render-all script.
   also says they change on this listing only.
 - T11: the Admin edit form is loaded in `mount`, so opening it for a listing that cannot be
   edited redirects before anything is rendered.
+- T12: `submit_listing/3` changed 39 call sites, not the 29 the plan counted: the tests written
+  for T1–T11 added ten. One in the app, 38 in tests and fixtures; the compiler found them all.
+- T12: the tests of who is emailed collect the "waiting" emails by recipient and assert on named
+  addresses, because every region a fixture creates also creates an Admin.
+- T12: spec 003's REQ-003-6 and REQ-003-8 and two activity diagrams were updated in this commit,
+  with a changelog row there.

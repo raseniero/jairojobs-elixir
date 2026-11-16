@@ -36,5 +36,11 @@ endif
 check it before it goes live.";
 :Listing appears in the
 Admin approval queue (004);
+:Every Admin except the submitter is
+emailed that it is waiting (REQ-004-10);
+note right
+  A failed email never stops the
+  submission and is not shown.
+end note
 stop
 @enduml

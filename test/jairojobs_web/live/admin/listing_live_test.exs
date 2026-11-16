@@ -390,7 +390,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert text(view, "#listing-decision-reason") =~ "Salary looks like a typo"
 
       # Sent again: no decision until the next one, and the old reason is gone.
-      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected)
+      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected, &admin_url/1)
       {:ok, view, _html} = live(conn, ~p"/admin/listings/#{rejected.id}")
 
       refute has_element?(view, "#listing-decision")

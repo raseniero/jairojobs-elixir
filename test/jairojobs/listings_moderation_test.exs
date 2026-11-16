@@ -25,7 +25,7 @@ defmodule Jairojobs.ListingsModerationTest do
   # A complete listing, submitted by its owner: Waiting for approval.
   defp pending_listing(scope, attrs \\ %{}) do
     listing = listing_fixture(scope, complete_listing_attrs(attrs))
-    {:ok, listing} = Listings.submit_listing(scope, listing)
+    {:ok, listing} = Listings.submit_listing(scope, listing, &admin_url/1)
     listing
   end
 
@@ -266,12 +266,13 @@ defmodule Jairojobs.ListingsModerationTest do
     test "REQ-004-6: rejecting frees a place", %{employer: employer, admin: admin} do
       [first | _rest] = for _ <- 1..3, do: pending_listing(employer)
       fourth = listing_fixture(employer, complete_listing_attrs())
-      assert {:error, :limit_reached} = Listings.submit_listing(employer, fourth)
+      assert {:error, :limit_reached} = Listings.submit_listing(employer, fourth, &admin_url/1)
 
       {:ok, _rejected, _email} =
         Listings.reject_listing(admin, first, %{reason: @reason}, owner_url())
 
-      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(employer, fourth)
+      assert {:ok, %Listing{status: :pending}} =
+               Listings.submit_listing(employer, fourth, &admin_url/1)
     end
 
     test "a resubmission clears the previous decision", %{employer: employer, admin: admin} do
@@ -279,7 +280,7 @@ defmodule Jairojobs.ListingsModerationTest do
         Listings.reject_listing(admin, pending_listing(employer), %{reason: @reason}, owner_url())
 
       assert rejected.decided_at
-      assert {:ok, resubmitted} = Listings.submit_listing(employer, rejected)
+      assert {:ok, resubmitted} = Listings.submit_listing(employer, rejected, &admin_url/1)
 
       assert %Listing{
                status: :pending,
@@ -396,7 +397,9 @@ defmodule Jairojobs.ListingsModerationTest do
                Listings.reject_listing(admin, taken_down, %{reason: @reason}, owner_url())
 
       # No Employer action does either.
-      assert {:error, :invalid_status} = Listings.submit_listing(employer, taken_down)
+      assert {:error, :invalid_status} =
+               Listings.submit_listing(employer, taken_down, &admin_url/1)
+
       assert {:error, :invalid_status} = Listings.withdraw_listing(employer, taken_down)
       assert {:error, :invalid_status} = Listings.close_listing(employer, taken_down)
       assert {:error, :locked} = Listings.update_listing(employer, taken_down, %{title: "New"})
@@ -408,12 +411,13 @@ defmodule Jairojobs.ListingsModerationTest do
     test "REQ-004-7: taking down frees a place", %{employer: employer, admin: admin} do
       [first | _rest] = for _ <- 1..3, do: published_listing(employer, admin)
       fourth = listing_fixture(employer, complete_listing_attrs())
-      assert {:error, :limit_reached} = Listings.submit_listing(employer, fourth)
+      assert {:error, :limit_reached} = Listings.submit_listing(employer, fourth, &admin_url/1)
 
       {:ok, _taken_down, _email} =
         Listings.take_down_listing(admin, first, %{reason: @reason}, owner_url())
 
-      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(employer, fourth)
+      assert {:ok, %Listing{status: :pending}} =
+               Listings.submit_listing(employer, fourth, &admin_url/1)
     end
   end
 
@@ -958,6 +962,100 @@ defmodule Jairojobs.ListingsModerationTest do
     end
   end
 
+  describe "emails to Admins when a listing is submitted (REQ-004-10)" do
+    # Every "waiting" email in the mailbox, by recipient address. Fixtures create
+    # Admins of their own (each region is made by one), so these tests name the
+    # recipients they care about and never count emails.
+    defp waiting_emails(acc \\ %{}) do
+      receive do
+        {:email, %Swoosh.Email{subject: "A listing is waiting for approval: " <> _} = email} ->
+          [{_name, address}] = email.to
+          waiting_emails(Map.put(acc, address, email))
+
+        {:email, _other} ->
+          waiting_emails(acc)
+      after
+        0 -> acc
+      end
+    end
+
+    test "REQ-004-10: submission emails the Admins", %{admin: admin} do
+      other_admin = admin_fixture()
+      region = region_fixture(name: "Cebu #{System.unique_integer([:positive])}")
+      employer = employer_scope_fixture(business_name: "Kape Isla")
+
+      draft =
+        listing_fixture(
+          employer,
+          complete_listing_attrs(title: "Barista (full-time)", region_id: region.id)
+        )
+
+      setup_done()
+
+      assert {:ok, pending} = Listings.submit_listing(employer, draft, &admin_url/1)
+
+      emails = waiting_emails()
+      assert Map.has_key?(emails, admin.user.email)
+      assert Map.has_key?(emails, other_admin.email)
+      refute Map.has_key?(emails, employer.user.email)
+
+      email = emails[admin.user.email]
+      assert email.from == {"jairojobs", "hello@jairojobs.com"}
+      assert email.subject == "A listing is waiting for approval: Barista (full-time)"
+      assert email.text_body =~ "Kape Isla"
+      assert email.text_body =~ region.name
+      assert email.text_body =~ "https://jairojobs.test/admin/listings/#{pending.id}"
+
+      # Nothing else from the listing: not its salary, area or text.
+      refute email.text_body =~ "14,000"
+      refute email.text_body =~ "14000"
+      refute email.text_body =~ "Matina"
+      refute email.text_body =~ "neighbourhood café"
+      refute email.text_body =~ employer.user.email
+    end
+
+    test "REQ-004-10: a resubmission emails the Admins again",
+         %{employer: employer, admin: admin} do
+      rejected = listing_in_status_fixture(employer, :rejected)
+      setup_done()
+
+      assert {:ok, _pending} = Listings.submit_listing(employer, rejected, &admin_url/1)
+
+      assert Map.has_key?(waiting_emails(), admin.user.email)
+    end
+
+    test "REQ-004-10: the Admin who submitted is not emailed", %{admin: other_admin} do
+      submitter = admin_poster_scope_fixture()
+      draft = listing_fixture(submitter, complete_listing_attrs())
+      setup_done()
+
+      assert {:ok, _pending} = Listings.submit_listing(submitter, draft, &admin_url/1)
+
+      emails = waiting_emails()
+      assert Map.has_key?(emails, other_admin.user.email)
+      refute Map.has_key?(emails, submitter.user.email)
+    end
+
+    test "REQ-004-10: withdrawing sends nothing", %{employer: employer} do
+      pending = pending_listing(employer)
+      setup_done()
+
+      assert {:ok, _draft} = Listings.withdraw_listing(employer, pending)
+
+      refute_email_sent()
+    end
+
+    test "a submission that is refused sends nothing", %{employer: employer} do
+      incomplete = listing_fixture(employer)
+      setup_done()
+
+      assert {:error, {:incomplete, _fields}} =
+               Listings.submit_listing(employer, incomplete, &admin_url/1)
+
+      refute_email_sent()
+    end
+  end
+
   describe "the approval queue" do
     test "REQ-004-2: longest-waiting first", %{employer: employer, admin: admin} do
       cashier = pending_listing(employer, title: "Cashier (weekends)")
@@ -995,7 +1093,7 @@ defmodule Jairojobs.ListingsModerationTest do
       {:ok, rejected, _email} =
         Listings.reject_listing(admin, first, %{reason: @reason}, owner_url())
 
-      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected)
+      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected, &admin_url/1)
 
       assert {[one, two], false} = Listings.list_listings_for_moderation(admin, :pending)
       assert [one.id, two.id] == [second.id, first.id]

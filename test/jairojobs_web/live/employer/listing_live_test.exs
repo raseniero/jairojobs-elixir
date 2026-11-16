@@ -431,7 +431,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       listing = listing_fixture(scope, complete_listing_attrs())
       {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}/edit")
 
-      {:ok, _pending} = Listings.submit_listing(scope, listing)
+      {:ok, _pending} = Listings.submit_listing(scope, listing, &admin_url/1)
 
       assert {:error, {:live_redirect, %{to: _show}}} =
                view |> form("#listing-form", listing: %{title: "Changed it"}) |> render_submit()

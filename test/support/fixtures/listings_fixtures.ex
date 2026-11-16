@@ -126,6 +126,12 @@ defmodule Jairojobs.ListingsFixtures do
   defp owner_url(listing), do: "https://jairojobs.test/my/listings/#{listing.id}"
 
   @doc """
+  The address of a listing's Admin view, as the screens pass it to
+  `Listings.submit_listing/3` for the email to Admins (REQ-004-10).
+  """
+  def admin_url(listing), do: "https://jairojobs.test/admin/listings/#{listing.id}"
+
+  @doc """
   Empties the test process's mailbox of delivered emails.
 
   Getting a listing into a status sends real emails (spec 004). The fixtures
@@ -157,7 +163,7 @@ defmodule Jairojobs.ListingsFixtures do
   defp reach(draft, _scope, :draft), do: draft
 
   defp reach(draft, scope, :pending) do
-    {:ok, pending} = Listings.submit_listing(scope, draft)
+    {:ok, pending} = Listings.submit_listing(scope, draft, &admin_url/1)
     pending
   end
 

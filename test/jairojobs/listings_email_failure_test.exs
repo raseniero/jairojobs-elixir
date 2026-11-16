@@ -93,4 +93,35 @@ defmodule Jairojobs.ListingsEmailFailureTest do
       refute log =~ employer.user.email
     end
   end
+
+  describe "a submission when the email to Admins cannot be sent" do
+    test "REQ-004-10: the submission stands if the email cannot be sent",
+         %{employer: employer, admin: admin} do
+      # Both drafts are made first: creating accounts sends email too.
+      drafts =
+        for _ <- 1..2 do
+          listing_fixture(employer, complete_listing_attrs(title: "Barista (full-time)"))
+        end
+
+      # Refused by the mail service, then an exception inside the adapter.
+      for {draft, opts} <- Enum.zip(drafts, [[], [raise: true]]) do
+        mail_fails(opts)
+
+        log =
+          capture_log(fn ->
+            assert {:ok, %Listing{status: :pending} = pending} =
+                     Listings.submit_listing(employer, draft, &admin_url/1)
+
+            # It is in the queue and counted, email or no email.
+            assert Repo.get!(Listing, pending.id).status == :pending
+            assert Listings.count_pending_listings(admin) >= 1
+          end)
+
+        assert log =~ draft.id
+        assert log =~ "submitted"
+        refute log =~ admin.user.email
+        refute log =~ "Barista"
+      end
+    end
+  end
 end

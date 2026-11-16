@@ -102,4 +102,24 @@ defmodule JairojobsWeb.ModerationEmailFailureTest do
 
     assert Listings.get_listing_for_moderation!(admin, listing.id).title == "Barista (mornings)"
   end
+
+  test "REQ-004-10: the Employer sees the usual message when the email to Admins fails" do
+    employer = employer_scope_fixture()
+    draft = listing_fixture(employer, complete_listing_attrs())
+
+    {:ok, view, _html} =
+      build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings/#{draft.id}")
+
+    mail_fails()
+    view |> element("#submit-listing") |> render_click()
+
+    assert has_element?(
+             view,
+             "#flash-info",
+             "Submitted. An admin will check it before it goes live."
+           )
+
+    refute has_element?(view, "#flash-error")
+    assert Listings.get_my_listing!(employer, draft.id).status == :pending
+  end
 end

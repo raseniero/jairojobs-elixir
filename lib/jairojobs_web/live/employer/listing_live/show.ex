@@ -115,7 +115,11 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
 
   @impl true
   def handle_event("submit", _params, socket) do
-    case Listings.submit_listing(socket.assigns.current_scope, socket.assigns.listing) do
+    %{current_scope: scope, listing: listing} = socket.assigns
+
+    # The address of the listing's Admin view goes into the email to Admins
+    # (REQ-004-10); the Employer never sees or follows it.
+    case Listings.submit_listing(scope, listing, &url(~p"/admin/listings/#{&1.id}")) do
       {:ok, listing} ->
         {:noreply,
          socket

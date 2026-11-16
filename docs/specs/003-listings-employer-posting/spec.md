@@ -439,6 +439,9 @@ Scenario: Submitting twice does nothing
 - From the moment of submission the listing is available to the Admin approval queue
   (spec 004), with the time it was submitted.
 - A submitted listing never becomes public by itself; only an Admin approval publishes it.
+- Submitting also emails every Admin except the submitter that a listing is waiting
+  (REQ-004-10). Nothing the Employer sees changes, and a failed email never stops a
+  submission.
 
 ### REQ-003-7: Withdraw a pending listing
 
@@ -486,6 +489,7 @@ Scenario: Resubmit follows the same checks
 
 **Rules**
 - A Rejected listing may be resubmitted without changes; the Admin decides again.
+- A resubmission emails the Admins like a first submission (REQ-004-10).
 
 ### REQ-003-9: Close a live listing
 
@@ -743,5 +747,6 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-12 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-12 | Wireframe brought in line with the app: status pill at the right of each row, no separate region line in the owner view, salary hint wording |
 | 2026-11-12 | Hand-off added for spec 005: public addresses use a slug only |
+| 2026-11-16 | Changed by spec 004 (emails to Admins, REQ-004-10): REQ-003-6 and REQ-003-8 say that submitting and resubmitting email the Admins; the two activity diagrams show it |
 | 2026-11-16 | Changed by spec 004 (take-down reason, REQ-004-7): REQ-003-10 gains the rule that a Taken down listing shows its reason; the two activity diagrams, the screen flow and the wireframe notes show it |
 | 2026-11-16 | Changed by spec 004 (Admin edit, REQ-004-8): REQ-003-5's rule now speaks for the Employer only; REQ-003-2's rule gains the Admin-edit exception; the state diagram says "locked for the Employer" |

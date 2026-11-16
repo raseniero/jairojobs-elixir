@@ -23,6 +23,7 @@ case (Rejected)
     (complete, region, limit);
     if (Checks pass?) then (yes)
       :Status → Pending approval;
+      :Admins are emailed (REQ-004-10);
     else (no)
       :Stays Rejected; say
       what is stopping it;

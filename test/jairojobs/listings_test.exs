@@ -316,7 +316,7 @@ defmodule Jairojobs.ListingsTest do
 
     test "REQ-003-5: a stale copy cannot be used to edit a locked listing", %{scope: scope} do
       draft = listing_fixture(scope, complete_listing_attrs())
-      {:ok, _pending} = Listings.submit_listing(scope, draft)
+      {:ok, _pending} = Listings.submit_listing(scope, draft, &admin_url/1)
 
       assert {:error, :locked} = Listings.update_listing(scope, draft, %{title: "Changed it"})
     end
@@ -430,11 +430,11 @@ defmodule Jairojobs.ListingsTest do
     end
   end
 
-  describe "submit_listing/2" do
+  describe "submit_listing/3" do
     test "REQ-003-6: submit a complete draft", %{scope: scope} do
       listing = listing_fixture(scope, complete_listing_attrs())
 
-      assert {:ok, submitted} = Listings.submit_listing(scope, listing)
+      assert {:ok, submitted} = Listings.submit_listing(scope, listing, &admin_url/1)
       assert submitted.status == :pending
       assert %DateTime{} = submitted.submitted_at
       assert submitted.business_name == scope.user.business_name
@@ -450,7 +450,7 @@ defmodule Jairojobs.ListingsTest do
         )
 
       assert {:error, {:incomplete, [:salary, :description]}} =
-               Listings.submit_listing(scope, listing)
+               Listings.submit_listing(scope, listing, &admin_url/1)
 
       assert Listings.get_my_listing!(scope, listing.id).status == :draft
       assert Listings.count_open_listings(scope) == 0
@@ -461,17 +461,17 @@ defmodule Jairojobs.ListingsTest do
       listing = listing_fixture(scope, complete_listing_attrs(region_id: region.id))
       {:ok, _region} = Jairojobs.Regions.hide_region(admin_scope_fixture(), region)
 
-      assert {:error, :region_hidden} = Listings.submit_listing(scope, listing)
+      assert {:error, :region_hidden} = Listings.submit_listing(scope, listing, &admin_url/1)
       assert Listings.get_my_listing!(scope, listing.id).status == :draft
     end
 
     test "REQ-003-6: submitting twice does nothing", %{scope: scope} do
       listing = listing_fixture(scope, complete_listing_attrs())
-      {:ok, submitted} = Listings.submit_listing(scope, listing)
+      {:ok, submitted} = Listings.submit_listing(scope, listing, &admin_url/1)
 
-      assert {:error, :invalid_status} = Listings.submit_listing(scope, submitted)
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, submitted, &admin_url/1)
       # even with the stale Draft copy
-      assert {:error, :invalid_status} = Listings.submit_listing(scope, listing)
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, listing, &admin_url/1)
 
       assert Listings.get_my_listing!(scope, listing.id).submitted_at == submitted.submitted_at
       assert Listings.count_open_listings(scope) == 1
@@ -480,7 +480,7 @@ defmodule Jairojobs.ListingsTest do
     test "REQ-003-6: only a draft or rejected listing can be submitted", %{scope: scope} do
       for status <- [:published, :closed, :taken_down] do
         listing = listing_in_status_fixture(scope, status)
-        assert {:error, :invalid_status} = Listings.submit_listing(scope, listing)
+        assert {:error, :invalid_status} = Listings.submit_listing(scope, listing, &admin_url/1)
         assert Listings.get_my_listing!(scope, listing.id).status == status
       end
     end
@@ -498,7 +498,7 @@ defmodule Jairojobs.ListingsTest do
 
       scope = Scope.for_user(user)
       draft = listing_fixture(scope, complete_listing_attrs())
-      assert {:ok, submitted} = Listings.submit_listing(scope, draft)
+      assert {:ok, submitted} = Listings.submit_listing(scope, draft, &admin_url/1)
 
       assert submitted.business_name == "Renamed Café"
       assert submitted.business_about == "New owners."
@@ -513,18 +513,20 @@ defmodule Jairojobs.ListingsTest do
       {:ok, _user} =
         Jairojobs.Accounts.update_business_details(stale_scope, %{business_name: "Renamed Café"})
 
-      assert {:ok, submitted} = Listings.submit_listing(stale_scope, draft)
+      assert {:ok, submitted} = Listings.submit_listing(stale_scope, draft, &admin_url/1)
       assert submitted.business_name == "Renamed Café"
     end
 
     test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
       theirs = listing_fixture(employer_scope_fixture(), complete_listing_attrs())
 
-      assert {:error, :not_found} = Listings.submit_listing(scope, theirs)
-      assert {:error, :not_found} = Listings.submit_listing(admin_poster_scope_fixture(), theirs)
+      assert {:error, :not_found} = Listings.submit_listing(scope, theirs, &admin_url/1)
+
+      assert {:error, :not_found} =
+               Listings.submit_listing(admin_poster_scope_fixture(), theirs, &admin_url/1)
 
       for other <- non_poster_scopes() do
-        assert {:error, :unauthorized} = Listings.submit_listing(other, theirs)
+        assert {:error, :unauthorized} = Listings.submit_listing(other, theirs, &admin_url/1)
       end
 
       assert Repo.get!(Listing, theirs.id).status == :draft
@@ -534,7 +536,7 @@ defmodule Jairojobs.ListingsTest do
   describe "withdraw_listing/2" do
     test "REQ-003-7: withdraw", %{scope: scope} do
       listing = listing_fixture(scope, complete_listing_attrs())
-      {:ok, pending} = Listings.submit_listing(scope, listing)
+      {:ok, pending} = Listings.submit_listing(scope, listing, &admin_url/1)
 
       assert {:ok, withdrawn} = Listings.withdraw_listing(scope, pending)
       assert withdrawn.status == :draft
@@ -584,7 +586,7 @@ defmodule Jairojobs.ListingsTest do
       rejected = listing_in_status_fixture(scope, :rejected)
       {:ok, fixed} = Listings.update_listing(scope, rejected, %{salary_max: 18_000})
 
-      assert {:ok, resubmitted} = Listings.submit_listing(scope, fixed)
+      assert {:ok, resubmitted} = Listings.submit_listing(scope, fixed, &admin_url/1)
       assert resubmitted.status == :pending
       assert resubmitted.rejection_reason == nil
       assert resubmitted.salary_max == 18_000
@@ -595,21 +597,22 @@ defmodule Jairojobs.ListingsTest do
       rejected = listing_in_status_fixture(scope, :rejected)
 
       assert {:ok, %Listing{status: :pending, rejection_reason: nil}} =
-               Listings.submit_listing(scope, rejected)
+               Listings.submit_listing(scope, rejected, &admin_url/1)
     end
 
     test "REQ-003-8: resubmit follows the same checks", %{scope: scope} do
       rejected = listing_in_status_fixture(scope, :rejected)
       {:ok, incomplete} = Listings.update_listing(scope, rejected, %{area: ""})
 
-      assert {:error, {:incomplete, [:area]}} = Listings.submit_listing(scope, incomplete)
+      assert {:error, {:incomplete, [:area]}} =
+               Listings.submit_listing(scope, incomplete, &admin_url/1)
 
       {:ok, complete} = Listings.update_listing(scope, incomplete, %{area: "Matina"})
 
       for status <- [:pending, :published, :published],
           do: listing_in_status_fixture(scope, status)
 
-      assert {:error, :limit_reached} = Listings.submit_listing(scope, complete)
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, complete, &admin_url/1)
 
       stored = Listings.get_my_listing!(scope, rejected.id)
       assert stored.status == :rejected
@@ -639,7 +642,7 @@ defmodule Jairojobs.ListingsTest do
     test "REQ-003-9: a closed listing has no way back", %{scope: scope} do
       {:ok, closed} = Listings.close_listing(scope, listing_in_status_fixture(scope, :published))
 
-      assert {:error, :invalid_status} = Listings.submit_listing(scope, closed)
+      assert {:error, :invalid_status} = Listings.submit_listing(scope, closed, &admin_url/1)
       assert {:error, :invalid_status} = Listings.withdraw_listing(scope, closed)
       assert {:error, :locked} = Listings.update_listing(scope, closed, %{title: "Reopened"})
       assert {:error, :locked} = Listings.delete_listing(scope, closed)
@@ -652,14 +655,14 @@ defmodule Jairojobs.ListingsTest do
       first = listing_fixture(scope, complete_listing_attrs())
       second = listing_fixture(scope, complete_listing_attrs())
 
-      assert {:error, :limit_reached} = Listings.submit_listing(scope, first)
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, first, &admin_url/1)
 
       {:ok, _closed} = Listings.close_listing(scope, live)
-      assert {:ok, _pending} = Listings.submit_listing(scope, first)
-      assert {:error, :limit_reached} = Listings.submit_listing(scope, second)
+      assert {:ok, _pending} = Listings.submit_listing(scope, first, &admin_url/1)
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, second, &admin_url/1)
 
       {:ok, _draft} = Listings.withdraw_listing(scope, pending)
-      assert {:ok, _pending} = Listings.submit_listing(scope, second)
+      assert {:ok, _pending} = Listings.submit_listing(scope, second, &admin_url/1)
     end
 
     test "REQ-003-14: another employer's listing is not found", %{scope: scope} do
@@ -690,7 +693,9 @@ defmodule Jairojobs.ListingsTest do
       open_listings(scope, [:pending, :published])
       draft = listing_fixture(scope, complete_listing_attrs())
 
-      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(scope, draft)
+      assert {:ok, %Listing{status: :pending}} =
+               Listings.submit_listing(scope, draft, &admin_url/1)
+
       assert Listings.count_open_listings(scope) == 3
     end
 
@@ -698,7 +703,7 @@ defmodule Jairojobs.ListingsTest do
       open_listings(scope, [:pending, :published, :published])
       draft = listing_fixture(scope, complete_listing_attrs())
 
-      assert {:error, :limit_reached} = Listings.submit_listing(scope, draft)
+      assert {:error, :limit_reached} = Listings.submit_listing(scope, draft, &admin_url/1)
       assert Listings.get_my_listing!(scope, draft.id).status == :draft
       assert Listings.count_open_listings(scope) == 3
     end
@@ -728,7 +733,9 @@ defmodule Jairojobs.ListingsTest do
       open_listings(scope, [:pending, :published, :published])
       draft = listing_fixture(scope, complete_listing_attrs())
 
-      assert {:ok, %Listing{status: :pending}} = Listings.submit_listing(scope, draft)
+      assert {:ok, %Listing{status: :pending}} =
+               Listings.submit_listing(scope, draft, &admin_url/1)
+
       assert Listings.count_open_listings(scope) == 4
     end
 

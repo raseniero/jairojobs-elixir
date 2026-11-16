@@ -38,7 +38,11 @@ defmodule Jairojobs.ListingsConcurrencyTest do
 
         for _ <- 1..2 do
           {:ok, _} =
-            Listings.submit_listing(scope, ListingsFixtures.listing_fixture(scope, attrs.()))
+            Listings.submit_listing(
+              scope,
+              ListingsFixtures.listing_fixture(scope, attrs.()),
+              &ListingsFixtures.admin_url/1
+            )
         end
 
         {scope, for(_ <- 1..4, do: ListingsFixtures.listing_fixture(scope, attrs.()))}
@@ -47,7 +51,9 @@ defmodule Jairojobs.ListingsConcurrencyTest do
     results =
       drafts
       |> Enum.map(fn draft ->
-        Task.async(fn -> unboxed(fn -> Listings.submit_listing(scope, draft) end) end)
+        Task.async(fn ->
+          unboxed(fn -> Listings.submit_listing(scope, draft, &ListingsFixtures.admin_url/1) end)
+        end)
       end)
       |> Task.await_many(15_000)
 

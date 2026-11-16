@@ -172,8 +172,17 @@ defmodule Jairojobs.Listings do
 
   Runs in a transaction that locks the owner's account row, so two
   submissions at the same moment cannot both pass the limit check.
+
+  Once the submission has committed, every Admin except the submitter is
+  emailed that a listing is waiting (REQ-004-10). `admin_url` turns the
+  listing into the address of its Admin view for that email. The submission
+  never fails because of the email: the listing is in the queue either way.
   """
-  def submit_listing(scope, %Listing{} = listing) do
+  def submit_listing(scope, %Listing{} = listing, admin_url) when is_function(admin_url, 1) do
+    scope |> submit(listing) |> notify_admins(scope, admin_url)
+  end
+
+  defp submit(scope, listing) do
     if Scope.poster?(scope) do
       Repo.transaction(fn ->
         owner = Repo.one!(from u in User, where: u.id == ^scope.user.id, lock: "FOR UPDATE")
@@ -470,6 +479,24 @@ defmodule Jairojobs.Listings do
            attrs |> Listing.reason_changeset() |> Ecto.Changeset.apply_action(:insert) do
       {:ok, reason}
     end
+  end
+
+  # Tells the Admins a listing is waiting (REQ-004-10), once the submission has
+  # committed. Nobody is emailed about their own action, so an Admin who submits
+  # is left out. A failed email is logged and otherwise ignored: the Employer is
+  # never shown it, and the queue and its count do not depend on it.
+  defp notify_admins({:error, reason}, _scope, _admin_url), do: {:error, reason}
+
+  defp notify_admins({:ok, listing}, scope, admin_url) do
+    admins = Repo.all(from u in User, where: u.role == :admin and u.id != ^scope.user.id)
+
+    for admin <- admins do
+      attempt(:submitted, listing, fn ->
+        ListingNotifier.deliver_submitted(admin, listing, admin_url.(listing))
+      end)
+    end
+
+    {:ok, listing}
   end
 
   # Emails the listing's owner what an Admin did (REQ-004-9), once the action

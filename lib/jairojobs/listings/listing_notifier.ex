@@ -1,11 +1,13 @@
 defmodule Jairojobs.Listings.ListingNotifier do
   @moduledoc """
-  The emails about a listing (spec 004 — REQ-004-9): one to its owner for each
-  Admin decision on it.
+  The emails about a listing (spec 004): one to its owner for each Admin
+  decision on it (REQ-004-9), and one to each Admin when a listing is submitted
+  (REQ-004-10).
 
   Plain text, from the site's one sender (ADR-0005). An email names the
-  listing by its title and carries the Admin's reason where there is one;
-  nothing else the Employer wrote is included.
+  listing by its title and carries the Admin's reason where there is one. The
+  email to Admins adds the business name and the region. Nothing else the
+  Employer wrote is included.
   """
   import Swoosh.Email
 
@@ -103,6 +105,25 @@ defmodule Jairojobs.Listings.ListingNotifier do
     #{parts}
 
     Nothing else was changed. Open the listing to see how it reads now:
+
+    #{url}
+    """)
+  end
+
+  @doc """
+  Tells an Admin that a listing is waiting for approval. `listing` must have
+  its region loaded.
+  """
+  def deliver_submitted(%User{} = admin, %Listing{} = listing, url) do
+    deliver(admin.email, "A listing is waiting for approval: #{listing.title}", """
+    Hi,
+
+    A listing is waiting for approval on jairojobs:
+
+      "#{listing.title}"
+      #{listing.business_name} · #{listing.region.name}
+
+    Read it and decide:
 
     #{url}
     """)
