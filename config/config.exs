@@ -94,7 +94,15 @@ config :phoenix, :json_library, Jason
 # parameter whose name contains one of these is logged as "[FILTERED]":
 #   password, email, token — accounts (spec 001); "token" also covers "_csrf_token"
 #   listing, business      — listing text and business details (spec 003)
-config :phoenix, :filter_parameters, ["password", "email", "token", "listing", "business"]
+#   decision               — an Admin's reason for a rejection or take-down (spec 004)
+config :phoenix, :filter_parameters, [
+  "password",
+  "email",
+  "token",
+  "listing",
+  "business",
+  "decision"
+]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

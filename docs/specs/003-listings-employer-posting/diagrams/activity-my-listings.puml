@@ -23,6 +23,8 @@ if (Listing belongs to this employer?) then (no)
 else (yes)
 endif
 :Show status and what happens next;
+:Needs changes and Taken down also show
+the Admin's reason (REQ-003-8, REQ-004-7);
 :Show the listing as visitors will see it
 (business name, salary, region, sections);
 :Offer only the actions the status allows;

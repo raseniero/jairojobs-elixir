@@ -210,7 +210,7 @@ render-all script.
     could not be emailed." and the listing is Live
   - Commit: `feat(web): admin view of a listing and approve (REQ-004-4, REQ-004-5)`
 
-- [ ] **T10** — Reject and take down (REQ-004-6, -7)
+- [x] **T10** — Reject and take down (REQ-004-6, -7) — done 2026-11-16
   - Router: `live "/listings/:id/reject", ListingLive.Show, :reject`,
     `live "/listings/:id/take-down", ListingLive.Show, :take_down`
   - `Admin.ListingLive.Show`: `#reject-listing` and `#take-down-listing`; the reason form
@@ -400,3 +400,13 @@ render-all script.
   added to it as T10 and T11 build them, and "actions follow the status" lands in T11.
 - T9: the hidden-region warning on the page and the refusal after tapping Approve use the same
   sentence, from one place in the code.
+- T10: the test that a posted reason is not logged sits with the other filtered-parameter tests
+  (it checks `Phoenix.Logger.filter_values/1`, like spec 003's), not in `endpoint_log_test.exs`
+  as the plan said: that file is about request lines, and a LiveView form does not make one.
+- T10: the take-down form says both "The employer will see this." and "This cannot be undone.".
+  The prompts are "What needs to change?" and "Why is it being taken down?", and the buttons
+  "Reject listing" and "Take down", as the screen flow's examples have them.
+- T10: one handler serves both forms, so there is one `decide` event; which action it is comes
+  from the page's address.
+- T10: spec 003's REQ-003-10, two activity diagrams, screen flow and wireframe notes were
+  updated in this commit, with a changelog row there.

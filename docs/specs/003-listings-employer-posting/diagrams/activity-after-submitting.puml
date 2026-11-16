@@ -44,7 +44,10 @@ case (Published)
   else (no)
     :Stays Published;
   endif
-case (Closed / Taken down)
+case (Closed)
+  :Read-only — no actions;
+case (Taken down)
+  :Show the Admin's reason (REQ-004-7);
   :Read-only — no actions;
 endswitch
 stop

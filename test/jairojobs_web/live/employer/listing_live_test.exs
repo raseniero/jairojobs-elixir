@@ -528,6 +528,24 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       assert text(view, "#listing-title") == "Dishwasher"
     end
 
+    test "REQ-004-7: a taken-down listing shows its owner the reason", %{
+      conn: conn,
+      scope: scope
+    } do
+      live_listing = listing_in_status_fixture(scope, :published)
+      take_down_listing_fixture(live_listing, "The business asked us to remove it.")
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{live_listing.id}")
+
+      assert text(view, "#listing-status-#{live_listing.id}") == "Taken down"
+      assert text(view, "#listing-takedown-reason") =~ "The business asked us to remove it."
+
+      # Only a Taken down listing shows it.
+      other = listing_in_status_fixture(scope, :published)
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{other.id}")
+      refute has_element?(view, "#listing-takedown-reason")
+    end
+
     test "REQ-003-10: actions follow the status", %{conn: conn, scope: scope} do
       expected = %{
         draft: ~w(submit-listing edit-listing delete-listing),

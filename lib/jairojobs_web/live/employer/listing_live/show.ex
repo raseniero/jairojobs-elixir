@@ -54,6 +54,16 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
           <p class="break-words whitespace-pre-line">{@listing.rejection_reason}</p>
         </div>
 
+        <%!-- spec 004 — REQ-004-7: a take-down always comes with a reason the owner can read. --%>
+        <div
+          :if={@listing.status == :taken_down and @listing.takedown_reason}
+          id="listing-takedown-reason"
+          class="rounded-md border border-base-300 bg-base-100 p-3 text-sm"
+        >
+          <p class="font-semibold">Why it was taken down</p>
+          <p class="break-words whitespace-pre-line">{@listing.takedown_reason}</p>
+        </div>
+
         <div :if={@listing.status in [:draft, :rejected]} class="flex flex-wrap items-center gap-3">
           <.button
             id="submit-listing"

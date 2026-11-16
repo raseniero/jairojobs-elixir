@@ -348,6 +348,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
                "Approving makes it public and emails the employer."
 
       assert has_element?(view, "#approve-listing")
+      assert has_element?(view, "#reject-listing")
     end
 
     test "REQ-004-4: the latest decision is shown", %{conn: conn} do
@@ -608,6 +609,261 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
         |> follow_redirect(conn, ~p"/admin/listings")
 
       assert has_element?(queue, "#flash-error", "That listing is not available.")
+    end
+  end
+
+  describe "reject" do
+    setup :log_in_admin
+
+    @reason "Salary looks like a typo — did you mean 14,000?"
+
+    test "REQ-004-6: reject with a reason", %{conn: conn, admin: admin} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :pending)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      view |> element("#reject-listing") |> render_click()
+      assert_patch(view, ~p"/admin/listings/#{listing.id}/reject")
+
+      # The form replaces the actions; the listing stays in view below it.
+      assert has_element?(view, "#decision-form")
+      assert has_element?(view, "#decision-form", "The employer will see this.")
+      refute has_element?(view, "#approve-listing")
+      assert has_element?(view, "#listing-detail")
+
+      {:ok, queue, _html} =
+        view
+        |> form("#decision-form", decision: %{reason: @reason})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(queue, "#flash-info", "Sent back to the employer.")
+      assert row_ids(queue) == []
+
+      rejected = Listings.get_listing_for_moderation!(admin, listing.id)
+      assert rejected.status == :rejected
+      assert rejected.rejection_reason == @reason
+      assert rejected.decided_by_id == admin.user.id
+
+      # Its Employer sees "Needs changes" and the reason.
+      {:ok, owner_view, _html} =
+        build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings/#{listing.id}")
+
+      assert text(owner_view, "#listing-status-#{listing.id}") == "Needs changes"
+      assert text(owner_view, "#listing-rejection-reason") =~ @reason
+    end
+
+    test "REQ-004-6: a reason is required", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/reject")
+
+      for reason <- ["", "   ", "Too short", String.duplicate("a", 501)] do
+        view |> form("#decision-form", decision: %{reason: reason}) |> render_submit()
+
+        assert has_element?(view, "#decision-form .text-error")
+        assert Listings.get_listing_for_moderation!(admin, listing.id).status == :pending
+      end
+
+      # The error is also shown while typing.
+      html = view |> form("#decision-form", decision: %{reason: "short"}) |> render_change()
+      assert html =~ "should be at least 10 character(s)"
+    end
+
+    test "REQ-004-6: only a waiting listing can be rejected", %{conn: conn, admin: admin} do
+      # A typed or stale address for a listing that is not waiting shows no form.
+      live_listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      show = ~p"/admin/listings/#{live_listing.id}"
+
+      assert {:error, {:live_redirect, %{to: ^show, flash: flash}}} =
+               live(conn, ~p"/admin/listings/#{live_listing.id}/reject")
+
+      assert flash["error"] == "This listing is no longer waiting for approval."
+
+      # Withdrawn while the form was open: told on the queue, since it is a Draft again.
+      employer = employer_scope_fixture()
+      withdrawn = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{withdrawn.id}/reject")
+      {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
+
+      {:ok, queue, _html} =
+        view
+        |> form("#decision-form", decision: %{reason: @reason})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(
+               queue,
+               "#flash-error",
+               "This listing is no longer waiting for approval."
+             )
+
+      assert Listings.get_my_listing!(employer, withdrawn.id).status == :draft
+
+      # Approved by another Admin while the form was open: back on the Admin view.
+      approved = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{approved.id}/reject")
+      approve_listing_fixture(approved)
+
+      view |> form("#decision-form", decision: %{reason: @reason}) |> render_submit()
+      assert_patch(view, ~p"/admin/listings/#{approved.id}")
+
+      assert has_element?(
+               view,
+               "#flash-error",
+               "This listing is no longer waiting for approval."
+             )
+
+      refute has_element?(view, "#decision-form")
+      assert Listings.get_listing_for_moderation!(admin, approved.id).status == :published
+    end
+
+    test "Cancel returns to the Admin view, and nothing changes", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/reject?from=waiting")
+
+      view |> element("#decision-cancel") |> render_click()
+      assert_patch(view, ~p"/admin/listings/#{listing.id}?from=waiting")
+
+      refute has_element?(view, "#decision-form")
+      assert has_element?(view, "#approve-listing")
+      assert Listings.get_listing_for_moderation!(admin, listing.id).status == :pending
+    end
+  end
+
+  describe "take down" do
+    setup :log_in_admin
+
+    @takedown_reason "The business asked us to remove it."
+
+    test "REQ-004-7: take down with a reason", %{conn: conn, admin: admin} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :published)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=live")
+
+      assert text(view, "#moderation-help") ==
+               "Taking it down removes it from public view for good and emails the employer."
+
+      view |> element("#take-down-listing") |> render_click()
+      assert_patch(view, ~p"/admin/listings/#{listing.id}/take-down?from=live")
+
+      view |> form("#decision-form", decision: %{reason: @takedown_reason}) |> render_submit()
+
+      # The Admin stays on the listing, which now shows as Taken down.
+      assert_patch(view, ~p"/admin/listings/#{listing.id}?from=live")
+      assert has_element?(view, "#flash-info", "Taken down.")
+      assert text(view, "#listing-status-#{listing.id}") == "Taken down"
+      assert text(view, "#listing-decision") == "Taken down just now by #{admin.user.email}"
+      assert text(view, "#listing-decision-reason") =~ @takedown_reason
+      refute has_element?(view, "#decision-form")
+
+      taken_down = Listings.get_listing_for_moderation!(admin, listing.id)
+      assert taken_down.status == :taken_down
+      assert taken_down.takedown_reason == @takedown_reason
+      assert taken_down.decided_by_id == admin.user.id
+
+      # Its Employer sees "Taken down" and the reason.
+      {:ok, owner_view, _html} =
+        build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings/#{listing.id}")
+
+      assert text(owner_view, "#listing-status-#{listing.id}") == "Taken down"
+      assert text(owner_view, "#listing-takedown-reason") =~ @takedown_reason
+    end
+
+    test "REQ-004-7: a reason is required", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/take-down")
+
+      for reason <- ["", "   ", "Too short", String.duplicate("a", 501)] do
+        view |> form("#decision-form", decision: %{reason: reason}) |> render_submit()
+
+        assert has_element?(view, "#decision-form .text-error")
+        assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
+      end
+    end
+
+    test "REQ-004-7: taking down asks first", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      view |> element("#take-down-listing") |> render_click()
+
+      # Asked for the reason and told it cannot be undone, before anything changes.
+      assert has_element?(view, "#decision-form textarea[name='decision[reason]']")
+      assert has_element?(view, "#decision-form", "This cannot be undone.")
+      assert has_element?(view, "#decision-form", "The employer will see this.")
+      assert has_element?(view, "#decision-submit", "Take down")
+      assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
+    end
+
+    test "REQ-004-7: only a live listing can be taken down", %{conn: conn, admin: admin} do
+      for status <- [:pending, :rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(employer_scope_fixture(), status)
+        show = ~p"/admin/listings/#{listing.id}"
+
+        assert {:error, {:live_redirect, %{to: ^show, flash: flash}}} =
+                 live(conn, ~p"/admin/listings/#{listing.id}/take-down")
+
+        assert flash["error"] == "This listing is no longer live."
+        assert Listings.get_listing_for_moderation!(admin, listing.id).status == status
+      end
+
+      # Closed by its Employer while the form was open.
+      employer = employer_scope_fixture()
+      closed = listing_in_status_fixture(employer, :published)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{closed.id}/take-down")
+      {:ok, _closed} = Listings.close_listing(employer, closed)
+
+      view |> form("#decision-form", decision: %{reason: @takedown_reason}) |> render_submit()
+      assert_patch(view, ~p"/admin/listings/#{closed.id}")
+
+      assert has_element?(view, "#flash-error", "This listing is no longer live.")
+      assert text(view, "#listing-status-#{closed.id}") == "Closed"
+    end
+
+    test "REQ-004-7: taken down is final", %{conn: conn} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :taken_down)
+
+      # Nothing on the Admin view makes it Live again.
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      for action <- ~w(approve-listing reject-listing take-down-listing admin-edit-listing) do
+        refute has_element?(view, "##{action}")
+      end
+
+      refute has_element?(view, "#moderation-box button")
+      refute has_element?(view, "#moderation-help")
+
+      # Nor on its Employer's own page.
+      {:ok, owner_view, _html} =
+        build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings/#{listing.id}")
+
+      for action <- ~w(submit-listing edit-listing withdraw-listing close-listing delete-listing) do
+        refute has_element?(owner_view, "##{action}")
+      end
+
+      refute has_element?(owner_view, "#listing-status-box button")
+    end
+
+    test "Cancel returns to the Admin view, and nothing changes", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/take-down")
+
+      view |> element("#decision-cancel") |> render_click()
+      assert_patch(view, ~p"/admin/listings/#{listing.id}")
+
+      assert has_element?(view, "#take-down-listing")
+      assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
+    end
+  end
+
+  describe "logging" do
+    test "REQ-004: a reason is filtered from logged parameters" do
+      params = %{"decision" => %{"reason" => "The business asked us to remove it."}, "id" => "1"}
+
+      assert Phoenix.Logger.filter_values(params) == %{"decision" => "[FILTERED]", "id" => "1"}
     end
   end
 end

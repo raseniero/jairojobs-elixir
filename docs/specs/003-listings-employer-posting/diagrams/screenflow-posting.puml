@@ -50,7 +50,8 @@ Listing : Draft: [ Submit for approval ] Edit · Delete
 Listing : Waiting for approval: Withdraw
 Listing : Needs changes: reason, Edit, [ Resubmit ] · Delete
 Listing : Live: Close listing
-Listing : Closed / Taken down: no actions
+Listing : Closed: no actions
+Listing : Taken down: reason, no actions
 
 [*] --> Drawer : logged in as Employer
 [*] --> AdminArea : logged in as Admin

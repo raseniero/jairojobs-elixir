@@ -47,4 +47,38 @@ defmodule JairojobsWeb.ModerationEmailFailureTest do
 
     assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
   end
+
+  test "REQ-004-9: rejecting and taking down say the employer could not be emailed",
+       %{conn: conn, admin: admin} do
+    waiting = listing_in_status_fixture(employer_scope_fixture(), :pending)
+    live_listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+    {:ok, reject, _html} = live(conn, ~p"/admin/listings/#{waiting.id}/reject")
+    {:ok, take_down, _html} = live(conn, ~p"/admin/listings/#{live_listing.id}/take-down")
+    mail_fails()
+
+    {:ok, queue, _html} =
+      reject
+      |> form("#decision-form", decision: %{reason: "Salary looks like a typo."})
+      |> render_submit()
+      |> follow_redirect(conn, ~p"/admin/listings")
+
+    assert has_element?(
+             queue,
+             "#flash-info",
+             "Sent back to the employer. The employer could not be emailed."
+           )
+
+    take_down
+    |> form("#decision-form", decision: %{reason: "The business asked us to remove it."})
+    |> render_submit()
+
+    assert has_element?(
+             take_down,
+             "#flash-info",
+             "Taken down. The employer could not be emailed."
+           )
+
+    assert Listings.get_listing_for_moderation!(admin, waiting.id).status == :rejected
+    assert Listings.get_listing_for_moderation!(admin, live_listing.id).status == :taken_down
+  end
 end

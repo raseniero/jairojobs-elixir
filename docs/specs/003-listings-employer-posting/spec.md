@@ -547,6 +547,8 @@ Scenario: Actions follow the status
 **Rules**
 - The status box always says what happens next in one plain sentence, e.g. "An admin will
   check it before it goes live."
+- A Taken down listing shows the reason the Admin gave, the same way a Rejected one shows
+  its reason (REQ-004-7). It still offers no actions.
 
 ### REQ-003-11: Delete an unpublished listing
 
@@ -741,4 +743,5 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-12 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-12 | Wireframe brought in line with the app: status pill at the right of each row, no separate region line in the owner view, salary hint wording |
 | 2026-11-12 | Hand-off added for spec 005: public addresses use a slug only |
+| 2026-11-16 | Changed by spec 004 (take-down reason, REQ-004-7): REQ-003-10 gains the rule that a Taken down listing shows its reason; the two activity diagrams, the screen flow and the wireframe notes show it |
 | 2026-11-16 | Changed by spec 004 (Admin edit, REQ-004-8): REQ-003-5's rule now speaks for the Employer only; REQ-003-2's rule gains the Admin-edit exception; the state diagram says "locked for the Employer" |
