@@ -768,7 +768,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   |---|---|
   | 000 feature map and glossary | the 004 row says it also emails Admins each submission and the Employer each Admin edit; the Listing entry says an Admin may edit a Pending or Published listing and that Taken down is final |
   | 001 `wireframe-nav` | the note listing what the Admin area holds gains "Listings" |
-  | 002 `screenflow-regions` | the Admin screen gains the "Listings" row |
+  | 002 `screenflow-regions` | the Admin screen gains the "Listings" row, as its first row |
   | 003 REQ-003-6, REQ-003-8, `activity-submit-for-approval` and the resubmit branch of `activity-after-submitting` | submitting and resubmitting also email the Admins (REQ-004-10) |
   | 003 REQ-003-10, `activity-my-listings`, `activity-after-submitting`, `screenflow-posting`, `wireframe-posting` | a Taken down listing shows the reason (REQ-004-7) |
   | 003 REQ-003-5 | the rule becomes "An Employer can edit only Draft and Rejected listings; an Admin's edit is REQ-004-8". Its scenarios already speak for the Employer and do not change |
@@ -826,3 +826,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | Approved |
 | 2026-11-14 | The test-helper note moved from "Notes for the plan" to `plan.md` (Test strategy), as agreed; no requirement changed |
 | 2026-11-14 | Amended after approval (owner's choice): REQ-004-9's rule says the edit email uses short names of the parts, matching its scenario; `activity-emails` updated; decision 16 added |
+| 2026-11-14 | Screen flow: "Listings" is the first row of the Admin area (plan decision 13, owner's choice); no requirement changed |

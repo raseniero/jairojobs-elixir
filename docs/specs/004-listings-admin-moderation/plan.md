@@ -186,8 +186,9 @@ and a malformed id all raise `Ecto.NoResultsError`, the same 404.
 
 ### Screens
 
-- **Admin area** — a "Listings" row between Regions and My listings. Its second line is
-  "2 waiting for approval" or "Nothing waiting".
+- **Admin area** — a "Listings" row, first in the list, above Regions: moderation is the
+  daily task and its count is the only thing on the page that changes (decision 13). Its
+  second line is "2 waiting for approval" or "Nothing waiting".
 - **Listings** — a row of five status links, labelled by `status_label/1` (Waiting for
   approval, Live, Needs changes, Taken down, Closed); the chosen one is in the address as
   `?status=live`, `needs-changes`, `taken-down` or `closed`, and no parameter means Waiting
@@ -446,9 +447,12 @@ diagram.
 | Admin edit quietly changes a salary | The owner is emailed the names of the parts changed (spec decision 6); nothing more is built |
 | Moving the form inputs into `listing_fields/1` alters the Employer form | Pure markup move; spec 003's form tests and the journey test cover it |
 
-## Decisions to confirm
+## Decisions confirmed (2026-11-14)
 
-| # | Decision | Proposed | Hard to change later? |
+The owner went through all thirteen one at a time. He chose the proposal for eleven and
+changed two: 8 (two tasks instead of one) and 13 (Listings first).
+
+| # | Decision | Choice | Hard to change later? |
 |---|---|---|---|
 | 1 | Where moderation lives | In `Jairojobs.Listings`; no new context. Spec 000's glossary puts Approval there | medium |
 | 2 | What is stored per decision | `decided_at`, `decided_by_id`, `takedown_reason`, plus `published_at` kept separately; the kind of decision follows from the status | medium — times cannot be filled in afterwards |
@@ -457,12 +461,12 @@ diagram.
 | 5 | Manila time | Add eight hours in one helper; no time zone dependency | no — one function |
 | 6 | "Back returns to the same list" | Row links carry `?from=<status>`; the Admin view's back link uses it and defaults to the queue | no |
 | 7 | Reject and take-down forms | Two extra actions of the Admin view (`/reject`, `/take-down`), not separate LiveViews or modals | no |
-| 8 | "First task replaces the status helper" | Two tasks: task 1 builds approve, reject and take down without emails; task 2 removes the helper and re-runs the suite, with nothing else in the commit (owner's choice, 2026-11-14) | no |
-| 9 | Names of changed parts in the edit email | Short names ("Area", "Salary"), not the form labels with their hints. Confirmed by the owner 2026-11-14; REQ-004-9 amended to match | no |
+| 8 | "First task replaces the status helper" | Two tasks: task 1 builds approve, reject and take down without emails; task 2 removes the helper and re-runs the suite, with nothing else in the commit | no |
+| 9 | Names of changed parts in the edit email | Short names ("Area", "Salary"), not the form labels with their hints; REQ-004-9 amended to match | no |
 | 10 | "Show more" | Appends the next 50 to the page; the count shown is not kept in the address, so Back returns to the first 50 | no |
 | 11 | Row locks on every status change, including spec 003's withdraw, close, edit and delete | Yes | no |
-| 12 | Database checks for the reasons and `published_at` | Yes, in their own migration | medium — a later change needs a migration |
-| 13 | Order of rows in the Admin area | Regions, Listings, My listings, Post a job (as in the screen flow) | no |
+| 12 | Database checks for the reasons and `published_at` | Yes, in their own migration, after the status helper is removed; the 10–500 length stays a code rule | medium — a later change needs a migration |
+| 13 | Order of rows in the Admin area | Listings, Regions, My listings, Post a job; the screen flow was redrawn to match | no |
 
 ## Alternatives considered
 

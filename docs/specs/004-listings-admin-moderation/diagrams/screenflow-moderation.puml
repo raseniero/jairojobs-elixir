@@ -19,8 +19,8 @@ state "Drawer (☰)" as Drawer <<public>>
 Drawer : Admin: Browse · Admin · Settings · Log out
 
 state "Admin area (spec 002)" as AdminArea <<public>>
-AdminArea : Regions
 AdminArea : Listings — "2 waiting for approval"
+AdminArea : Regions
 AdminArea : My listings · Post a job
 
 state "Listings (Admin)" as Listings
