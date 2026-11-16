@@ -6,7 +6,7 @@
 ' Legend:  PK  primary key (UUID v7, ADR-0004)   FK foreign key   UK unique
 '          *   not null
 
-title jairojobs — Entity-Relationship (after spec 003)
+title jairojobs — Entity-Relationship (spec 004 in progress: moderation columns added)
 
 skinparam linetype ortho
 hide circle
@@ -42,9 +42,13 @@ entity "listings" as listings {
     benefits : text
     business_name : string  {copied from the owner on submit}
     business_about : text  {copied from the owner on submit}
-    rejection_reason : text  {written by spec 004}
+    rejection_reason : text  {set by reject, cleared on resubmit; spec 004}
+    takedown_reason : text  {set by take down; spec 004}
     submitted_at : utc_datetime_usec
     closed_at : utc_datetime_usec
+    published_at : utc_datetime_usec  {set once, on approval; spec 004}
+    decided_at : utc_datetime_usec  {latest Admin decision; spec 004}
+    decided_by_id : uuid <<FK>>  {the Admin who made it; on_delete: nilify}
   * inserted_at : utc_datetime_usec
   * updated_at : utc_datetime_usec
 }
@@ -72,6 +76,7 @@ entity "regions" as regions {
 
 users ||--o{ users_tokens : "has"
 users ||--o{ listings : "owns"
+users |o--o{ listings : "decided (latest)"
 regions |o--o{ listings : "located in"
 
 note bottom of users
@@ -100,10 +105,15 @@ note bottom of listings
   CHECK only draft / rejected may lack region, area, salary,
   type, description or business_name.
   Deleted only while draft or rejected.
+  Spec 004 (moderation). Index: index(status, submitted_at).
+  What the latest decision was follows from the status.
+  CHECK published / closed / taken_down have published_at.
+  CHECK rejected has rejection_reason.
+  CHECK taken_down has takedown_reason.
 end note
 
 ' --- Planned (not yet designed; added by their specs) ---
-' 004 listings: who decided and when; 005 listings: public slug, published_at
+' 005 listings: public slug (published_at arrived with 004: the approval time is the posted date)
 ' 006 profiles  (-> users [candidate]), cv files
 ' 007 applications (-> listings, -> users/profiles)
 ' 011 subscriptions (-> users)

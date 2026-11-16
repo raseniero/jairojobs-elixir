@@ -179,6 +179,9 @@ defmodule Jairojobs.Listings.Listing do
     changeset
     |> change(decided_at: now, decided_by_id: admin_id)
     |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
+    |> check_constraint(:published_at, name: :listings_published_has_time)
+    |> check_constraint(:rejection_reason, name: :listings_rejected_has_reason)
+    |> check_constraint(:takedown_reason, name: :listings_taken_down_has_reason)
   end
 
   defp trim(changeset, fields) do

@@ -435,5 +435,53 @@ defmodule Jairojobs.ListingsModerationTest do
     end
   end
 
+  describe "database checks (plan decision 12)" do
+    # Straight to the table, past every changeset: what the database itself refuses.
+    defp raw_update(%Listing{id: id}, set) do
+      Repo.query!("UPDATE listings SET #{set} WHERE id = $1", [Ecto.UUID.dump!(id)])
+    end
+
+    test "a Published, Closed or Taken down listing must have a published time",
+         %{employer: employer} do
+      pending = pending_listing(employer)
+
+      for set <- [
+            "status = 'published'",
+            "status = 'closed'",
+            "status = 'taken_down', takedown_reason = 'A reason of some length'"
+          ] do
+        assert_raise Postgrex.Error, ~r/listings_published_has_time/, fn ->
+          raw_update(pending, set)
+        end
+      end
+
+      raw_update(pending, "status = 'published', published_at = now()")
+      assert reload(pending).status == :published
+    end
+
+    test "a Rejected listing must have a rejection reason", %{employer: employer} do
+      pending = pending_listing(employer)
+
+      assert_raise Postgrex.Error, ~r/listings_rejected_has_reason/, fn ->
+        raw_update(pending, "status = 'rejected'")
+      end
+
+      raw_update(pending, "status = 'rejected', rejection_reason = 'A reason of some length'")
+      assert reload(pending).status == :rejected
+    end
+
+    test "a Taken down listing must have a take-down reason",
+         %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+
+      assert_raise Postgrex.Error, ~r/listings_taken_down_has_reason/, fn ->
+        raw_update(live, "status = 'taken_down'")
+      end
+
+      raw_update(live, "status = 'taken_down', takedown_reason = 'A reason of some length'")
+      assert reload(live).status == :taken_down
+    end
+  end
+
   defp owner(%Listing{user_id: id}), do: Accounts.get_user!(id)
 end

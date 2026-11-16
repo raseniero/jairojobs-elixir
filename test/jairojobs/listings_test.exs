@@ -813,7 +813,8 @@ defmodule Jairojobs.ListingsTest do
       end
 
       # a rejected listing may be incomplete again while its owner fixes it
-      raw_update(title_only, "status = 'rejected'")
+      # (it must carry its reason: spec 004's `listings_rejected_has_reason`)
+      raw_update(title_only, "status = 'rejected', rejection_reason = 'Needs more detail'")
     end
 
     test "the employment type is guarded by the database", %{scope: scope} do

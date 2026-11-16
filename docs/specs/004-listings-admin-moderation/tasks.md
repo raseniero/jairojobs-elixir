@@ -73,7 +73,7 @@ render-all script.
     must pass, so a failure points at the swap alone
   - Commit: `test(listings): reach every status through the real moderation functions`
 
-- [ ] **T3** — Database checks for decisions (plan decision 12)
+- [x] **T3** — Database checks for decisions (plan decision 12) — done 2026-11-16
   - `mix ecto.gen.migration add_moderation_checks_to_listings`:
     `listings_published_has_time`, `listings_rejected_has_reason`,
     `listings_taken_down_has_reason`, with a comment that no earlier rows can break them
@@ -354,3 +354,9 @@ render-all script.
   five places that called the helper directly, and on five further runs with different
   seeds. The free-tier limit now applies to fixtures as it does to a real Employer; no
   existing test needed more than three open listings for one Employer.
+- T3: one spec 003 test had to change. "An incomplete listing cannot leave Draft" ended by
+  setting a row to Rejected with a direct update and no reason, to show a Rejected listing may
+  be incomplete. The new check refuses that, correctly, so the update now also sets a reason.
+  What the test proves is unchanged.
+- T3: both migrations ran on the dev database without error, so it held no rows the checks
+  refuse.
