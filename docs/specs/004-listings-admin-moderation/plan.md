@@ -65,7 +65,13 @@ No new dependencies. No background jobs.
 - `owner_url` and `admin_url` are functions from a listing to an absolute address, passed in
   by the LiveView: `&url(~p"/my/listings/#{&1}")` and `&url(~p"/admin/listings/#{&1}")`.
 - Every function above also returns `{:error, :unauthorized}` for a scope that is not an
-  Admin, and `{:error, :not_found}` when the listing no longer exists or is a Draft.
+  Admin, and `{:error, :not_found}` when the listing no longer exists (its owner deleted
+  it).
+- A listing that has become a Draft because its Employer withdrew it is **not** "not
+  found" to the four writes. They answer with the status refusal — `:not_pending`,
+  `:not_published` or `:not_editable` — because the spec's scenarios ask for "This listing
+  is no longer waiting for approval." in exactly that case (REQ-004-5, -6, -8). Only the
+  two reads hide Drafts.
 
 ### What each action does, in order
 
@@ -155,6 +161,11 @@ Both are additive. The checks are a second migration because they are a separate
 Taken down rows. The dev database has none: nothing could create them before this spec.
 The migration says so in a comment and there is no production database yet.
 
+Order matters: the test-only status helper writes Published and Taken down rows without
+`published_at` or a take-down reason, so the checks would fail the existing suite while
+the helper exists. Migration 1 lands with task 1; migration 2 lands in its own task
+**after** task 2 has removed the helper.
+
 ## Routes & LiveViews / Controllers
 
 All four routes go in the existing `scope "/admin", JairojobsWeb.Admin`, piped through
@@ -177,18 +188,26 @@ and a malformed id all raise `Ecto.NoResultsError`, the same 404.
 
 - **Admin area** — a "Listings" row between Regions and My listings. Its second line is
   "2 waiting for approval" or "Nothing waiting".
-- **Listings** — a row of five status links; the chosen one is in the address as
+- **Listings** — a row of five status links, labelled by `status_label/1` (Waiting for
+  approval, Live, Needs changes, Taken down, Closed); the chosen one is in the address as
   `?status=live`, `needs-changes`, `taken-down` or `closed`, and no parameter means Waiting
   for approval. An unknown value falls back to Waiting. "Waiting for approval" carries the
   count. Rows are a LiveView stream: title, business name, region · salary, then
   "submitted 3 h ago" (queue) or "changed 2 d ago" (other lists), and "Your listing" when
   the Admin owns it. "Show more" appends the next 50 and is shown only when there are more.
-  Each row links to the Admin view with `?from=<status>`.
+  Each row links to the Admin view with `?from=<status>`. The empty state is one sentence:
+  "Nothing is waiting for approval." for the queue (fixed by the spec), and "No listings
+  are live.", "No listings need changes.", "No listings have been taken down." and "No
+  listings are closed." for the others.
 - **Admin view** — a box on top, then `listing_detail` with the listing's own copy of the
   business name and "about". The box holds: the status pill and "Your listing"; who posted
   it (business name, account email); when it was submitted; the latest decision with its
   Admin's email and the reason; the hidden-region line; one sentence on what the actions
-  do; the actions. Approve is `variant="accent"`. "Reject", "Take down" and "Edit" are
+  do; the actions. The hidden-region line appears whenever the listing's region is hidden,
+  whatever the status: the region's name with the neutral "hidden" pill
+  (`badge badge-sm badge-ghost rounded-full`, as on the Regions page). Only while the
+  listing is Waiting for approval it adds the sentence from the `:region_hidden` row
+  below. Approve stays on the page. Approve is `variant="accent"`. "Reject", "Take down" and "Edit" are
   plain buttons that open the form or the edit page. The back link goes to the list named
   in `from` (decision 6).
 - **Reject / Take down** — the same page with the form in place of the actions: one
@@ -200,7 +219,20 @@ and a malformed id all raise `Ecto.NoResultsError`, the same 404.
   region marked "(hidden)". The form is named `listing`.
 
 Where the Admin lands (spec decision 12): approve and reject `push_navigate` to
-`/admin/listings`; take down and edit `push_navigate` to the Admin view.
+`/admin/listings`; take down and edit `push_navigate` to the Admin view. A save with
+nothing changed also returns to the Admin view. Approve has no confirm step: opening the
+listing and tapping Approve are the two taps the spec's goal counts.
+
+After a refusal the Admin view is loaded again from the database and shows the message,
+so the Admin sees the listing as it now is. If it can no longer be shown (withdrawn, so a
+Draft again, or deleted), the Admin goes to the queue with the message.
+
+Opening `/reject`, `/take-down` or `/edit` for a listing whose status does not allow it
+(by a stale link or a typed address) redirects to the Admin view with the matching message
+from the table below; no form is shown.
+
+Every screen is one column at 375 px, with rows and buttons at least 44 px tall
+(`min-h-11`), like the Regions and posting screens.
 
 ### Messages
 
@@ -298,6 +330,10 @@ Plain text, like the existing ones. Subjects are fixed by the spec.
 No email greets by name or includes any listing text other than the title, the reason, and
 (Admin email only) the business name and region.
 
+The owner's email goes to the account that owns the listing, whatever its role is now.
+Nothing is built for an owner who can no longer open My listings (REQ-004-9's rule; handed
+to spec 008).
+
 Admins are found by a private query in `Listings` (role is Admin, id is not the
 submitter's). No public function that lists Admin accounts is added to `Accounts`.
 
@@ -339,7 +375,7 @@ Notes:
 
 - **The status helper is retired before anything is built on it.** The real functions
   have to exist before the helper can go, so this takes two tasks (decision 8):
-  - Task 1 delivers the migrations and `approve_listing`, `reject_listing` and
+  - Task 1 delivers migration 1 (the columns) and `approve_listing`, `reject_listing` and
     `take_down_listing` — status change and recording only, with their own tests. They
     return their final shape from the start, `{:ok, listing, email}`, with `email` fixed at
     `:own_listing` (nothing sent) until the notifier exists, so the later email task
@@ -352,6 +388,10 @@ Notes:
   and "live" emails to the test process. `ListingsFixtures` empties the mailbox of
   `{:email, _}` messages before returning, so a test's `assert_email_sent` and
   `refute_email_sent` only ever see emails from its own steps.
+- **Fixtures create Admins.** Each status fixture uses a throwaway Admin, who would then
+  also receive "waiting" emails. The REQ-004-10 tests that say who is emailed build their
+  listings as Drafts and submit them themselves, and assert on named recipients, never on
+  a count of emails.
 - **Email assertions in LiveView tests work.** The LiveView process is started with the
   test as its caller, and Swoosh's test adapter delivers to callers; the registration test
   from spec 001 already relies on this. LiveView tests assert the message shown; the
