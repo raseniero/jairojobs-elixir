@@ -70,6 +70,9 @@ defmodule JairojobsWeb.Router do
       live "/regions", RegionLive.Index, :index
       live "/regions/new", RegionLive.Form, :new
       live "/regions/:id/edit", RegionLive.Form, :edit
+
+      # spec 004 — admin moderation of listings (REQ-004-1).
+      live "/listings", ListingLive.Index, :index
     end
   end
 

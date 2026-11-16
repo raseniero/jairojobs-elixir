@@ -3,6 +3,7 @@
 ' Four variants of the same header; the drawer opens from the ☰ button.
 ' Wireframe only — not a visual design.
 ' Updated 2026-11-12: Employer items are live (spec 003); Admin links to the admin area (spec 002).
+' Updated 2026-11-16: the Admin area now starts with Listings (spec 004).
 
 {
   {T
@@ -63,7 +64,7 @@
     ++ "Browse jobs" is always present (REQ-001-1)
     ++ Items marked (NNN) are placeholders until that spec ships
     ++ Admin has no candidate/employer items — one role per account
-    ++ Admin opens the admin area: Regions (002), My listings and Post a job (003); more with 004 / 008
+    ++ Admin opens the admin area: Listings (004), Regions (002), My listings and Post a job (003); more with 008
     ++ Desktop: same items inline in the header; drawer only below md
   }
 }

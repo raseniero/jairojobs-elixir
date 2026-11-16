@@ -153,7 +153,7 @@ render-all script.
 
 ## Phase B — Screens
 
-- [ ] **T8** — Admin Listings page, the Admin area row, the time helper (REQ-004-1, -2, -3)
+- [x] **T8** — Admin Listings page, the Admin area row, the time helper (REQ-004-1, -2, -3) — done 2026-11-16
   - `JairojobsWeb.Format.time_ago/2`, `manila_date/1`
   - Router, in the existing `/admin` scope and `live_session :require_admin`:
     `live "/listings", ListingLive.Index, :index`
@@ -387,3 +387,9 @@ render-all script.
   sequence diagram draws it. The log line for a failed email is
   `Listing email not sent: kind=<kind> listing_id=<id>`; the error itself is not logged, in case
   a mail service echoes an address back.
+- T8: the count beside "Waiting for approval" is always shown, as "(0)" when nothing waits.
+  The status links are pills; the chosen one is filled and marked `aria-current="page"`.
+- T8: the existing test "REQ-002-1: admin area lists Regions as its first section" was renamed
+  to drop "as its first section", since Listings is now first. Its assertion is unchanged.
+- T8: the "long list" screen test builds 60 Live listings owned by an Admin and approved by
+  the signed-in Admin, so it matches the scenario's wording.

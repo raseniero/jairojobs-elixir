@@ -315,3 +315,4 @@ Scenario: Lookup by slug works for hidden regions
 | 2026-11-10 | Approved |
 | 2026-11-10 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-12 | Diagrams brought in line with the app: screen flow lists the Admin rows added by spec 003; wireframe shows the real duplicate-name error |
+| 2026-11-16 | Changed by spec 004: the screen flow's Admin screen gains "Listings" as its first row, with the waiting count |

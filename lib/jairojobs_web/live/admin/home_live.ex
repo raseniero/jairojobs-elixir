@@ -2,9 +2,12 @@ defmodule JairojobsWeb.Admin.HomeLive do
   @moduledoc """
   The admin area's home: a plain list of admin sections (spec 002, REQ-002-1).
 
-  Regions is the first section; moderation (004) and stats (008) add theirs.
+  Listings (spec 004) comes first: moderation is the daily task, and its line
+  says how many listings are waiting. Stats (008) add theirs later.
   """
   use JairojobsWeb, :live_view
+
+  alias Jairojobs.Listings
 
   @impl true
   def render(assigns) do
@@ -23,7 +26,9 @@ defmodule JairojobsWeb.Admin.HomeLive do
               <span class="block text-[17px] font-semibold text-primary group-hover:underline">
                 {section.label}
               </span>
-              <span class="block text-sm text-base-content/70">{section.hint}</span>
+              <span id={section[:hint_id]} class="block text-sm text-base-content/70">
+                {section.hint}
+              </span>
             </span>
             <.icon name="hero-chevron-right" class="size-5 shrink-0 text-base-content/50" />
           </.link>
@@ -35,11 +40,20 @@ defmodule JairojobsWeb.Admin.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Admin", sections: sections())}
+    waiting = Listings.count_pending_listings(socket.assigns.current_scope)
+    {:ok, assign(socket, page_title: "Admin", sections: sections(waiting))}
   end
 
-  defp sections do
+  defp sections(waiting) do
     [
+      # spec 004 — REQ-004-1, REQ-004-2: the approval queue, with how many are waiting.
+      %{
+        id: "listings",
+        label: "Listings",
+        hint: waiting_hint(waiting),
+        hint_id: "admin-listings-waiting",
+        href: ~p"/admin/listings"
+      },
       %{
         id: "regions",
         label: "Regions",
@@ -61,4 +75,7 @@ defmodule JairojobsWeb.Admin.HomeLive do
       }
     ]
   end
+
+  defp waiting_hint(0), do: "Nothing waiting"
+  defp waiting_hint(count), do: "#{count} waiting for approval"
 end

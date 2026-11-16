@@ -18,9 +18,10 @@ state "Drawer (☰)" as Drawer <<public>>
 Drawer : Admin: Browse · Admin · Settings · Log out
 
 state "Admin" as Admin
+Admin : Listings — "2 waiting for approval" (added by spec 004)
 Admin : Regions
 Admin : My listings · Post a job (added by spec 003)
-Admin : (more sections arrive with 004 / 008)
+Admin : (more sections arrive with 008)
 
 state "Regions" as Regions
 Regions : [ + Add region ]

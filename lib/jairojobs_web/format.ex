@@ -1,8 +1,50 @@
 defmodule JairojobsWeb.Format do
   @moduledoc """
   Display helpers shared by every screen. Money is formatted here and nowhere
-  else (constitution §4.5).
+  else (constitution §4.5), and so are times (constitution §4.6).
   """
+
+  # Manila is UTC+8 all year: the Philippines has not used daylight saving
+  # since 1990. A fixed offset keeps a time zone database out of the project
+  # (spec 004, plan decision 5). If that ever changes, this is the one place.
+  @manila_offset_seconds 8 * 60 * 60
+
+  @minute 60
+  @hour 60 * @minute
+  @day 24 * @hour
+
+  @doc """
+  How long ago `at` was, for list rows and status boxes: relative for anything
+  under 7 days, the date in Manila after that (design guide, trust signals).
+
+      iex> now = ~U[2026-11-14 12:00:00Z]
+      iex> JairojobsWeb.Format.time_ago(~U[2026-11-14 11:40:00Z], now)
+      "20 min ago"
+      iex> JairojobsWeb.Format.time_ago(~U[2026-11-14 09:00:00Z], now)
+      "3 h ago"
+      iex> JairojobsWeb.Format.time_ago(~U[2026-11-01 09:00:00Z], now)
+      "1 Nov 2026"
+
+  The text is worked out when it is rendered; it does not tick.
+  """
+  def time_ago(%DateTime{} = at, %DateTime{} = now \\ DateTime.utc_now()) do
+    case DateTime.diff(now, at, :second) do
+      seconds when seconds < @minute -> "just now"
+      seconds when seconds < @hour -> "#{div(seconds, @minute)} min ago"
+      seconds when seconds < @day -> "#{div(seconds, @hour)} h ago"
+      seconds when seconds < 7 * @day -> "#{div(seconds, @day)} d ago"
+      _a_week_or_more -> manila_date(at)
+    end
+  end
+
+  @doc """
+  The date of `at` in Manila time: `~U[2026-11-14 16:00:00Z]` → `"15 Nov 2026"`.
+  """
+  def manila_date(%DateTime{} = at) do
+    at
+    |> DateTime.add(@manila_offset_seconds, :second)
+    |> Calendar.strftime("%-d %b %Y")
+  end
 
   @doc """
   A monthly salary range in whole pesos (REQ-003-4).
