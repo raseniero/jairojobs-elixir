@@ -1,6 +1,6 @@
 # 004 — Listings: admin moderation
 
-**Status:** Approved
+**Status:** In Progress
 **Created:** 2026-11-14
 **Approved:** 2026-11-14
 **Owner:** Jairo
@@ -827,3 +827,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | The test-helper note moved from "Notes for the plan" to `plan.md` (Test strategy), as agreed; no requirement changed |
 | 2026-11-14 | Amended after approval (owner's choice): REQ-004-9's rule says the edit email uses short names of the parts, matching its scenario; `activity-emails` updated; decision 16 added |
 | 2026-11-14 | Screen flow: "Listings" is the first row of the Admin area (plan decision 13, owner's choice); no requirement changed |
+| 2026-11-14 | Plan and tasks approved; status In Progress |

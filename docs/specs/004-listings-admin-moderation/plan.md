@@ -1,8 +1,9 @@
 # 004 — Listings: admin moderation — Plan
 
-**Status:** Draft
+**Status:** Approved
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-14)
 **Created:** 2026-11-14
+**Approved:** 2026-11-14
 
 ## Approach
 
