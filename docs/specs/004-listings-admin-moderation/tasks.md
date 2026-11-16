@@ -11,6 +11,10 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 Run `mix precommit` with `set -o pipefail` (or read its output) before each commit: piping
 it through `tail` hides a failing exit status.
 
+Tests use the fixtures' unique titles, business names and regions so they can stay
+`async: true`. The only non-async modules are the three the plan names: the concurrency
+test and the two mail-failure tests, each with a comment saying why.
+
 Earlier documents: the spec's table "Earlier documents this spec changes" is split across
 the tasks below, so each document changes in the commit that builds the behaviour it
 describes. Every such change gets a changelog row in the document changed, and every
@@ -141,7 +145,7 @@ render-all script.
     read "Salary" once; no old or new text in the body),
     `REQ-004-9: no email for your own action` (all four, `refute_email_sent`), an Admin
     acting on another Admin's listing does email that Admin, an unchanged edit sends
-    nothing. (`test/jairojobs/listings_email_failure_test.exs`, new, `async: false` with a
+    nothing, an owner who has since been demoted to Candidate is still emailed. (`test/jairojobs/listings_email_failure_test.exs`, new, `async: false` with a
     comment): `REQ-004-9: the decision stands if the email cannot be sent` (error adapter
     and raising adapter; status saved, `:failed` returned, the log has the id and not the
     address, title or reason)
@@ -167,8 +171,10 @@ render-all script.
     `REQ-004-2: empty queue`, `REQ-004-2: my own listing is marked`,
     `REQ-004-2: the Admin area shows how many are waiting` (the count on the Listings page),
     `REQ-004-3: choose a status`, `REQ-004-3: each status can be chosen`,
-    `REQ-004-3: nothing with that status`, `REQ-004-3: a long list is shown in parts`,
-    an unknown `?status=` shows the queue. (`home_live_test.exs`):
+    `REQ-004-3: nothing with that status` (each of the four sentences),
+    `REQ-004-3: a long list is shown in parts` ("Show more" appends 10 and then
+    disappears), rows outside the queue say when they last changed, an unknown `?status=`
+    shows the queue. (`home_live_test.exs`):
     `REQ-004-2: the Admin area shows how many are waiting` (the row),
     `REQ-004-2: nothing waiting`, row order
   - Docs: spec 002 `screenflow-regions` (the Admin screen gains "Listings" as its first
@@ -195,7 +201,13 @@ render-all script.
     shows Live), `REQ-004-5: hidden region blocks approval`,
     `REQ-004-5: listing is no longer waiting` (withdrawn in the meantime → the queue with
     the message; approved by another Admin → the Admin view with the message),
-    `REQ-004-5: admin approves their own listing`, the "could not be emailed" message
+    `REQ-004-5: admin approves their own listing`, Approve has no confirm step, the help
+    sentence leaves out "and emails the employer" on the Admin's own listing, a listing
+    deleted in the meantime sends the Admin to the queue with "That listing is not
+    available."
+  - (`test/jairojobs_web/live/moderation_email_failure_test.exs`, new, `async: false`
+    with a comment, failing adapter): approving shows "Approved. It is live. The employer
+    could not be emailed." and the listing is Live
   - Commit: `feat(web): admin view of a listing and approve (REQ-004-4, REQ-004-5)`
 
 - [ ] **T10** — Reject and take down (REQ-004-6, -7)
@@ -217,7 +229,8 @@ render-all script.
     `REQ-004-7: taken down is final` (no action element on the Admin view or the owner
     view), Cancel returns to the Admin view. (`employer/listing_live_test.exs`): the
     take-down reason is shown to the owner. (`endpoint_log_test.exs`): a posted reason is
-    not in the log
+    not in the log. (`moderation_email_failure_test.exs`): the reject and take-down
+    messages end with " The employer could not be emailed." 
   - Docs: spec 003 REQ-003-10, `activity-my-listings`, `activity-after-submitting` (the
     Taken down case), `screenflow-posting`, `wireframe-posting`; changelog row
   - Commit: `feat(web): reject and take down with a reason (REQ-004-6, REQ-004-7)`
@@ -238,9 +251,11 @@ render-all script.
     `REQ-004-8: saving without changes does nothing`,
     `REQ-004-8: the listing changed while I was editing`,
     `REQ-004-4: actions follow the status` (all five statuses, now that every action
-    exists), the sentence "The employer will be told what you changed." is on the form.
-    Spec 003's form tests pass unchanged
-  - Docs: `architecture/overview.md` (the four `/admin/listings` routes; Listings context
+    exists), the sentence "The employer will be told what you changed." is on the form,
+    a save with nothing changed lands on the Admin view with "Nothing was changed.".
+    (`moderation_email_failure_test.exs`): "Changes saved. The employer could not be
+    emailed." Spec 003's form tests pass unchanged
+  - Docs: `architecture/overview.md` (the five `/admin/listings` routes; Listings context
     → moderation implemented)
   - Commit: `feat(web): admin edit form (REQ-004-8)`
 
@@ -258,8 +273,8 @@ render-all script.
     `REQ-004-10: withdrawing sends nothing`, a refused submission sends nothing.
     (`listings_email_failure_test.exs`):
     `REQ-004-10: the submission stands if the email cannot be sent`.
-    (`employer/listing_live_test.exs`): the Employer sees the usual message when the email
-    fails
+    (`moderation_email_failure_test.exs`): the Employer sees the usual "Submitted…"
+    message when the email to Admins fails
   - Docs: spec 003 REQ-003-6 and REQ-003-8, `activity-submit-for-approval`,
     `activity-after-submitting` (the resubmit branch); changelog row
   - Commit: `feat(listings): email admins when a listing is submitted (REQ-004-10)`
@@ -274,7 +289,8 @@ render-all script.
     4. The Employer opens the listing from My listings, sees the reason, edits, resubmits
     5. The Admin opens it again, fixes a typo with Edit; the Employer is emailed which
        part changed
-    6. Approves it; the Employer's My listings shows Live and "1 of 3 open listings used"
+    6. Approves it; the Employer is emailed, and My listings shows Live and "1 of 3 open
+       listings used"
     7. The Admin finds it under Live, takes it down with a reason; the Employer is
        emailed, sees "Taken down" with the reason, and has "0 of 3" used
   - `posting_journey_test.exs`: its two Admin steps go through the real screens

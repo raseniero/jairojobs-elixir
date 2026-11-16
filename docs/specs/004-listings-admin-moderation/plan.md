@@ -42,7 +42,7 @@ No new dependencies. No background jobs.
 | `JairojobsWeb.Employer.ListingLive.Form` | Changed | Uses `listing_fields/1`; no change in behaviour |
 | `JairojobsWeb.Employer.ListingLive.Show` | Changed | Passes the Admin-view address to `submit_listing/3`; shows the take-down reason |
 | `JairojobsWeb.Format` | Changed | `time_ago/2` and `manila_date/1`: the one time helper (constitution §4.6) |
-| `JairojobsWeb.Router` | Changed | Four routes in the `/admin` scope |
+| `JairojobsWeb.Router` | Changed | Five routes in the `/admin` scope |
 | `Jairojobs.ListingsFixtures` | Changed (test support) | `set_listing_status/3` removed; statuses reached through the real functions |
 | `Jairojobs.FailingMailAdapter` | New (test support) | A Swoosh adapter that always returns an error |
 
@@ -92,7 +92,8 @@ diagrams below).
    `rejection_reason` (reject) or `takedown_reason` (take down). An edit writes only the
    changed fields; it does not touch the decision columns.
 8. After commit: unless the Admin owns the listing, send the email. A returned error or a
-   raised exception is caught, logged with the listing id only, and reported as `:failed`.
+   raised exception is caught, logged with the listing id and the kind of email (nothing
+   else), and reported as `:failed`.
 
 **Spec 003's own transitions change too.** `withdraw_listing/2`, `close_listing/2`,
 `update_listing/3` and `delete_listing/2` read the listing and then write it without a
@@ -168,7 +169,7 @@ the helper exists. Migration 1 lands with task 1; migration 2 lands in its own t
 
 ## Routes & LiveViews / Controllers
 
-All four routes go in the existing `scope "/admin", JairojobsWeb.Admin`, piped through
+All five routes go in the existing `scope "/admin", JairojobsWeb.Admin`, piped through
 `[:browser, :require_admin]`, inside the existing `live_session :require_admin`. That
 session already sends a visitor to log in (and back) and a signed-in non-Admin home with a
 message, which is exactly REQ-004-1. No new plug, hook or session is needed.
@@ -370,6 +371,7 @@ Scenario-first (constitution §3.12). Each of the 56 scenarios gets a test named
 | 9 | Decision stands if the email cannot be sent | `test/jairojobs/listings_email_failure_test.exs` | context, not async |
 | 10 | Submission and resubmission email Admins; submitter not emailed; withdrawing sends nothing | `listings_moderation_test.exs` | context |
 | 10 | Submission stands if the email cannot be sent | `listings_email_failure_test.exs` | context, not async |
+| 9, 10 | What the screens say when the email fails | `test/jairojobs_web/live/moderation_email_failure_test.exs` | LiveView, not async |
 | — | `time_ago/2`, `manila_date/1` | `test/jairojobs_web/format_test.exs` | unit |
 
 Notes:
@@ -401,6 +403,10 @@ Notes:
   test module sets it as the mailer's adapter in `setup` and restores the test adapter in
   `on_exit`. The mailer configuration is global, so this module is `async: false`, with a
   comment saying why (constitution §3.5). A second case uses an adapter that raises.
+  What the screens say in that case (" The employer could not be emailed." after each of
+  the four actions; the Employer's usual message after a submission) needs the same global
+  setting, so those LiveView tests live in a second non-async module, not in the async
+  screen tests.
 - **"Taking down asks first"** is asserted on the take-down form: the reason field and the
   sentence "This cannot be undone." are on the page before anything changes.
 - **"Taken down is final"** asserts that neither the Admin view nor the owner view of a
