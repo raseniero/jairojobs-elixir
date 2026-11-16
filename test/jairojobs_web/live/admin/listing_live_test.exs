@@ -349,6 +349,29 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       assert has_element?(view, "#approve-listing")
       assert has_element?(view, "#reject-listing")
+      assert has_element?(view, "#admin-edit-listing")
+    end
+
+    test "REQ-004-4: actions follow the status", %{conn: conn} do
+      all = ~w(approve-listing reject-listing take-down-listing admin-edit-listing)
+
+      offered = %{
+        pending: ~w(approve-listing reject-listing admin-edit-listing),
+        published: ~w(take-down-listing admin-edit-listing),
+        rejected: [],
+        closed: [],
+        taken_down: []
+      }
+
+      for {status, expected} <- offered do
+        listing = listing_in_status_fixture(employer_scope_fixture(), status)
+        {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+        for action <- all do
+          assert has_element?(view, "##{action}") == action in expected,
+                 "#{status}: expected #{action} to be #{if action in expected, do: "offered", else: "absent"}"
+        end
+      end
     end
 
     test "REQ-004-4: the latest decision is shown", %{conn: conn} do
@@ -856,6 +879,249 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       assert has_element?(view, "#take-down-listing")
       assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
+    end
+  end
+
+  describe "Admin edit" do
+    setup :log_in_admin
+
+    test "REQ-004-8: fix a waiting listing", %{conn: conn, admin: admin} do
+      first = listing_in_status_fixture(employer_scope_fixture(), :pending, title: "Barrista")
+      second = listing_in_status_fixture(employer_scope_fixture(), :pending)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{first.id}?from=waiting")
+
+      {:ok, form_view, _html} =
+        view
+        |> element("#admin-edit-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings/#{first.id}/edit?from=waiting")
+
+      assert has_element?(
+               form_view,
+               "#admin-edit-note",
+               "The employer will be told what you changed."
+             )
+
+      {:ok, view, _html} =
+        form_view
+        |> form("#listing-form", listing: %{title: "Barista (full-time)"})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{first.id}?from=waiting")
+
+      # Back on the listing's Admin view, with a confirmation.
+      assert has_element?(view, "#flash-info", "Changes saved.")
+      assert text(view, "#listing-title") == "Barista (full-time)"
+      assert text(view, "#listing-status-#{first.id}") == "Waiting for approval"
+
+      # Still at the same place in the queue.
+      {:ok, queue, _html} = live(conn, ~p"/admin/listings")
+      assert row_ids(queue) == rows([first, second])
+
+      assert Listings.get_listing_for_moderation!(admin, first.id).submitted_at ==
+               first.submitted_at
+    end
+
+    test "REQ-004-8: fix a live listing", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      text = "We are a neighbourhood café looking for a barista who enjoys regulars. Fixed."
+
+      {:ok, form_view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit")
+
+      {:ok, view, _html} =
+        form_view
+        |> form("#listing-form", listing: %{description: text})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}")
+
+      assert has_element?(view, "#flash-info", "Changes saved.")
+      assert text(view, "#listing-detail") =~ "Fixed."
+      assert text(view, "#listing-status-#{listing.id}") == "Live"
+      assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
+    end
+
+    test "REQ-004-8: the listing must stay complete", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit")
+
+      # Emptying the salary...
+      html =
+        view
+        |> form("#listing-form", listing: %{salary_min: "", salary_max: ""})
+        |> render_submit()
+
+      assert html =~ "can&#39;t be blank"
+
+      # ...or a maximum below the minimum.
+      html =
+        view
+        |> form("#listing-form", listing: %{salary_min: "16000", salary_max: "14000"})
+        |> render_submit()
+
+      assert html =~ "The maximum must be at least the minimum"
+
+      # The business name is required too, and errors show while typing.
+      html = view |> form("#listing-form", listing: %{business_name: ""}) |> render_change()
+      assert html =~ "can&#39;t be blank"
+
+      stored = Listings.get_listing_for_moderation!(admin, listing.id)
+      assert {stored.salary_min, stored.salary_max} == {14_000, 16_000}
+      assert stored.business_name == listing.business_name
+    end
+
+    test "REQ-004-8: business name changes on the listing only", %{conn: conn, admin: admin} do
+      employer = employer_scope_fixture(business_name: "Kape Isla Cafe")
+      listing = listing_in_status_fixture(employer, :published)
+      {:ok, form_view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit")
+
+      {:ok, view, _html} =
+        form_view
+        |> form("#listing-form",
+          listing: %{business_name: "Kape Isla Café", business_about: "Family-run since 2019."}
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}")
+
+      assert text(view, "#listing-business") == "Kape Isla Café"
+
+      assert Listings.get_listing_for_moderation!(admin, listing.id).business_about ==
+               "Family-run since 2019."
+
+      account = Jairojobs.Accounts.get_user!(employer.user.id)
+      assert account.business_name == "Kape Isla Cafe"
+      assert account.business_about == nil
+    end
+
+    test "REQ-004-8: other listings cannot be edited", %{conn: conn} do
+      for status <- [:rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(employer_scope_fixture(), status)
+        show = ~p"/admin/listings/#{listing.id}"
+
+        # The edit address goes back to the Admin view; no form is shown.
+        assert {:error, {:live_redirect, %{to: ^show, flash: flash}}} =
+                 live(conn, ~p"/admin/listings/#{listing.id}/edit")
+
+        assert flash["error"] == "This listing can no longer be edited."
+      end
+
+      # A Draft has no Admin pages at all.
+      draft = listing_fixture(employer_scope_fixture(), complete_listing_attrs())
+
+      assert_raise Ecto.NoResultsError, fn ->
+        live(conn, ~p"/admin/listings/#{draft.id}/edit")
+      end
+    end
+
+    test "REQ-004-8: only active regions can be chosen", %{conn: conn, admin: admin} do
+      baguio = region_fixture(name: "Baguio #{System.unique_integer([:positive])}")
+      cebu = region_fixture(name: "Cebu #{System.unique_integer([:positive])}")
+      other_hidden = region_fixture(active: false)
+
+      listing =
+        listing_in_status_fixture(employer_scope_fixture(), :published, region_id: baguio.id)
+
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, baguio)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit")
+
+      options =
+        view
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("#listing-form select[name='listing[region_id]'] option")
+
+      values = LazyHTML.attribute(options, "value")
+      labels = Enum.map(options, &strip(LazyHTML.to_html(&1)))
+
+      # I can keep Baguio or choose Cebu, and no other hidden region is offered.
+      assert baguio.id in values
+      assert cebu.id in values
+      refute other_hidden.id in values
+      assert "#{baguio.name} (hidden)" in labels
+
+      {:ok, _view, _html} =
+        view
+        |> form("#listing-form", listing: %{region_id: cebu.id})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}")
+
+      assert Listings.get_listing_for_moderation!(admin, listing.id).region_id == cebu.id
+    end
+
+    test "REQ-004-8: saving without changes does nothing", %{conn: conn, admin: admin} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      before = Listings.get_listing_for_moderation!(admin, listing.id)
+      {:ok, form_view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit?from=live")
+
+      {:ok, view, _html} =
+        form_view
+        |> form("#listing-form")
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=live")
+
+      assert has_element?(view, "#flash-info", "Nothing was changed.")
+
+      assert Listings.get_listing_for_moderation!(admin, listing.id).updated_at ==
+               before.updated_at
+    end
+
+    test "REQ-004-8: the listing changed while I was editing", %{conn: conn} do
+      # Withdrawn by its Employer: a Draft again, so the message is given on the queue.
+      employer = employer_scope_fixture()
+      withdrawn = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{withdrawn.id}/edit")
+      {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
+
+      {:ok, queue, _html} =
+        view
+        |> form("#listing-form", listing: %{title: "Changed after the withdrawal"})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(queue, "#flash-error", "This listing can no longer be edited.")
+      assert Listings.get_my_listing!(employer, withdrawn.id).title == withdrawn.title
+
+      # Closed by its Employer: back on the Admin view, which shows it as Closed.
+      closed = listing_in_status_fixture(employer, :published)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{closed.id}/edit")
+      {:ok, _closed} = Listings.close_listing(employer, closed)
+
+      {:ok, show, _html} =
+        view
+        |> form("#listing-form", listing: %{title: "Changed after it was closed"})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/admin/listings/#{closed.id}")
+
+      assert has_element?(show, "#flash-error", "This listing can no longer be edited.")
+      assert text(show, "#listing-status-#{closed.id}") == "Closed"
+      assert text(show, "#listing-title") == closed.title
+    end
+
+    test "Cancel returns to the Admin view", %{conn: conn} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit?from=waiting")
+
+      {:ok, show, _html} =
+        view
+        |> element("#listing-form-cancel")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=waiting")
+
+      assert has_element?(show, "#approve-listing")
+    end
+
+    test "REQ-004-1: employer or candidate is refused; visitor is redirected to log in",
+         %{conn: _admin_conn} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :pending)
+      path = ~p"/admin/listings/#{listing.id}/edit"
+
+      for user <- [employer.user, user_fixture(role: "candidate")] do
+        assert {:error, {:redirect, %{to: "/"}}} =
+                 build_conn() |> log_in_user(user) |> live(path)
+      end
+
+      assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(build_conn(), path)
     end
   end
 

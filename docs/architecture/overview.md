@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-11 (Listings context, employer side, and the `/my` posting area implemented by spec 003)
+**Last updated:** 2026-11-16 (Listings moderation and the `/admin/listings` screens, spec 004 in progress)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -50,7 +50,7 @@ Status becomes *Implemented* when the introducing spec is Done.
 |---|---|---|---|
 | `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion, business details of accounts that post listings | 001 | Implemented |
 | `Jairojobs.Regions` | Admin-managed list of PH regions/cities: slugs, hide / show, launch-region seed; active regions are what other contexts offer users | 002 | Implemented |
-| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), approval, slugs, salary range, free-tier limit of 3 open listings | 003, 004, 005 | Employer side implemented (003); moderation 004 and public pages 005 planned |
+| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), salary range, free-tier limit of 3 open listings; Admin moderation (queue, approve, reject, take down, edit) and the emails about each decision; slugs | 003, 004, 005 | Employer side (003) and moderation (004) implemented; public pages 005 planned |
 | `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |
 | `Jairojobs.Applications` | Candidate applies to listing; email delivery (phase 1), on-platform tracking (phase 2) | 007, 009 | Planned |
 | `Jairojobs.Billing` | Employer subscriptions; varies the open-listing limit by plan | 011 | Future |
@@ -88,14 +88,17 @@ flowchart TD
   |---|---|---|---|
   | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in | 001 |
   | `:require_authenticated_user` | any logged-in account | `/users/settings` | 001 |
-  | `:require_admin` | Admins | `/admin`, `/admin/regions…` | 001 (first used by 002) |
+  | `:require_admin` | Admins | `/admin`, `/admin/regions…`, `/admin/listings…` (004) | 001 (first used by 002) |
   | `:require_poster` | Employers and Admins | `/my/listings…`, `/my/business` | 003 |
 
   A visitor is sent to log in and returned afterwards; a signed-in account without the
   right role is sent home with a message.
 - **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
 - **Email:** Swoosh; local adapter in dev (`/dev/mailbox`); Resend in production from
-  `hello@jairojobs.com` (ADR-0005).
+  `hello@jairojobs.com` (ADR-0005). Sent by a notifier module beside the context that owns
+  the event (`Accounts.UserNotifier`, `Listings.ListingNotifier`), after the change it
+  reports has been committed, so a mail failure never undoes it. A context cannot build web
+  addresses: the screen passes in a function that does.
 - **File storage (CVs):** TBD in spec 006 (local disk vs object storage).
 - **Observability:** Phoenix LiveDashboard at `/dev/dashboard` (dev only).
 

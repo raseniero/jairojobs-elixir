@@ -4,6 +4,8 @@ defmodule JairojobsWeb.ListingComponents do
   """
   use Phoenix.Component
 
+  import JairojobsWeb.CoreComponents, only: [input: 1]
+
   alias JairojobsWeb.Format
 
   @status_labels %{
@@ -38,6 +40,108 @@ defmodule JairojobsWeb.ListingComponents do
   """
   def employment_type_options do
     for {type, label} <- @employment_type_labels, do: {label, type}
+  end
+
+  @doc """
+  The inputs of the listing form: title, region, area, salary, type, schedule
+  and the three text sections (REQ-003-4).
+
+  Used by the Employer's form (spec 003) and the Admin edit form (spec 004),
+  so the two cannot drift apart. `region_options` is passed in because each
+  form decides which regions to offer.
+  """
+  attr :form, Phoenix.HTML.Form, required: true
+  attr :region_options, :list, required: true
+
+  def listing_fields(assigns) do
+    ~H"""
+    <.input
+      field={@form[:title]}
+      type="text"
+      label="Job title"
+      maxlength="100"
+      placeholder="e.g. Barista (full-time)"
+    />
+
+    <.input
+      field={@form[:region_id]}
+      type="select"
+      label="Region"
+      prompt="Choose a region"
+      options={@region_options}
+    />
+
+    <.input
+      field={@form[:area]}
+      type="text"
+      label="Area or neighbourhood"
+      maxlength="80"
+      placeholder="e.g. Matina, or Remote"
+    />
+
+    <fieldset class="space-y-1">
+      <legend class="text-sm font-semibold">Salary per month (PHP)</legend>
+      <div class="grid grid-cols-2 gap-3">
+        <.input
+          field={@form[:salary_min]}
+          type="text"
+          label="From ₱"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="14000"
+        />
+        <.input
+          field={@form[:salary_max]}
+          type="text"
+          label="To ₱"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="16000"
+        />
+      </div>
+      <p class="text-xs text-base-content/70">
+        Shown on the listing. Needed before you can submit it.
+      </p>
+    </fieldset>
+
+    <.input
+      field={@form[:employment_type]}
+      type="select"
+      label="Type"
+      prompt="Choose a type"
+      options={employment_type_options()}
+    />
+
+    <.input
+      field={@form[:schedule]}
+      type="text"
+      label="Schedule (optional)"
+      maxlength="80"
+      placeholder="e.g. Shifting, 6 days"
+    />
+
+    <.input
+      field={@form[:description]}
+      type="textarea"
+      label="About the job"
+      rows="6"
+      maxlength="5000"
+    />
+    <.input
+      field={@form[:requirements]}
+      type="textarea"
+      label="Requirements (optional)"
+      rows="4"
+      maxlength="3000"
+    />
+    <.input
+      field={@form[:benefits]}
+      type="textarea"
+      label="Benefits (optional)"
+      rows="4"
+      maxlength="3000"
+    />
+    """
   end
 
   @doc """

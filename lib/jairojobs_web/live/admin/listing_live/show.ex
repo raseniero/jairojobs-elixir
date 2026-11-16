@@ -108,11 +108,17 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
             <.button patch={action_path(@listing, :reject, @from)} id="reject-listing">
               Reject
             </.button>
+            <.button navigate={action_path(@listing, :edit, @from)} id="admin-edit-listing">
+              Edit
+            </.button>
           </div>
 
           <div :if={@listing.status == :published} class="flex flex-wrap items-center gap-3">
             <.button patch={action_path(@listing, :take_down, @from)} id="take-down-listing">
               Take down
+            </.button>
+            <.button navigate={action_path(@listing, :edit, @from)} id="admin-edit-listing">
+              Edit
             </.button>
           </div>
         <% else %>
@@ -274,6 +280,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
       :show -> ~p"/admin/listings/#{listing.id}?#{query}"
       :reject -> ~p"/admin/listings/#{listing.id}/reject?#{query}"
       :take_down -> ~p"/admin/listings/#{listing.id}/take-down?#{query}"
+      :edit -> ~p"/admin/listings/#{listing.id}/edit?#{query}"
     end
   end
 

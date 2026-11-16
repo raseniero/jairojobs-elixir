@@ -81,4 +81,25 @@ defmodule JairojobsWeb.ModerationEmailFailureTest do
     assert Listings.get_listing_for_moderation!(admin, waiting.id).status == :rejected
     assert Listings.get_listing_for_moderation!(admin, live_listing.id).status == :taken_down
   end
+
+  test "REQ-004-9: an Admin edit says the employer could not be emailed, and still saves",
+       %{conn: conn, admin: admin} do
+    listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+    {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit")
+    mail_fails()
+
+    {:ok, show, _html} =
+      view
+      |> form("#listing-form", listing: %{title: "Barista (mornings)"})
+      |> render_submit()
+      |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}")
+
+    assert has_element?(
+             show,
+             "#flash-info",
+             "Changes saved. The employer could not be emailed."
+           )
+
+    assert Listings.get_listing_for_moderation!(admin, listing.id).title == "Barista (mornings)"
+  end
 end

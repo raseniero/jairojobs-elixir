@@ -76,6 +76,7 @@ defmodule JairojobsWeb.Router do
       live "/listings/:id", ListingLive.Show, :show
       live "/listings/:id/reject", ListingLive.Show, :reject
       live "/listings/:id/take-down", ListingLive.Show, :take_down
+      live "/listings/:id/edit", ListingLive.Form, :edit
     end
   end
 

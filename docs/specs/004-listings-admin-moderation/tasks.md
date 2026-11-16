@@ -235,7 +235,7 @@ render-all script.
     Taken down case), `screenflow-posting`, `wireframe-posting`; changelog row
   - Commit: `feat(web): reject and take down with a reason (REQ-004-6, REQ-004-7)`
 
-- [ ] **T11** — Admin edit form (REQ-004-8; rest of -4)
+- [x] **T11** — Admin edit form (REQ-004-8; rest of -4) — done 2026-11-16
   - `ListingComponents.listing_fields/1`, moved out of the Employer form;
     `Employer.ListingLive.Form` uses it with no change in behaviour
   - Router: `live "/listings/:id/edit", ListingLive.Form, :edit`
@@ -410,3 +410,10 @@ render-all script.
   from the page's address.
 - T10: spec 003's REQ-003-10, two activity diagrams, screen flow and wireframe notes were
   updated in this commit, with a changelog row there.
+- T11: the inputs moved into `ListingComponents.listing_fields/1` unchanged; the Employer's form
+  lost 86 lines and its tests passed without edits.
+- T11: the sentence "The employer will be told what you changed." sits above the form, with the
+  id `#admin-edit-note` (not in the plan's id table). Under the two business fields the form
+  also says they change on this listing only.
+- T11: the Admin edit form is loaded in `mount`, so opening it for a listing that cannot be
+  edited redirects before anything is rendered.
