@@ -83,6 +83,7 @@ defmodule Jairojobs.ListingsFixtures do
     {:ok, listing, _email} =
       Listings.approve_listing(AccountsFixtures.admin_scope_fixture(), listing, &owner_url/1)
 
+    flush_emails()
     listing
   end
 
@@ -98,6 +99,7 @@ defmodule Jairojobs.ListingsFixtures do
         &owner_url/1
       )
 
+    flush_emails()
     listing
   end
 
@@ -117,10 +119,26 @@ defmodule Jairojobs.ListingsFixtures do
         &owner_url/1
       )
 
+    flush_emails()
     listing
   end
 
   defp owner_url(listing), do: "https://jairojobs.test/my/listings/#{listing.id}"
+
+  @doc """
+  Empties the test process's mailbox of delivered emails.
+
+  Getting a listing into a status sends real emails (spec 004). The fixtures
+  call this before returning, so a test's `assert_email_sent` and
+  `refute_email_sent` only see emails from the test's own steps.
+  """
+  def flush_emails do
+    receive do
+      {:email, _email} -> flush_emails()
+    after
+      0 -> :ok
+    end
+  end
 
   @doc """
   A complete listing owned by `scope`, taken to `status` the way a real

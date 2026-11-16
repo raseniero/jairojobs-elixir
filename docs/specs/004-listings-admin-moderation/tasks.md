@@ -129,7 +129,7 @@ render-all script.
     exception), spec 003 `state-listing` ("locked for the Employer"); changelog rows
   - Commit: `feat(listings): admin edit of waiting and live listings (REQ-004-8)`
 
-- [ ] **T7** — Decision emails (REQ-004-9)
+- [x] **T7** — Decision emails (REQ-004-9) — done 2026-11-16
   - `Jairojobs.Listings.ListingNotifier`: `deliver_approved/3`, `deliver_rejected/3`,
     `deliver_taken_down/3`, `deliver_edited/4`; the short-name map for changed parts
   - The four actions send after the transaction commits; `email` becomes `:sent`,
@@ -378,3 +378,12 @@ render-all script.
   what spec decision 13 accepts.
 - T6: spec 003's REQ-003-5 and REQ-003-2 rules and its state diagram were updated in this
   commit, with a changelog row there.
+- T7: emptying the mailbox inside the listing fixtures was not enough. Creating any account
+  also sends a confirmation email to the test, so the email tests call `setup_done()` (which
+  empties the mailbox) right before the step under test, and `sent_email/0` asserts that
+  exactly one email followed. The fixtures still empty it as the plan says.
+- T7: the raising variant is the same adapter with `raise: true`, not a second module.
+- T7: the notifier takes the owner first (`deliver_approved(owner, listing, url)`), as the
+  sequence diagram draws it. The log line for a failed email is
+  `Listing email not sent: kind=<kind> listing_id=<id>`; the error itself is not logged, in case
+  a mail service echoes an address back.

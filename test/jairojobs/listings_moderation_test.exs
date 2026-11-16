@@ -8,6 +8,7 @@ defmodule Jairojobs.ListingsModerationTest do
   import Jairojobs.AccountsFixtures
   import Jairojobs.ListingsFixtures
   import Jairojobs.RegionsFixtures
+  import Swoosh.TestAssertions
 
   alias Jairojobs.Accounts
   alias Jairojobs.Accounts.Scope
@@ -28,11 +29,23 @@ defmodule Jairojobs.ListingsModerationTest do
     listing
   end
 
+  # Everything before this point was setup. Creating accounts and getting a
+  # listing into a status send emails of their own (confirmation links, "live");
+  # the assertions that follow must only see what the step under test sends.
+  defp setup_done, do: flush_emails()
+
   defp published_listing(scope, admin, attrs \\ %{}) do
     {:ok, listing, _email} =
       Listings.approve_listing(admin, pending_listing(scope, attrs), owner_url())
 
     listing
+  end
+
+  # The one email this test's own step sent.
+  defp sent_email do
+    assert_received {:email, email}
+    refute_received {:email, _another}
+    email
   end
 
   # Everyone who is not an Admin (REQ-004-1), given the listing's owner.
@@ -750,6 +763,198 @@ defmodule Jairojobs.ListingsModerationTest do
 
       changeset = Listings.change_listing_as_admin(pending, %{"business_name" => ""})
       assert "can't be blank" in errors_on(changeset).business_name
+    end
+  end
+
+  describe "emails to the listing's owner (REQ-004-9)" do
+    test "REQ-004-9: approved email", %{admin: admin} do
+      employer = employer_scope_fixture()
+      pending = pending_listing(employer, title: "Barista (full-time)")
+      setup_done()
+
+      assert {:ok, listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+
+      email = sent_email()
+      assert email.to == [{"", employer.user.email}]
+      assert email.from == {"jairojobs", "hello@jairojobs.com"}
+      assert email.subject == "Your listing is live: Barista (full-time)"
+      assert email.text_body =~ "Barista (full-time)"
+      assert email.text_body =~ "is live"
+      assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
+      assert email.html_body == nil
+    end
+
+    test "REQ-004-9: rejected email carries the reason", %{employer: employer, admin: admin} do
+      pending = pending_listing(employer, title: "Line cook (nights)")
+      setup_done()
+
+      assert {:ok, listing, :sent} =
+               Listings.reject_listing(admin, pending, %{reason: @reason}, owner_url())
+
+      email = sent_email()
+      assert email.to == [{"", employer.user.email}]
+      assert email.subject == "Your listing needs changes: Line cook (nights)"
+      assert email.text_body =~ @reason
+      assert email.text_body =~ "edit it and send it again"
+      assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
+    end
+
+    test "REQ-004-9: taken-down email carries the reason", %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin, title: "Cashier (weekends)")
+      reason = "The business asked us to remove it."
+      setup_done()
+
+      assert {:ok, listing, :sent} =
+               Listings.take_down_listing(admin, live, %{reason: reason}, owner_url())
+
+      email = sent_email()
+      assert email.to == [{"", employer.user.email}]
+      assert email.subject == "Your listing was taken down: Cashier (weekends)"
+      assert email.text_body =~ reason
+      assert email.text_body =~ "cannot be undone"
+      assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
+    end
+
+    test "REQ-004-9: edit email names what changed", %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin, title: "Barrista (full-time)", area: "Matina")
+      setup_done()
+
+      assert {:ok, listing, :sent} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 live,
+                 %{form_params(live) | "title" => "Barista (full-time)", "area" => "Toril"},
+                 owner_url()
+               )
+
+      email = sent_email()
+      assert email.to == [{"", employer.user.email}]
+      assert email.subject == "We edited your listing: Barista (full-time)"
+      assert email.text_body =~ "Job title"
+      assert email.text_body =~ "Area"
+      assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
+
+      # It names the parts; it does not quote what they said or say now.
+      refute email.text_body =~ "Barrista"
+      refute email.text_body =~ "Matina"
+      refute email.text_body =~ "Toril"
+      refute email.text_body =~ "Salary"
+    end
+
+    test "REQ-004-9: the edit email lists each changed part once, by its short name",
+         %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+      cebu = region_fixture()
+      setup_done()
+
+      {:ok, _listing, :sent} =
+        Listings.update_listing_as_admin(
+          admin,
+          live,
+          Map.merge(form_params(live), %{
+            "region_id" => cebu.id,
+            "salary_min" => "15000",
+            "salary_max" => "18000",
+            "employment_type" => "part_time",
+            "schedule" => "Weekends only",
+            "description" => String.duplicate("A new description. ", 4),
+            "requirements" => "At least 21 years old",
+            "benefits" => "Free meals and transport",
+            "business_name" => "Kape Isla Café",
+            "business_about" => "Family-run since 2019."
+          }),
+          owner_url()
+        )
+
+      body = sent_email().text_body
+
+      for name <- [
+            "Region",
+            "Salary",
+            "Type",
+            "Schedule",
+            "About the job",
+            "Requirements",
+            "Benefits",
+            "Business name",
+            "About the business"
+          ] do
+        assert body =~ name
+      end
+
+      assert length(String.split(body, "Salary")) == 2
+      refute body =~ "Job title"
+      refute body =~ "15000"
+      refute body =~ "15,000"
+      refute body =~ "Weekends only"
+    end
+
+    test "REQ-004-9: no email for your own action" do
+      admin = admin_poster_scope_fixture()
+      mine = pending_listing(admin)
+      another_of_mine = pending_listing(admin)
+      setup_done()
+
+      assert {:ok, pending, :own_listing} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 mine,
+                 %{title: "Barista (my own listing)"},
+                 owner_url()
+               )
+
+      assert {:ok, live, :own_listing} = Listings.approve_listing(admin, pending, owner_url())
+
+      assert {:ok, _taken_down, :own_listing} =
+               Listings.take_down_listing(admin, live, %{reason: @reason}, owner_url())
+
+      assert {:ok, _rejected, :own_listing} =
+               Listings.reject_listing(admin, another_of_mine, %{reason: @reason}, owner_url())
+
+      refute_email_sent()
+    end
+
+    test "an Admin acting on another Admin's listing does email that Admin", %{admin: admin} do
+      owner = admin_poster_scope_fixture()
+      pending = pending_listing(owner)
+      setup_done()
+
+      assert {:ok, _listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+      assert sent_email().to == [{"", owner.user.email}]
+    end
+
+    test "an edit that changes nothing sends nothing", %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+      setup_done()
+
+      assert {:ok, _listing, :unchanged} =
+               Listings.update_listing_as_admin(admin, live, form_params(live), owner_url())
+
+      refute_email_sent()
+    end
+
+    test "an owner who has since been demoted to Candidate is still emailed", %{admin: admin} do
+      owner = admin_poster_scope_fixture()
+      pending = pending_listing(owner)
+      {:ok, demoted} = Accounts.demote_admin(Scope.system(), owner.user)
+      assert demoted.role == :candidate
+      setup_done()
+
+      assert {:ok, _listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+      assert sent_email().to == [{"", owner.user.email}]
+    end
+
+    test "a refused action sends nothing", %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+      setup_done()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Listings.reject_listing(admin, pending, %{reason: "short"}, owner_url())
+
+      assert {:error, :not_published} =
+               Listings.take_down_listing(admin, pending, %{reason: @reason}, owner_url())
+
+      refute_email_sent()
     end
   end
 

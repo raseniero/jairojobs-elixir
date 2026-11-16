@@ -16,10 +16,13 @@ defmodule Jairojobs.Listings do
 
   import Ecto.Query, warn: false
 
+  require Logger
+
   alias Jairojobs.Accounts
   alias Jairojobs.Accounts.Scope
   alias Jairojobs.Accounts.User
   alias Jairojobs.Listings.Listing
+  alias Jairojobs.Listings.ListingNotifier
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
 
@@ -315,7 +318,7 @@ defmodule Jairojobs.Listings do
         listing |> Listing.approve_changeset(admin, DateTime.utc_now()) |> decide()
       end
     end)
-    |> notify_owner(owner_url)
+    |> notify_owner(scope, owner_url)
   end
 
   @doc """
@@ -335,7 +338,7 @@ defmodule Jairojobs.Listings do
         listing |> Listing.reject_changeset(admin, reason, DateTime.utc_now()) |> decide()
       end
     end)
-    |> notify_owner(owner_url)
+    |> notify_owner(scope, owner_url)
   end
 
   @doc """
@@ -355,7 +358,7 @@ defmodule Jairojobs.Listings do
         listing |> Listing.take_down_changeset(admin, reason, DateTime.utc_now()) |> decide()
       end
     end)
-    |> notify_owner(owner_url)
+    |> notify_owner(scope, owner_url)
   end
 
   @doc """
@@ -391,7 +394,7 @@ defmodule Jairojobs.Listings do
         listing |> Listing.admin_changeset(attrs) |> region_offered() |> save_edit(listing)
       end
     end)
-    |> notify_owner(owner_url)
+    |> notify_owner(scope, owner_url)
   end
 
   # A changed region must be one that is offered: an active one. Keeping the
@@ -469,14 +472,68 @@ defmodule Jairojobs.Listings do
     end
   end
 
-  # The email to the listing's owner is added with the notifier (REQ-004-9).
-  # Until then nothing is sent, which is what `:own_listing` reports.
-  defp notify_owner({:ok, {listing, :unchanged}}, _owner_url), do: {:ok, listing, :unchanged}
+  # Emails the listing's owner what an Admin did (REQ-004-9), once the action
+  # has committed: the decision is saved first and is never undone because of
+  # the email. Nobody is emailed about their own action.
+  #
+  # The third element says what happened to the email: `:sent`, `:own_listing`
+  # (the Admin owns the listing, nothing sent) or `:failed`.
+  defp notify_owner({:error, reason}, _scope, _owner_url), do: {:error, reason}
 
-  defp notify_owner({:ok, {listing, _what_happened}}, _owner_url),
-    do: {:ok, listing, :own_listing}
+  defp notify_owner({:ok, {listing, :unchanged}}, _scope, _owner_url),
+    do: {:ok, listing, :unchanged}
 
-  defp notify_owner({:error, reason}, _owner_url), do: {:error, reason}
+  defp notify_owner({:ok, {%Listing{user_id: owner_id} = listing, _what}}, scope, _owner_url)
+       when owner_id == scope.user.id,
+       do: {:ok, listing, :own_listing}
+
+  defp notify_owner({:ok, {listing, what_happened}}, _scope, owner_url) do
+    kind = email_kind(listing, what_happened)
+
+    {:ok, listing,
+     attempt(kind, listing, fn ->
+       # The owner, whatever their role is now (REQ-004-9).
+       owner = Repo.get!(User, listing.user_id)
+       deliver_to_owner(kind, owner, listing, what_happened, owner_url.(listing))
+     end)}
+  end
+
+  defp email_kind(_listing, {:edited, _fields}), do: :edited
+  defp email_kind(%Listing{status: :published}, :decided), do: :approved
+  defp email_kind(%Listing{status: :rejected}, :decided), do: :rejected
+  defp email_kind(%Listing{status: :taken_down}, :decided), do: :taken_down
+
+  defp deliver_to_owner(:approved, owner, listing, _what, url),
+    do: ListingNotifier.deliver_approved(owner, listing, url)
+
+  defp deliver_to_owner(:rejected, owner, listing, _what, url),
+    do: ListingNotifier.deliver_rejected(owner, listing, url)
+
+  defp deliver_to_owner(:taken_down, owner, listing, _what, url),
+    do: ListingNotifier.deliver_taken_down(owner, listing, url)
+
+  defp deliver_to_owner(:edited, owner, listing, {:edited, fields}, url),
+    do: ListingNotifier.deliver_edited(owner, listing, fields, url)
+
+  # Sends one email and answers `:sent` or `:failed`. A refusal by the mail
+  # service and an exception inside the adapter are treated alike: caught, and
+  # logged with the listing's id and the kind of email — never an address, a
+  # title or a reason (constitution §4.12). There is no second attempt.
+  defp attempt(kind, %Listing{id: listing_id}, send) do
+    case send.() do
+      {:ok, _email} -> :sent
+      {:error, _reason} -> email_failed(kind, listing_id)
+    end
+  rescue
+    _exception -> email_failed(kind, listing_id)
+  catch
+    _kind, _value -> email_failed(kind, listing_id)
+  end
+
+  defp email_failed(kind, listing_id) do
+    Logger.warning("Listing email not sent: kind=#{kind} listing_id=#{listing_id}")
+    :failed
+  end
 
   defp transition(scope, listing, from, changes) do
     scope
