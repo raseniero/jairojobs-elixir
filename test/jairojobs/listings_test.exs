@@ -316,7 +316,7 @@ defmodule Jairojobs.ListingsTest do
 
     test "REQ-003-5: a stale copy cannot be used to edit a locked listing", %{scope: scope} do
       draft = listing_fixture(scope, complete_listing_attrs())
-      set_listing_status(draft, :pending)
+      {:ok, _pending} = Listings.submit_listing(scope, draft)
 
       assert {:error, :locked} = Listings.update_listing(scope, draft, %{title: "Changed it"})
     end
@@ -572,8 +572,8 @@ defmodule Jairojobs.ListingsTest do
 
   describe "resubmitting a rejected listing" do
     test "REQ-003-8: see the reason", %{scope: scope} do
-      listing = listing_fixture(scope, complete_listing_attrs())
-      set_listing_status(listing, :rejected, reason: "Salary looks like a typo")
+      listing = listing_in_status_fixture(scope, :pending)
+      reject_listing_fixture(listing, "Salary looks like a typo")
 
       rejected = Listings.get_my_listing!(scope, listing.id)
       assert rejected.status == :rejected

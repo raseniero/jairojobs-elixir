@@ -5,7 +5,8 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
 
   A `Phoenix.LiveViewTest` journey, not a browser test (constitution §3.1):
   JavaScript, CSS and the confirm dialogs are outside it. The two Admin steps
-  (reject, publish) are set with the test helper until spec 004 exists.
+  (reject, approve) call the real moderation functions; going through the
+  Admin's screens is spec 004's own journey test.
   """
   use JairojobsWeb.ConnCase, async: true
 
@@ -129,10 +130,11 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
     show |> element("#submit-listing") |> render_click()
     assert text(show, status) == "Waiting for approval"
 
-    # 7a. An Admin rejects it (test helper until spec 004): the reason is shown; resubmit
+    # 7a. An Admin rejects it (through the context; the Admin's screens are spec 004's
+    # own journey test): the reason is shown; resubmit
     scope
     |> Listings.get_my_listing!(listing.id)
-    |> set_listing_status(:rejected, reason: "Please name the shift hours")
+    |> reject_listing_fixture("Please name the shift hours")
 
     {:ok, show, _html} = live(conn, ~p"/my/listings/#{listing.id}")
     assert text(show, status) == "Needs changes"
@@ -142,8 +144,8 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
     assert text(show, status) == "Waiting for approval"
     refute has_element?(show, "#listing-rejection-reason")
 
-    # 7b. An Admin publishes it (test helper until spec 004): close it
-    scope |> Listings.get_my_listing!(listing.id) |> set_listing_status(:published)
+    # 7b. An Admin approves it (through the context): close it
+    scope |> Listings.get_my_listing!(listing.id) |> approve_listing_fixture()
 
     {:ok, show, _html} = live(conn, ~p"/my/listings/#{listing.id}")
     assert text(show, status) == "Live"

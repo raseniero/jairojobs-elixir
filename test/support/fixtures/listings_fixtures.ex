@@ -76,39 +76,84 @@ defmodule Jairojobs.ListingsFixtures do
   end
 
   @doc """
-  Puts a listing into `status` by updating the row directly.
-
-  **Test-only, on purpose** (spec 003 plan, decision 1): Published, Rejected
-  and Taken down are reached through Admin actions that arrive with spec 004.
-  Until then this is the only way to get such listings; spec 004 replaces it
-  with the real approve / reject / take-down functions. The database CHECK
-  constraints still apply, so the listing must be complete.
-
-  Options: `:reason` for `:rejected`.
+  Approves a Pending listing as an Admin would, through the real context
+  function (spec 004). A throwaway Admin makes the decision.
   """
-  def set_listing_status(%Listings.Listing{} = listing, status, opts \\ []) do
-    owner = Accounts.get_user!(listing.user_id)
-    now = DateTime.utc_now()
+  def approve_listing_fixture(%Listings.Listing{} = listing) do
+    {:ok, listing, _email} =
+      Listings.approve_listing(AccountsFixtures.admin_scope_fixture(), listing, &owner_url/1)
 
     listing
-    |> Ecto.Changeset.change(
-      status: status,
-      business_name: listing.business_name || owner.business_name,
-      business_about: listing.business_about || owner.business_about,
-      submitted_at: listing.submitted_at || now,
-      rejection_reason: if(status == :rejected, do: opts[:reason] || "Needs more detail"),
-      closed_at: if(status == :closed, do: now)
-    )
-    |> Jairojobs.Repo.update!()
-    |> Jairojobs.Repo.preload(:region, force: true)
   end
 
   @doc """
-  A complete listing owned by `scope`, put straight into `status` (see
-  `set_listing_status/3`).
+  Rejects a Pending listing with `reason`, through the real context function.
+  """
+  def reject_listing_fixture(%Listings.Listing{} = listing, reason \\ "Needs more detail") do
+    {:ok, listing, _email} =
+      Listings.reject_listing(
+        AccountsFixtures.admin_scope_fixture(),
+        listing,
+        %{reason: reason},
+        &owner_url/1
+      )
+
+    listing
+  end
+
+  @doc """
+  Takes a Published listing down with `reason`, through the real context
+  function.
+  """
+  def take_down_listing_fixture(
+        %Listings.Listing{} = listing,
+        reason \\ "No longer suitable for the board"
+      ) do
+    {:ok, listing, _email} =
+      Listings.take_down_listing(
+        AccountsFixtures.admin_scope_fixture(),
+        listing,
+        %{reason: reason},
+        &owner_url/1
+      )
+
+    listing
+  end
+
+  defp owner_url(listing), do: "https://jairojobs.test/my/listings/#{listing.id}"
+
+  @doc """
+  A complete listing owned by `scope`, taken to `status` the way a real
+  listing gets there: its owner submits it, an Admin approves, rejects or
+  takes it down, its owner closes it.
+
+  The free-tier limit applies on the way, as it does for a real Employer: a
+  listing passes through Pending, so `scope` must have a place free.
   """
   def listing_in_status_fixture(scope, status, attrs \\ %{}) do
-    listing = listing_fixture(scope, complete_listing_attrs(attrs))
-    if status == :draft, do: listing, else: set_listing_status(listing, status)
+    scope
+    |> listing_fixture(complete_listing_attrs(attrs))
+    |> reach(scope, status)
   end
+
+  defp reach(draft, _scope, :draft), do: draft
+
+  defp reach(draft, scope, :pending) do
+    {:ok, pending} = Listings.submit_listing(scope, draft)
+    pending
+  end
+
+  defp reach(draft, scope, :published),
+    do: draft |> reach(scope, :pending) |> approve_listing_fixture()
+
+  defp reach(draft, scope, :rejected),
+    do: draft |> reach(scope, :pending) |> reject_listing_fixture()
+
+  defp reach(draft, scope, :closed) do
+    {:ok, closed} = Listings.close_listing(scope, reach(draft, scope, :published))
+    closed
+  end
+
+  defp reach(draft, scope, :taken_down),
+    do: draft |> reach(scope, :published) |> take_down_listing_fixture()
 end

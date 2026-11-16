@@ -648,8 +648,8 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
     end
 
     test "REQ-003-8: see the reason", %{conn: conn, scope: scope} do
-      listing = listing_fixture(scope, complete_listing_attrs())
-      set_listing_status(listing, :rejected, reason: "Salary looks like a typo")
+      listing = listing_in_status_fixture(scope, :pending)
+      reject_listing_fixture(listing, "Salary looks like a typo")
 
       {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
 

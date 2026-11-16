@@ -61,7 +61,7 @@ render-all script.
     `decided_by_id` / `published_at` in the reason params are ignored
   - Commit: `feat(listings): approve, reject and take down (REQ-004-5, REQ-004-6, REQ-004-7)`
 
-- [ ] **T2** — Retire the test-only status helper (plan decision 8)
+- [x] **T2** — Retire the test-only status helper (plan decision 8) — done 2026-11-16
   - `ListingsFixtures`: delete `set_listing_status/3`. `listing_in_status_fixture/3` reaches
     each status through the real functions with a throwaway Admin: submit; approve; reject
     (`:reason` option, default "Needs more detail"); approve then close; approve then take
@@ -346,3 +346,11 @@ render-all script.
   waiting answers `:not_pending` even when the reason is also bad.
 - T1: 21 tests, all in `listings_moderation_test.exs`. They were run before the code existed
   and failed to compile, as expected; the suite went from 394 to 415.
+- T2: `set_listing_status/3` is gone. `listing_in_status_fixture/3` now goes through submit,
+  then approve / reject / take down by a throwaway Admin, then close. Three small fixtures
+  were added for the tests that set one status directly: `approve_listing_fixture/1`,
+  `reject_listing_fixture/2` and `take_down_listing_fixture/2`.
+- T2: all 415 tests passed on the first run after the swap, with no test changed beyond the
+  five places that called the helper directly, and on five further runs with different
+  seeds. The free-tier limit now applies to fixtures as it does to a real Employer; no
+  existing test needed more than three open listings for one Employer.
