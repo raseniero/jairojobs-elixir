@@ -1,7 +1,7 @@
 # 004 — Listings: admin moderation — Tasks
 
 **Status:** In Progress
-**Plan:** [plan.md](./plan.md) (Approved 2026-11-14)
+**Plan:** [plan.md](./plan.md) (Approved 2026-11-16)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
 Commit messages reference REQ IDs; test names follow `REQ-004-n: <scenario>`.

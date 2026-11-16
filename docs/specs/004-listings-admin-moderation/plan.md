@@ -3,7 +3,7 @@
 **Status:** Approved
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-14)
 **Created:** 2026-11-14
-**Approved:** 2026-11-14
+**Approved:** 2026-11-16
 
 ## Approach
 
@@ -115,7 +115,7 @@ Job title, Region, Area, Salary, Type, Schedule, About the job, Requirements, Be
 Business name, About the business. `salary_min` and `salary_max` both read "Salary".
 
 These are the short names REQ-004-9 lists: the form's labels without their hints ("Area",
-not "Area or neighbourhood"). The spec's rule was amended to say so on 2026-11-14, when
+not "Area or neighbourhood"). The spec's rule was amended to say so on 2026-11-15, when
 this plan showed that the rule and its scenario disagreed (decision 9; spec decision 16).
 
 ## Data model
@@ -454,9 +454,9 @@ diagram.
 | Admin edit quietly changes a salary | The owner is emailed the names of the parts changed (spec decision 6); nothing more is built |
 | Moving the form inputs into `listing_fields/1` alters the Employer form | Pure markup move; spec 003's form tests and the journey test cover it |
 
-## Decisions confirmed (2026-11-14)
+## Decisions confirmed (2026-11-16)
 
-The owner went through all thirteen one at a time. He chose the proposal for eleven and
+The owner went through all thirteen one at a time, on 2026-11-15 and 2026-11-16. He chose the proposal for eleven and
 changed two: 8 (two tasks instead of one) and 13 (Listings first).
 
 | # | Decision | Choice | Hard to change later? |
