@@ -214,6 +214,78 @@ defmodule Jairojobs.Listings do
 
   ## Moderation (spec 004)
 
+  @moderation_statuses [:pending, :published, :rejected, :taken_down, :closed]
+  @moderation_page_size 50
+
+  @doc """
+  How many listings are waiting for approval (REQ-004-2). `0` for anyone who
+  is not an Admin.
+  """
+  def count_pending_listings(scope) do
+    if Scope.admin?(scope) do
+      Repo.aggregate(from(l in Listing, where: l.status == :pending), :count)
+    else
+      0
+    end
+  end
+
+  @doc """
+  One page of everyone's listings in `status`, for an Admin (REQ-004-2,
+  REQ-004-3), with their region preloaded.
+
+  `:pending` is the approval queue: longest-waiting first, counted from the
+  latest submission. Every other status is most recently changed first.
+  Drafts belong to their Employer alone and cannot be asked for.
+
+  Options: `:offset` (default `0`) and `:limit` (default `50`). Returns
+  `{listings, more?}`, where `more?` says whether listings remain after this
+  page. `{[], false}` for anyone who is not an Admin.
+  """
+  def list_listings_for_moderation(scope, status, opts \\ []) do
+    if Scope.admin?(scope) and status in @moderation_statuses do
+      limit = Keyword.get(opts, :limit, @moderation_page_size)
+      offset = Keyword.get(opts, :offset, 0)
+
+      listings =
+        Repo.all(
+          from l in Listing,
+            where: l.status == ^status,
+            order_by: ^moderation_order(status),
+            offset: ^offset,
+            limit: ^(limit + 1),
+            preload: [:region]
+        )
+
+      {Enum.take(listings, limit), length(listings) > limit}
+    else
+      {[], false}
+    end
+  end
+
+  defp moderation_order(:pending), do: [asc: :submitted_at, asc: :id]
+  defp moderation_order(_status), do: [desc: :updated_at, desc: :id]
+
+  @doc """
+  Gets any submitted listing for an Admin, with its region, its owner and the
+  Admin who made the latest decision preloaded (REQ-004-4).
+
+  Raises `Ecto.NoResultsError` when the id is unknown or malformed, when the
+  listing is a Draft (one its Employer withdrew included), or when the scope is not
+  an Admin — all look the same to the caller.
+  """
+  def get_listing_for_moderation!(scope, id) do
+    with true <- Scope.admin?(scope),
+         {:ok, id} <- Ecto.UUID.cast(id) do
+      Repo.one!(
+        from l in Listing,
+          where: l.id == ^id and l.status in ^@moderation_statuses,
+          preload: [:region, :user, :decided_by]
+      )
+    else
+      _ -> raise Ecto.NoResultsError, queryable: Listing
+    end
+  end
+
   @doc """
   A changeset for the reason on the reject and take-down forms: `reason`,
   trimmed, 10–500 characters (REQ-004-6, REQ-004-7).

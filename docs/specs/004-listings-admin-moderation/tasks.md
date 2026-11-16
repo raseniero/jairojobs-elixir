@@ -94,7 +94,7 @@ render-all script.
   - Spec 003's existing tests must pass unchanged
   - Commit: `fix(listings): lock the listing row on every status change`
 
-- [ ] **T5** — The queue, the status lists and the Admin's read (REQ-004-2, -3, -4)
+- [x] **T5** — The queue, the status lists and the Admin's read (REQ-004-2, -3, -4) — done 2026-11-16
   - `Listings.count_pending_listings/1`, `list_listings_for_moderation/3`,
     `get_listing_for_moderation!/2` (region, owner and deciding Admin preloaded)
   - Tests (`listings_moderation_test.exs`): `REQ-004-2: longest-waiting first`,
@@ -367,3 +367,6 @@ render-all script.
 - T4: `fetch_mine/2` became `lock_mine/2` (the same ownership check, with the row lock), used
   by withdraw, close, edit, delete and submit through one `with_my_listing/3`. Spec 003's
   tests passed unchanged.
+- T5: the "long list" test uses 60 waiting listings owned by an Admin, who has no limit on open
+  listings; the paging code is the same for every status. An unknown status is treated like
+  `:draft` and returns nothing.

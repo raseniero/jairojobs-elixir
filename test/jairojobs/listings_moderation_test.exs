@@ -435,6 +435,159 @@ defmodule Jairojobs.ListingsModerationTest do
     end
   end
 
+  describe "the approval queue" do
+    test "REQ-004-2: longest-waiting first", %{employer: employer, admin: admin} do
+      cashier = pending_listing(employer, title: "Cashier (weekends)")
+      barista = pending_listing(employer_scope_fixture(), title: "Barista (full-time)")
+
+      assert {[first, second], false} = Listings.list_listings_for_moderation(admin, :pending)
+      assert [first.id, second.id] == [cashier.id, barista.id]
+      assert first.region.id == cashier.region_id
+      assert Listings.count_pending_listings(admin) == 2
+    end
+
+    test "REQ-004-2: drafts are not in the queue", %{employer: employer, admin: admin} do
+      listing_fixture(employer)
+      listing_fixture(employer, complete_listing_attrs())
+
+      assert {[], false} = Listings.list_listings_for_moderation(admin, :pending)
+      assert Listings.count_pending_listings(admin) == 0
+    end
+
+    test "REQ-004-2: a withdrawn listing leaves the queue", %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+      assert {[_one], false} = Listings.list_listings_for_moderation(admin, :pending)
+
+      {:ok, _draft} = Listings.withdraw_listing(employer, pending)
+
+      assert {[], false} = Listings.list_listings_for_moderation(admin, :pending)
+      assert Listings.count_pending_listings(admin) == 0
+    end
+
+    test "a listing that was rejected and sent again starts at the back",
+         %{employer: employer, admin: admin} do
+      first = pending_listing(employer)
+      second = pending_listing(employer_scope_fixture())
+
+      {:ok, rejected, _email} =
+        Listings.reject_listing(admin, first, %{reason: @reason}, owner_url())
+
+      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected)
+
+      assert {[one, two], false} = Listings.list_listings_for_moderation(admin, :pending)
+      assert [one.id, two.id] == [second.id, first.id]
+    end
+
+    test "only listings that are waiting are counted", %{employer: employer, admin: admin} do
+      pending_listing(employer)
+      published_listing(employer, admin)
+      listing_in_status_fixture(employer_scope_fixture(), :rejected)
+      listing_fixture(employer)
+
+      assert Listings.count_pending_listings(admin) == 1
+    end
+  end
+
+  describe "list_listings_for_moderation/3" do
+    test "REQ-004-3: choose a status", %{employer: employer, admin: admin} do
+      waiting = pending_listing(employer)
+      older_live = published_listing(employer, admin)
+      newer_live = published_listing(employer_scope_fixture(), admin)
+      needs_changes = listing_in_status_fixture(employer_scope_fixture(), :rejected)
+      taken_down = listing_in_status_fixture(employer_scope_fixture(), :taken_down)
+      closed = listing_in_status_fixture(employer_scope_fixture(), :closed)
+
+      ids = fn status ->
+        {listings, false} = Listings.list_listings_for_moderation(admin, status)
+        Enum.map(listings, & &1.id)
+      end
+
+      assert ids.(:pending) == [waiting.id]
+      # The most recently changed is first.
+      assert ids.(:published) == [newer_live.id, older_live.id]
+      assert ids.(:rejected) == [needs_changes.id]
+      assert ids.(:taken_down) == [taken_down.id]
+      assert ids.(:closed) == [closed.id]
+    end
+
+    test "REQ-004-3: a long list is shown in parts", %{admin: admin} do
+      # An Admin owner has no limit on open listings.
+      owner = admin_poster_scope_fixture()
+      region = region_fixture()
+      submitted = for _ <- 1..60, do: pending_listing(owner, region_id: region.id)
+
+      assert {first_50, true} = Listings.list_listings_for_moderation(admin, :pending)
+      assert length(first_50) == 50
+
+      assert {last_10, false} =
+               Listings.list_listings_for_moderation(admin, :pending, offset: 50)
+
+      assert length(last_10) == 10
+      assert Enum.map(first_50 ++ last_10, & &1.id) == Enum.map(submitted, & &1.id)
+
+      assert {[_one, _two], true} =
+               Listings.list_listings_for_moderation(admin, :pending, limit: 2)
+    end
+
+    test "Drafts cannot be asked for", %{employer: employer, admin: admin} do
+      listing_fixture(employer, complete_listing_attrs())
+
+      assert {[], false} = Listings.list_listings_for_moderation(admin, :draft)
+    end
+  end
+
+  describe "get_listing_for_moderation!/2" do
+    test "returns a submitted listing with its region, owner and deciding Admin",
+         %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+
+      listing = Listings.get_listing_for_moderation!(admin, pending.id)
+      assert listing.id == pending.id
+      assert listing.region.id == pending.region_id
+      assert listing.user.email == employer.user.email
+      assert listing.decided_by == nil
+
+      {:ok, _rejected, _email} =
+        Listings.reject_listing(admin, pending, %{reason: @reason}, owner_url())
+
+      rejected = Listings.get_listing_for_moderation!(admin, pending.id)
+      assert rejected.decided_by.email == admin.user.email
+      assert rejected.rejection_reason == @reason
+    end
+
+    test "REQ-004-4: a Draft is not found", %{employer: employer, admin: admin} do
+      draft = listing_fixture(employer, complete_listing_attrs())
+      withdrawn = pending_listing(employer)
+      {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
+
+      for id <- [draft.id, withdrawn.id, Ecto.UUID.generate(), "not-an-id"] do
+        assert_raise Ecto.NoResultsError, fn ->
+          Listings.get_listing_for_moderation!(admin, id)
+        end
+      end
+    end
+  end
+
+  describe "reading as someone who is not an Admin" do
+    test "REQ-004-1: the queue, the lists and the Admin's read are closed to everyone else",
+         %{employer: employer, admin: admin} do
+      waiting = pending_listing(employer)
+      live = published_listing(employer, admin)
+
+      for scope <- non_admin_scopes(employer) do
+        assert Listings.count_pending_listings(scope) == 0
+        assert {[], false} = Listings.list_listings_for_moderation(scope, :pending)
+        assert {[], false} = Listings.list_listings_for_moderation(scope, :published)
+
+        for listing <- [waiting, live] do
+          assert_raise Ecto.NoResultsError, fn ->
+            Listings.get_listing_for_moderation!(scope, listing.id)
+          end
+        end
+      end
+    end
+  end
+
   describe "database checks (plan decision 12)" do
     # Straight to the table, past every changeset: what the database itself refuses.
     defp raw_update(%Listing{id: id}, set) do
