@@ -646,8 +646,10 @@ Scenario: The decision stands if the email cannot be sent
 - Every email names the listing by its title, says in plain words what happened and what
   the Employer can do next, and links to the listing in My listings. Following the link
   asks the Employer to log in if they are not (REQ-003-1).
-- The edit email names the parts that changed, using the form's labels. It does not quote
-  the old or new text.
+- The edit email names the parts that changed by their short names: Job title, Region,
+  Area, Salary, Type, Schedule, About the job, Requirements, Benefits, Business name, About
+  the business. These are the form's labels without their hints ("Area", not "Area or
+  neighbourhood"). It does not quote the old or new text.
 - Nobody is emailed about an action they took themselves.
 - The email goes to the owner whatever their role is now. An owner who can no longer open
   My listings (an Admin demoted to Candidate, spec 001) still gets the email, but the link
@@ -728,7 +730,8 @@ Scenario: Withdrawing sends nothing
 ## Decisions (resolved 2026-11-14)
 
 Questions 1–3 are the ones spec 003's hand-offs left to this spec; 4–10 came up while
-drafting; 11–15 came out of checking the draft against its diagrams and the earlier specs.
+drafting; 11–15 came out of checking the draft against its diagrams and the earlier specs;
+16 came out of writing the plan.
 The owner went through them one at a time and chose the proposed answer for each.
 
 | # | Question | Decision |
@@ -748,6 +751,7 @@ The owner went through them one at a time and chose the proposed answer for each
 | 13 | What if two Admins edit the same listing at once? | The later save replaces the earlier one; nothing guards against it. Accepted while there are few Admins; handed to spec 008 (REQ-004-8) |
 | 14 | What about an owner who can no longer open My listings? | The email is sent whatever the owner's role is now; the link refuses an Admin who was demoted to Candidate. Not handled here; spec 008 decides what happens to such an account's listings (REQ-004-9) |
 | 15 | How are buttons marked in the screen flow? | Brackets for every button, bold for the screen's accent action, red for a destructive one, stated in the diagram's legend. Applies to this spec's screen flow only; the README and the screen flows of specs 002 and 003 are unchanged |
+| 16 | How does the edit email name the parts that changed? | By short names ("Area", "Salary"), not the form labels with their hints. Settled after approval, when the plan showed the rule ("the form's labels") and its scenario ("Area") disagreed (REQ-004-9) |
 
 ## Notes for the plan
 
@@ -821,3 +825,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-14 | "No wireframe" note names all five new screens; decisions 11–15 added to the Decisions table |
 | 2026-11-14 | Approved |
 | 2026-11-14 | The test-helper note moved from "Notes for the plan" to `plan.md` (Test strategy), as agreed; no requirement changed |
+| 2026-11-14 | Amended after approval (owner's choice): REQ-004-9's rule says the edit email uses short names of the parts, matching its scenario; `activity-emails` updated; decision 16 added |

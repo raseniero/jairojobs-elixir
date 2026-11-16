@@ -20,7 +20,7 @@ B -> W : event
 W -> L : submit_listing(scope, listing, admin_url)
 
 group one transaction (the checks of spec 003)
-  L -> DB : lock the owner row, check status,\ncompleteness, region, limit
+  L -> DB : lock the owner row and the listing row,\ncheck status, completeness, region, limit
   alt a check fails
     L --> W : {:error, reason}
     W --> B : message, as in spec 003

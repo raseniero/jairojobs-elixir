@@ -40,7 +40,8 @@ else (an Admin approved, rejected,\ntook down or edited a listing)
   case (edited)
     :"We edited your listing"
     with the names of the parts changed
-    (form labels, no old or new text);
+    (short names such as "Area",
+    no old or new text);
   endswitch
   :Send one email to the owner's account address from
   hello@jairojobs.com, with the title, what the employer can

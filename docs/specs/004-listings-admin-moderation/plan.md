@@ -106,9 +106,9 @@ The names of changed parts for the email come from one map in `ListingNotifier`:
 Job title, Region, Area, Salary, Type, Schedule, About the job, Requirements, Benefits,
 Business name, About the business. `salary_min` and `salary_max` both read "Salary".
 
-Reading of the spec: REQ-004-9 says the email uses "the form's labels", and its scenario
-expects "Area". The form label is "Area or neighbourhood", and others carry "(optional)".
-The email uses the short names above, which is what the scenario asserts (decision 9).
+These are the short names REQ-004-9 lists: the form's labels without their hints ("Area",
+not "Area or neighbourhood"). The spec's rule was amended to say so on 2026-11-14, when
+this plan showed that the rule and its scenario disagreed (decision 9; spec decision 16).
 
 ## Data model
 
@@ -418,7 +418,7 @@ diagram.
 | 6 | "Back returns to the same list" | Row links carry `?from=<status>`; the Admin view's back link uses it and defaults to the queue | no |
 | 7 | Reject and take-down forms | Two extra actions of the Admin view (`/reject`, `/take-down`), not separate LiveViews or modals | no |
 | 8 | "First task replaces the status helper" | Two tasks: task 1 builds approve, reject and take down without emails; task 2 removes the helper and re-runs the suite, with nothing else in the commit (owner's choice, 2026-11-14) | no |
-| 9 | Names of changed parts in the edit email | Short names ("Area", "Salary"), not the form labels with their hints | no |
+| 9 | Names of changed parts in the edit email | Short names ("Area", "Salary"), not the form labels with their hints. Confirmed by the owner 2026-11-14; REQ-004-9 amended to match | no |
 | 10 | "Show more" | Appends the next 50 to the page; the count shown is not kept in the address, so Back returns to the first 50 | no |
 | 11 | Row locks on every status change, including spec 003's withdraw, close, edit and delete | Yes | no |
 | 12 | Database checks for the reasons and `published_at` | Yes, in their own migration | medium — a later change needs a migration |
