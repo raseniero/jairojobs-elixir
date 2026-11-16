@@ -105,13 +105,13 @@ defmodule Jairojobs.Listings do
     * `{:error, :unauthorized}` — the scope is not an Employer or Admin
   """
   def update_listing(scope, %Listing{} = listing, attrs) do
-    with {:ok, listing} <- fetch_mine(scope, listing),
-         :ok <- editable(listing) do
-      listing
-      |> Listing.draft_changeset(attrs)
-      |> Repo.update()
-      |> preload_region()
-    end
+    scope
+    |> with_my_listing(listing, fn listing ->
+      with :ok <- editable(listing) do
+        listing |> Listing.draft_changeset(attrs) |> Repo.update()
+      end
+    end)
+    |> preload_region()
   end
 
   @doc """
@@ -120,10 +120,9 @@ defmodule Jairojobs.Listings do
   errors as `update_listing/3` (without the changeset).
   """
   def delete_listing(scope, %Listing{} = listing) do
-    with {:ok, listing} <- fetch_mine(scope, listing),
-         :ok <- editable(listing) do
-      Repo.delete(listing)
-    end
+    with_my_listing(scope, listing, fn listing ->
+      with :ok <- editable(listing), do: Repo.delete(listing)
+    end)
   end
 
   @doc """
@@ -175,7 +174,7 @@ defmodule Jairojobs.Listings do
       Repo.transaction(fn ->
         owner = Repo.one!(from u in User, where: u.id == ^scope.user.id, lock: "FOR UPDATE")
 
-        with {:ok, listing} <- fetch_mine(scope, listing),
+        with {:ok, listing} <- lock_mine(scope, listing),
              :ok <- submittable(listing),
              :ok <- complete(listing),
              :ok <- region_active(listing),
@@ -338,13 +337,15 @@ defmodule Jairojobs.Listings do
   defp notify_owner({:error, reason}, _owner_url), do: {:error, reason}
 
   defp transition(scope, listing, from, changes) do
-    with {:ok, listing} <- fetch_mine(scope, listing) do
+    scope
+    |> with_my_listing(listing, fn listing ->
       if listing.status == from do
-        listing |> Ecto.Changeset.change(changes) |> Repo.update() |> preload_region()
+        listing |> Ecto.Changeset.change(changes) |> Repo.update()
       else
         {:error, :invalid_status}
       end
-    end
+    end)
+    |> preload_region()
   end
 
   defp submittable(%Listing{status: status}) when status in [:draft, :rejected], do: :ok
@@ -371,14 +372,35 @@ defmodule Jairojobs.Listings do
     if count_open(id) < @open_listing_limit, do: :ok, else: {:error, :limit_reached}
   end
 
-  # The stored row, never the struct we were handed: the caller's copy may be
-  # stale or may belong to someone else (constitution §2.7).
-  defp fetch_mine(scope, %Listing{id: id}) do
+  # Runs one owner action on the scoped account's own listing, in a transaction
+  # that holds the listing's row lock. An Admin may be deciding the same listing
+  # at the same moment (spec 004): whoever comes second waits, then sees the
+  # status the first one left and is refused.
+  defp with_my_listing(scope, %Listing{} = listing, action) do
+    Repo.transaction(fn ->
+      with {:ok, listing} <- lock_mine(scope, listing),
+           {:ok, result} <- action.(listing) do
+        result
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  # The stored row, locked, never the struct we were handed: the caller's copy
+  # may be stale or may belong to someone else (constitution §2.7). Must be
+  # called inside a transaction.
+  defp lock_mine(scope, %Listing{id: id}) do
     cond do
       not Scope.poster?(scope) ->
         {:error, :unauthorized}
 
-      listing = Repo.get_by(Listing, id: id, user_id: scope.user.id) ->
+      listing =
+          Repo.one(
+            from l in Listing,
+              where: l.id == ^id and l.user_id == ^scope.user.id,
+              lock: "FOR UPDATE"
+          ) ->
         {:ok, listing}
 
       true ->

@@ -83,7 +83,7 @@ render-all script.
     comment moves `published_at` from 005 to 004) and `data-model.md`
   - Commit: `feat(listings): database checks for moderation decisions (REQ-004-5, REQ-004-6, REQ-004-7)`
 
-- [ ] **T4** — Lock the listing row on every status change (plan decision 11)
+- [x] **T4** — Lock the listing row on every status change (plan decision 11) — done 2026-11-16
   - `withdraw_listing/2`, `close_listing/2`, `update_listing/3`, `delete_listing/2` run in
     a transaction and use the row-lock helper from T1; `submit_listing/2` locks the
     listing row after the owner row
@@ -360,3 +360,10 @@ render-all script.
   What the test proves is unchanged.
 - T3: both migrations ran on the dev database without error, so it held no rows the checks
   refuse.
+- T4: the new concurrency test was written and run before the locks were added. It failed 3
+  times out of 3, each time leaving a Draft that carried an approval time and the approving
+  Admin, with both calls reporting success: the state plan decision 11 predicted. With the
+  locks it passed 8 times out of 8. It races 40 listings per run and leaves no rows behind.
+- T4: `fetch_mine/2` became `lock_mine/2` (the same ownership check, with the row lock), used
+  by withdraw, close, edit, delete and submit through one `with_my_listing/3`. Spec 003's
+  tests passed unchanged.

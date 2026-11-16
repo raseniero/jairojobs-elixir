@@ -1,8 +1,8 @@
 defmodule Jairojobs.ListingsConcurrencyTest do
-  # Not async, and outside the usual sandbox (constitution §3.5): this test needs two real
-  # database connections racing each other. Inside the sandbox both tasks would share one
-  # transaction and the owner-row lock in `submit_listing/2` would prove nothing. Everything
-  # it commits is deleted again in `on_exit`.
+  # Not async, and outside the usual sandbox (constitution §3.5): these tests need real
+  # database connections racing each other. Inside the sandbox the tasks would share one
+  # transaction and the row locks in `Jairojobs.Listings` would prove nothing. Everything
+  # they commit is deleted again in `on_exit`.
   use ExUnit.Case, async: false
 
   import Ecto.Query
@@ -15,7 +15,7 @@ defmodule Jairojobs.ListingsConcurrencyTest do
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
 
-  test "REQ-003-12: two submissions at the same moment cannot exceed the limit" do
+  setup do
     users_before = unboxed(fn -> Repo.all(from u in User, select: u.id) end)
     regions_before = unboxed(fn -> Repo.all(from r in Region, select: r.id) end)
 
@@ -27,7 +27,9 @@ defmodule Jairojobs.ListingsConcurrencyTest do
         Repo.delete_all(from u in User, where: u.id not in ^users_before)
       end)
     end)
+  end
 
+  test "REQ-003-12: two submissions at the same moment cannot exceed the limit" do
     {scope, drafts} =
       unboxed(fn ->
         scope = ListingsFixtures.employer_scope_fixture()
@@ -53,6 +55,65 @@ defmodule Jairojobs.ListingsConcurrencyTest do
     assert Enum.count(results, &(&1 == {:error, :limit_reached})) == 3
     assert unboxed(fn -> Listings.count_open_listings(scope) end) == 3
   end
+
+  # spec 004, plan decision 11. An Employer withdraws at the instant an Admin approves.
+  # Whichever comes second must see the other's result and be refused; the listing must
+  # never end up a Draft that carries an approval, or Published after a withdrawal.
+  test "an approval and a withdrawal at the same moment leave one consistent listing" do
+    rounds = 40
+
+    {owner, admin, listings} =
+      unboxed(fn ->
+        # An Admin owner has no limit on open listings, so one account can hold them all.
+        owner = ListingsFixtures.admin_poster_scope_fixture()
+        admin = Jairojobs.AccountsFixtures.admin_scope_fixture()
+        region_id = Jairojobs.RegionsFixtures.region_fixture().id
+
+        listings =
+          for _ <- 1..rounds do
+            ListingsFixtures.listing_in_status_fixture(owner, :pending, region_id: region_id)
+          end
+
+        {owner, admin, listings}
+      end)
+
+    url = &"https://jairojobs.test/my/listings/#{&1.id}"
+
+    outcomes =
+      for listing <- listings do
+        approve =
+          Task.async(fn -> unboxed(fn -> Listings.approve_listing(admin, listing, url) end) end)
+
+        withdraw =
+          Task.async(fn -> unboxed(fn -> Listings.withdraw_listing(owner, listing) end) end)
+
+        {Task.await(approve, 15_000), Task.await(withdraw, 15_000),
+         unboxed(fn -> Repo.get!(Listing, listing.id) end)}
+      end
+
+    for {approved, withdrawn, stored} <- outcomes do
+      case {approved, withdrawn} do
+        {{:ok, %Listing{status: :published}, _email}, {:error, :invalid_status}} ->
+          assert %Listing{status: :published, published_at: %DateTime{}} = stored
+          assert stored.decided_by_id == admin.user.id
+
+        {{:error, :not_pending}, {:ok, %Listing{status: :draft}}} ->
+          assert %Listing{status: :draft, published_at: nil, decided_at: nil} = stored
+          assert stored.decided_by_id == nil
+
+        {approved, withdrawn} ->
+          flunk(
+            "both went through, or neither did: approve #{outcome(approved)}, " <>
+              "withdraw #{outcome(withdrawn)}, stored as #{stored.status} with " <>
+              "published_at #{inspect(stored.published_at)}"
+          )
+      end
+    end
+  end
+
+  defp outcome({:ok, %Listing{status: status}}), do: "ok (#{status})"
+  defp outcome({:ok, %Listing{status: status}, _email}), do: "ok (#{status})"
+  defp outcome({:error, reason}), do: "refused (#{inspect(reason)})"
 
   defp unboxed(fun), do: Sandbox.unboxed_run(Repo, fun)
 end
