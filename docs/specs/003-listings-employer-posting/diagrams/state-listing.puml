@@ -26,7 +26,7 @@ Draft --> Pending : submit for approval\n(complete, within the limit)
 Draft --> [*] : delete
 
 Pending : waiting for an Admin
-Pending : locked — cannot be edited
+Pending : locked for the Employer (Admin edit: 004)
 Pending --> Draft : withdraw
 Pending -[dashed]-> Published : Admin approves (004)
 Pending -[dashed]-> Rejected : Admin rejects\nwith a reason (004)
@@ -38,7 +38,7 @@ Rejected --> Pending : resubmit\n(complete, within the limit)
 Rejected --> [*] : delete
 
 Published : visible to everyone (005)
-Published : locked — cannot be edited
+Published : locked for the Employer (Admin edit: 004)
 Published --> Closed : employer closes
 Published -[dashed]-> TakenDown : Admin takes down (004)
 

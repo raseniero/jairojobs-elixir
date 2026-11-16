@@ -417,7 +417,20 @@ defmodule Jairojobs.ListingsModerationTest do
 
         assert {:error, :unauthorized} =
                  Listings.take_down_listing(scope, live, %{reason: @reason}, owner_url())
+
+        for listing <- [waiting, live] do
+          assert {:error, :unauthorized} =
+                   Listings.update_listing_as_admin(
+                     scope,
+                     listing,
+                     %{title: "Changed by someone else"},
+                     owner_url()
+                   )
+        end
       end
+
+      assert reload(waiting).title == waiting.title
+      assert reload(live).title == live.title
 
       assert %Listing{status: :pending, decided_at: nil, rejection_reason: nil} = reload(waiting)
       assert %Listing{status: :published, takedown_reason: nil} = reload(live)
@@ -432,6 +445,311 @@ defmodule Jairojobs.ListingsModerationTest do
 
       changeset = Listings.change_reason(%{"reason" => "short"})
       assert "should be at least 10 character(s)" in errors_on(changeset).reason
+    end
+  end
+
+  describe "update_listing_as_admin/4" do
+    # What the Admin edit form sends back for a listing nobody has touched.
+    defp form_params(%Listing{} = listing) do
+      %{
+        "title" => listing.title,
+        "region_id" => listing.region_id,
+        "area" => listing.area,
+        "salary_min" => Integer.to_string(listing.salary_min),
+        "salary_max" => Integer.to_string(listing.salary_max),
+        "employment_type" => Atom.to_string(listing.employment_type),
+        "schedule" => listing.schedule,
+        "description" => listing.description,
+        "requirements" => listing.requirements,
+        "benefits" => listing.benefits,
+        "business_name" => listing.business_name,
+        "business_about" => listing.business_about || ""
+      }
+    end
+
+    test "REQ-004-8: fix a waiting listing", %{employer: employer, admin: admin} do
+      first = pending_listing(employer, title: "Barrista (full-time)")
+      second = pending_listing(employer_scope_fixture())
+
+      assert {:ok, %Listing{} = listing, _email} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 first,
+                 %{form_params(first) | "title" => "Barista (full-time)"},
+                 owner_url()
+               )
+
+      assert listing.title == "Barista (full-time)"
+      assert listing.status == :pending
+      assert listing.submitted_at == first.submitted_at
+      assert listing.region.id == first.region_id
+      # An edit is not a decision.
+      assert {listing.decided_at, listing.decided_by_id, listing.published_at} == {nil, nil, nil}
+
+      # Still at the same place in the queue.
+      assert {[one, two], false} = Listings.list_listings_for_moderation(admin, :pending)
+      assert [one.id, two.id] == [first.id, second.id]
+    end
+
+    test "REQ-004-8: fix a live listing", %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+      text = "We are a neighbourhood café looking for a barista who enjoys regulars. Fixed."
+      other_admin = admin_scope_fixture()
+
+      assert {:ok, listing, _email} =
+               Listings.update_listing_as_admin(
+                 other_admin,
+                 live,
+                 %{form_params(live) | "description" => text},
+                 owner_url()
+               )
+
+      assert listing.description == text
+      assert listing.status == :published
+      # The record of the approval is untouched.
+      assert listing.published_at == live.published_at
+      assert listing.decided_at == live.decided_at
+      assert listing.decided_by_id == admin.user.id
+    end
+
+    test "REQ-004-8: the listing must stay complete", %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+      before = reload(pending)
+
+      broken = [
+        {:title, %{"title" => ""}},
+        {:title, %{"title" => "Four"}},
+        {:region_id, %{"region_id" => ""}},
+        {:area, %{"area" => "  "}},
+        {:salary_min, %{"salary_min" => "", "salary_max" => ""}},
+        {:salary_max, %{"salary_max" => ""}},
+        {:salary_max, %{"salary_min" => "16000", "salary_max" => "14000"}},
+        {:salary_min, %{"salary_min" => "abc"}},
+        {:employment_type, %{"employment_type" => ""}},
+        {:description, %{"description" => ""}},
+        {:description, %{"description" => String.duplicate("a", 49)}},
+        {:business_name, %{"business_name" => ""}},
+        {:business_name, %{"business_name" => "K"}},
+        {:business_name, %{"business_name" => String.duplicate("a", 81)}},
+        {:business_about, %{"business_about" => String.duplicate("a", 501)}}
+      ]
+
+      for {field, change} <- broken do
+        assert {:error, %Ecto.Changeset{} = changeset} =
+                 Listings.update_listing_as_admin(
+                   admin,
+                   pending,
+                   Map.merge(form_params(pending), change),
+                   owner_url()
+                 )
+
+        assert Map.has_key?(errors_on(changeset), field),
+               "expected an error on #{field} for #{inspect(change)}, got: " <>
+                 inspect(errors_on(changeset))
+      end
+
+      assert reload(pending) == before
+    end
+
+    test "REQ-004-8: business name changes on the listing only", %{admin: admin} do
+      employer = employer_scope_fixture(business_name: "Kape Isla Cafe")
+      live = published_listing(employer, admin)
+      assert live.business_name == "Kape Isla Cafe"
+
+      assert {:ok, listing, _email} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 live,
+                 %{
+                   form_params(live)
+                   | "business_name" => "Kape Isla Café",
+                     "business_about" => "Family-run since 2019."
+                 },
+                 owner_url()
+               )
+
+      assert listing.business_name == "Kape Isla Café"
+      assert listing.business_about == "Family-run since 2019."
+
+      account = Accounts.get_user!(employer.user.id)
+      assert account.business_name == "Kape Isla Cafe"
+      assert account.business_about == nil
+    end
+
+    test "REQ-004-8: other listings cannot be edited", %{employer: employer, admin: admin} do
+      needs_changes = listing_in_status_fixture(employer, :rejected)
+      closed = listing_in_status_fixture(employer, :closed)
+      taken_down = listing_in_status_fixture(employer, :taken_down)
+
+      for listing <- [needs_changes, closed, taken_down] do
+        before = reload(listing)
+
+        assert {:error, :not_editable} =
+                 Listings.update_listing_as_admin(
+                   admin,
+                   listing,
+                   %{form_params(listing) | "title" => "Changed anyway"},
+                   owner_url()
+                 )
+
+        assert reload(listing) == before
+      end
+    end
+
+    test "REQ-004-8: only active regions can be chosen", %{employer: employer, admin: admin} do
+      baguio = region_fixture()
+      cebu = region_fixture()
+      other_hidden = region_fixture(active: false)
+      live = published_listing(employer, admin, region_id: baguio.id)
+      {:ok, _hidden} = Regions.hide_region(admin, baguio)
+
+      # Keeping the listing's own hidden region is allowed.
+      assert {:ok, kept, _email} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 live,
+                 %{form_params(live) | "area" => "Session Road"},
+                 owner_url()
+               )
+
+      assert kept.region_id == baguio.id
+      assert kept.area == "Session Road"
+
+      # Another hidden region is not.
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 kept,
+                 %{form_params(kept) | "region_id" => other_hidden.id},
+                 owner_url()
+               )
+
+      assert errors_on(changeset).region_id != []
+
+      # Nor one that does not exist.
+      assert {:error, %Ecto.Changeset{}} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 kept,
+                 %{form_params(kept) | "region_id" => Ecto.UUID.generate()},
+                 owner_url()
+               )
+
+      assert reload(live).region_id == baguio.id
+
+      # An active one is.
+      assert {:ok, moved, _email} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 kept,
+                 %{form_params(kept) | "region_id" => cebu.id},
+                 owner_url()
+               )
+
+      assert moved.region.id == cebu.id
+    end
+
+    test "REQ-004-8: saving without changes does nothing", %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+      before = reload(live)
+
+      assert {:ok, %Listing{} = listing, :unchanged} =
+               Listings.update_listing_as_admin(admin, live, form_params(live), owner_url())
+
+      assert listing.id == live.id
+      assert reload(live) == before
+
+      # Stray spaces around a value are not a change either.
+      assert {:ok, _listing, :unchanged} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 live,
+                 %{form_params(live) | "title" => "  #{live.title}  "},
+                 owner_url()
+               )
+
+      assert reload(live).updated_at == before.updated_at
+    end
+
+    test "REQ-004-8: the listing changed while I was editing",
+         %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+      {:ok, _draft} = Listings.withdraw_listing(employer, pending)
+
+      assert {:error, :not_editable} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 pending,
+                 %{form_params(pending) | "title" => "Changed after the withdrawal"},
+                 owner_url()
+               )
+
+      assert %Listing{status: :draft} = stored = reload(pending)
+      assert stored.title == pending.title
+    end
+
+    test "when two Admins edit the same listing, the later save wins",
+         %{employer: employer, admin: admin} do
+      # Both open the form on the same version of the listing.
+      opened = pending_listing(employer, title: "Barista (full-time)")
+      other_admin = admin_scope_fixture()
+
+      {:ok, _first, _email} =
+        Listings.update_listing_as_admin(
+          admin,
+          opened,
+          %{form_params(opened) | "title" => "Barista (mornings)", "area" => "Toril"},
+          owner_url()
+        )
+
+      {:ok, second, _email} =
+        Listings.update_listing_as_admin(
+          other_admin,
+          opened,
+          %{form_params(opened) | "title" => "Barista (evenings)"},
+          owner_url()
+        )
+
+      # The second form still held the old area, so it replaces the first save whole.
+      assert second.title == "Barista (evenings)"
+      assert second.area == opened.area
+    end
+
+    test "status, owner and the times cannot be changed by an Admin edit",
+         %{employer: employer, admin: admin} do
+      pending = pending_listing(employer)
+
+      forged =
+        Map.merge(form_params(pending), %{
+          "title" => "Barista (afternoons)",
+          "status" => "published",
+          "user_id" => admin.user.id,
+          "submitted_at" => "2020-01-01T00:00:00Z",
+          "published_at" => "2020-01-01T00:00:00Z",
+          "decided_by_id" => admin.user.id,
+          "rejection_reason" => "forged"
+        })
+
+      assert {:ok, listing, _email} =
+               Listings.update_listing_as_admin(admin, pending, forged, owner_url())
+
+      assert listing.title == "Barista (afternoons)"
+      assert listing.status == :pending
+      assert listing.user_id == employer.user.id
+      assert listing.submitted_at == pending.submitted_at
+
+      assert {listing.published_at, listing.decided_by_id, listing.rejection_reason} ==
+               {nil, nil, nil}
+    end
+
+    test "change_listing_as_admin/2 builds the form's changeset",
+         %{employer: employer} do
+      pending = pending_listing(employer)
+
+      assert %Ecto.Changeset{valid?: true} = Listings.change_listing_as_admin(pending)
+
+      changeset = Listings.change_listing_as_admin(pending, %{"business_name" => ""})
+      assert "can't be blank" in errors_on(changeset).business_name
     end
   end
 

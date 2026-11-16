@@ -20,6 +20,7 @@ defmodule Jairojobs.Listings do
   alias Jairojobs.Accounts.Scope
   alias Jairojobs.Accounts.User
   alias Jairojobs.Listings.Listing
+  alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
 
   # spec 003 — REQ-003-12: open (Pending + Published) listings a free Employer may have.
@@ -311,7 +312,7 @@ defmodule Jairojobs.Listings do
     |> moderate(listing, fn admin, listing ->
       with :ok <- in_status(listing, [:pending], :not_pending),
            :ok <- region_active(listing) do
-        listing |> Listing.approve_changeset(admin, DateTime.utc_now()) |> Repo.update()
+        listing |> Listing.approve_changeset(admin, DateTime.utc_now()) |> decide()
       end
     end)
     |> notify_owner(owner_url)
@@ -331,7 +332,7 @@ defmodule Jairojobs.Listings do
     |> moderate(listing, fn admin, listing ->
       with :ok <- in_status(listing, [:pending], :not_pending),
            {:ok, reason} <- reason(attrs) do
-        listing |> Listing.reject_changeset(admin, reason, DateTime.utc_now()) |> Repo.update()
+        listing |> Listing.reject_changeset(admin, reason, DateTime.utc_now()) |> decide()
       end
     end)
     |> notify_owner(owner_url)
@@ -351,22 +352,87 @@ defmodule Jairojobs.Listings do
     |> moderate(listing, fn admin, listing ->
       with :ok <- in_status(listing, [:published], :not_published),
            {:ok, reason} <- reason(attrs) do
-        listing |> Listing.take_down_changeset(admin, reason, DateTime.utc_now()) |> Repo.update()
+        listing |> Listing.take_down_changeset(admin, reason, DateTime.utc_now()) |> decide()
       end
     end)
     |> notify_owner(owner_url)
   end
 
+  @doc """
+  A changeset for the Admin edit form (REQ-004-8).
+  """
+  def change_listing_as_admin(%Listing{} = listing, attrs \\ %{}) do
+    Listing.admin_changeset(listing, attrs)
+  end
+
+  @doc """
+  Saves an Admin's fix to a Pending or Published listing (REQ-004-8). The
+  status, the place in the queue and the record of any decision stay as they
+  are, and the account's own business details are never touched. No second
+  approval is needed: the Admin who saves is the approver.
+
+  The listing must stay complete. Its region may stay as it is, hidden or not,
+  or move to an active region. When two Admins save the same listing, the
+  later save replaces the earlier one.
+
+  Returns:
+
+    * `{:ok, listing, email}` — saved; `email` as for `approve_listing/3`
+    * `{:ok, listing, :unchanged}` — nothing differed; nothing saved, no email
+    * `{:error, changeset}` — a field is missing or invalid; nothing saved
+    * `{:error, :not_editable}` — no longer Pending or Published
+    * `{:error, :not_found}` / `{:error, :unauthorized}`
+  """
+  def update_listing_as_admin(scope, %Listing{} = listing, attrs, owner_url)
+      when is_function(owner_url, 1) do
+    scope
+    |> moderate(listing, fn _admin, listing ->
+      with :ok <- in_status(listing, [:pending, :published], :not_editable) do
+        listing |> Listing.admin_changeset(attrs) |> region_offered() |> save_edit(listing)
+      end
+    end)
+    |> notify_owner(owner_url)
+  end
+
+  # A changed region must be one that is offered: an active one. Keeping the
+  # listing's own region is not a change, so a hidden one may stay.
+  defp region_offered(changeset) do
+    with {:ok, region_id} when not is_nil(region_id) <-
+           Ecto.Changeset.fetch_change(changeset, :region_id),
+         false <- match?(%Region{active: true}, Repo.get(Region, region_id)) do
+      Ecto.Changeset.add_error(changeset, :region_id, "is not available")
+    else
+      _unchanged_or_active -> changeset
+    end
+  end
+
+  defp save_edit(%Ecto.Changeset{valid?: true, changes: changes}, listing)
+       when map_size(changes) == 0,
+       do: {:ok, listing, :unchanged}
+
+  defp save_edit(changeset, _listing) do
+    with {:ok, listing} <- Repo.update(changeset) do
+      {:ok, listing, {:edited, Map.keys(changeset.changes)}}
+    end
+  end
+
+  defp decide(changeset) do
+    with {:ok, listing} <- Repo.update(changeset), do: {:ok, listing, :decided}
+  end
+
   # Runs one Admin action in a transaction. The role is re-read from the
   # database (the scope may be stale) and the listing row is locked and read
   # fresh, so the status the action checks is the status it changes.
+  #
+  # The action answers `{:ok, listing, what_happened}`; that pair comes back
+  # as `{:ok, {listing, what_happened}}` once the transaction has committed.
   defp moderate(scope, %Listing{id: id}, action) do
     if Scope.admin?(scope) do
       Repo.transaction(fn ->
         with {:ok, admin} <- fetch_admin(scope),
              {:ok, listing} <- lock_listing(id),
-             {:ok, listing} <- action.(admin, listing) do
-          Repo.preload(listing, :region, force: true)
+             {:ok, listing, what_happened} <- action.(admin, listing) do
+          {Repo.preload(listing, :region, force: true), what_happened}
         else
           {:error, reason} -> Repo.rollback(reason)
         end
@@ -405,7 +471,11 @@ defmodule Jairojobs.Listings do
 
   # The email to the listing's owner is added with the notifier (REQ-004-9).
   # Until then nothing is sent, which is what `:own_listing` reports.
-  defp notify_owner({:ok, listing}, _owner_url), do: {:ok, listing, :own_listing}
+  defp notify_owner({:ok, {listing, :unchanged}}, _owner_url), do: {:ok, listing, :unchanged}
+
+  defp notify_owner({:ok, {listing, _what_happened}}, _owner_url),
+    do: {:ok, listing, :own_listing}
+
   defp notify_owner({:error, reason}, _owner_url), do: {:error, reason}
 
   defp transition(scope, listing, from, changes) do

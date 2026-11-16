@@ -108,7 +108,7 @@ render-all script.
     a non-Admin gets `0`, `{[], false}` and `Ecto.NoResultsError`
   - Commit: `feat(listings): approval queue and moderation lists (REQ-004-2, REQ-004-3, REQ-004-4)`
 
-- [ ] **T6** — Admin edit (REQ-004-8; rest of -1)
+- [x] **T6** — Admin edit (REQ-004-8; rest of -1) — done 2026-11-16
   - `Listing.admin_changeset/2`; `Listings.change_listing_as_admin/2`,
     `update_listing_as_admin/4` (final shape; `email` is `:own_listing` until T7)
   - Tests (`listings_moderation_test.exs`): `REQ-004-8: fix a waiting listing` (status and
@@ -370,3 +370,11 @@ render-all script.
 - T5: the "long list" test uses 60 waiting listings owned by an Admin, who has no limit on open
   listings; the paging code is the same for every status. An unknown status is treated like
   `:draft` and returns nothing.
+- T6: `admin_changeset/2` builds on `draft_changeset/2` and then requires everything, so the
+  field rules exist once. A changed region is checked against the regions table in the context;
+  keeping the listing's own region is not a change, which is how a hidden one may stay.
+- T6: the later of two saves replaces the earlier one whole, including fields the second Admin
+  did not touch, because their form still held the old values. A test pins this down; it is
+  what spec decision 13 accepts.
+- T6: spec 003's REQ-003-5 and REQ-003-2 rules and its state diagram were updated in this
+  commit, with a changelog row there.

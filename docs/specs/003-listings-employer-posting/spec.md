@@ -270,9 +270,10 @@ Scenario: Change business details
 **Rules**
 - Business name: required, 2–80 characters, trimmed.
 - About the business: optional, up to 500 characters, plain text.
-- A listing shows the business details it had when it was last submitted. Changing them
-  never alters a Pending or Published listing, so nothing reaches the public without having
-  been in front of an Admin (constitution §2.9).
+- A listing shows the business details it had when it was last submitted, unless an Admin
+  has since edited that listing's copy (REQ-004-8). A change to the account's business
+  details never alters a Pending or Published listing, so nothing reaches the public
+  without having been in front of an Admin (constitution §2.9).
 
 ### REQ-003-3: Save a draft
 
@@ -399,7 +400,8 @@ Scenario: Editing a locked listing is refused
 ```
 
 **Rules**
-- Only Draft and Rejected listings can be edited. Editing never changes the status.
+- An Employer can edit only Draft and Rejected listings. Editing never changes the status.
+  An Admin's edit of a Pending or Published listing is REQ-004-8.
 - The same field rules apply as when saving a new draft (REQ-003-3).
 
 ### REQ-003-6: Submit for approval
@@ -739,3 +741,4 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-12 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-12 | Wireframe brought in line with the app: status pill at the right of each row, no separate region line in the owner view, salary hint wording |
 | 2026-11-12 | Hand-off added for spec 005: public addresses use a slug only |
+| 2026-11-16 | Changed by spec 004 (Admin edit, REQ-004-8): REQ-003-5's rule now speaks for the Employer only; REQ-003-2's rule gains the Admin-edit exception; the state diagram says "locked for the Employer" |

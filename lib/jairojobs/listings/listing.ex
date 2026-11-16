@@ -127,6 +127,34 @@ defmodule Jairojobs.Listings.Listing do
     |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
   end
 
+  @doc """
+  Changeset for an Admin's fix to a Pending or Published listing (REQ-004-8).
+
+  Every field of the listing form plus this listing's own copy of the business
+  name and "about". Unlike a draft, the listing must stay complete: the rules
+  of REQ-003-4 and REQ-003-2 apply with every required field present. Status,
+  owner, the times and the decision are never cast.
+  """
+  def admin_changeset(%__MODULE__{} = listing, attrs) do
+    listing
+    |> draft_changeset(attrs)
+    |> cast(attrs, [:business_name, :business_about])
+    |> trim([:business_name, :business_about])
+    |> validate_required([
+      :region_id,
+      :area,
+      :salary_min,
+      :salary_max,
+      :employment_type,
+      :description,
+      :business_name
+    ])
+    |> validate_length(:description, min: @min_description)
+    |> validate_length(:business_name, min: 2, max: 80)
+    |> validate_length(:business_about, max: 500)
+    |> check_constraint(:status, name: :listings_complete_unless_unsubmitted)
+  end
+
   @reason_types %{reason: :string}
 
   @doc """
