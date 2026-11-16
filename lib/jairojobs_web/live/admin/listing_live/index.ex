@@ -69,7 +69,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Index do
         </li>
         <li :for={{dom_id, listing} <- @streams.listings} id={dom_id}>
           <.link
-            navigate={"/admin/listings/#{listing.id}?from=#{@slug}"}
+            navigate={~p"/admin/listings/#{listing.id}?#{[from: @slug]}"}
             class="group block min-h-11 py-3 transition-colors duration-150 hover:bg-base-200"
           >
             <span class="flex flex-wrap items-center gap-x-2">

@@ -181,7 +181,7 @@ render-all script.
     row), spec 001 `wireframe-nav` (the note on what the Admin area holds); changelog rows
   - Commit: `feat(web): admin listings page and waiting count (REQ-004-1, REQ-004-2, REQ-004-3)`
 
-- [ ] **T9** — Admin view and Approve (REQ-004-4, -5; rest of -3)
+- [x] **T9** — Admin view and Approve (REQ-004-4, -5; rest of -3) — done 2026-11-16
   - Router: `live "/listings/:id", ListingLive.Show, :show`; the row links from T8 become
     verified routes
   - `Admin.ListingLive.Show`: the box (status, "Your listing", poster, submitted time,
@@ -393,3 +393,10 @@ render-all script.
   to drop "as its first section", since Listings is now first. Its assertion is unchanged.
 - T8: the "long list" screen test builds 60 Live listings owned by an Admin and approved by
   the signed-in Admin, so it matches the scenario's wording.
+- T9: the latest decision reads "Rejected 3 h ago by ana@example.com"; the reason sits in its
+  own box under it, headed "The reason given to the employer". A Closed listing shows its
+  approval, since closing is the Employer's action, not a decision.
+- T9: "REQ-004-4: review a waiting listing" asserts Approve only for now; Reject and Edit are
+  added to it as T10 and T11 build them, and "actions follow the status" lands in T11.
+- T9: the hidden-region warning on the page and the refusal after tapping Approve use the same
+  sentence, from one place in the code.

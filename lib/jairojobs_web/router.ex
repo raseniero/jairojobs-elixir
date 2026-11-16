@@ -73,6 +73,7 @@ defmodule JairojobsWeb.Router do
 
       # spec 004 — admin moderation of listings (REQ-004-1).
       live "/listings", ListingLive.Index, :index
+      live "/listings/:id", ListingLive.Show, :show
     end
   end
 

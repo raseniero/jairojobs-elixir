@@ -273,4 +273,341 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert has_element?(view, "#filter-waiting[aria-current=page]")
     end
   end
+
+  describe "access to a listing's Admin view" do
+    test "REQ-004-1: employer or candidate is refused", %{conn: conn} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :pending)
+
+      # Its own Employer included: the Admin view is not theirs to open.
+      for user <- [employer.user, user_fixture(role: "employer"), user_fixture(role: "candidate")] do
+        conn = log_in_user(conn, user)
+
+        assert {:error, {:redirect, %{to: "/", flash: flash}}} =
+                 live(conn, ~p"/admin/listings/#{listing.id}")
+
+        assert flash["error"] == "You are not authorized to access this page."
+      end
+    end
+
+    test "REQ-004-1: visitor is redirected to log in", %{conn: conn} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :pending)
+
+      assert {:error, {:redirect, %{to: "/users/log-in"}}} =
+               live(conn, ~p"/admin/listings/#{listing.id}")
+
+      # The link in the email to Admins brings them back here after logging in.
+      conn = get(conn, ~p"/admin/listings/#{listing.id}")
+      assert get_session(conn, :user_return_to) == "/admin/listings/#{listing.id}"
+    end
+  end
+
+  describe "the Admin view" do
+    setup :log_in_admin
+
+    test "REQ-004-4: review a waiting listing", %{conn: conn} do
+      region = region_fixture(name: "Davao #{System.unique_integer([:positive])}")
+
+      employer =
+        employer_scope_fixture(
+          business_name: "Kape Isla",
+          business_about: "Family-run café since 2019."
+        )
+
+      listing =
+        listing_in_status_fixture(employer, :pending,
+          title: "Barista (full-time)",
+          region_id: region.id
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      # The listing as visitors will see it.
+      assert text(view, "#listing-title") == "Barista (full-time)"
+      assert text(view, "#listing-business") == "Kape Isla"
+      assert text(view, "#listing-salary") == "₱14,000–16,000 / month"
+      assert text(view, "#listing-location") == "Matina, #{region.name}"
+      assert text(view, "#listing-type") == "Full-time"
+      assert text(view, "#listing-schedule") == "Shifting, 6 days"
+      detail = text(view, "#listing-detail")
+      assert detail =~ "We're a neighbourhood café"
+      assert detail =~ "At least 18 years old"
+      assert detail =~ "Free meals on shift"
+      assert detail =~ "Family-run café since 2019."
+
+      # Who posted it, and when.
+      assert text(view, "#listing-status-#{listing.id}") == "Waiting for approval"
+      assert text(view, "#listing-poster") =~ "Kape Isla"
+      assert text(view, "#listing-poster") =~ employer.user.email
+      assert text(view, "#listing-submitted") == "Submitted just now"
+      refute has_element?(view, "#your-listing")
+      refute has_element?(view, "#listing-decision")
+      refute has_element?(view, "#listing-region-hidden")
+
+      assert text(view, "#moderation-help") ==
+               "Approving makes it public and emails the employer."
+
+      assert has_element?(view, "#approve-listing")
+    end
+
+    test "REQ-004-4: the latest decision is shown", %{conn: conn} do
+      employer = employer_scope_fixture()
+      pending = listing_in_status_fixture(employer, :pending)
+      ana = Scope.for_user(admin_fixture())
+      url = &"https://jairojobs.test/my/listings/#{&1.id}"
+
+      {:ok, rejected, _email} =
+        Listings.reject_listing(ana, pending, %{reason: "Salary looks like a typo"}, url)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{rejected.id}")
+
+      assert text(view, "#listing-status-#{rejected.id}") == "Needs changes"
+      assert text(view, "#listing-decision") == "Rejected just now by #{ana.user.email}"
+      assert text(view, "#listing-decision-reason") =~ "Salary looks like a typo"
+
+      # Sent again: no decision until the next one, and the old reason is gone.
+      {:ok, _resubmitted} = Listings.submit_listing(employer, rejected)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{rejected.id}")
+
+      refute has_element?(view, "#listing-decision")
+      refute has_element?(view, "#listing-decision-reason")
+    end
+
+    test "REQ-004-4: the latest decision of an approved or taken-down listing", %{conn: conn} do
+      live_listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+      closed = listing_in_status_fixture(employer_scope_fixture(), :closed)
+      taken_down = listing_in_status_fixture(employer_scope_fixture(), :taken_down)
+
+      for listing <- [live_listing, closed] do
+        {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+        assert text(view, "#listing-decision") =~ ~r/^Approved just now by \S+@\S+$/
+        refute has_element?(view, "#listing-decision-reason")
+      end
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{taken_down.id}")
+      assert text(view, "#listing-decision") =~ ~r/^Taken down just now by \S+@\S+$/
+      assert text(view, "#listing-decision-reason") =~ "No longer suitable for the board"
+    end
+
+    test "REQ-004-4: a hidden region is flagged", %{conn: conn, admin: admin} do
+      baguio = region_fixture(name: "Baguio #{System.unique_integer([:positive])}")
+
+      waiting =
+        listing_in_status_fixture(employer_scope_fixture(), :pending, region_id: baguio.id)
+
+      live_listing =
+        listing_in_status_fixture(employer_scope_fixture(), :published, region_id: baguio.id)
+
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, baguio)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{waiting.id}")
+
+      flag = text(view, "#listing-region-hidden")
+      assert flag =~ baguio.name
+      assert flag =~ "hidden"
+      assert flag =~ "cannot be approved as it is"
+      assert flag =~ "Show the region again"
+      assert flag =~ "Edit"
+      assert flag =~ "reject it with a reason"
+      # Approve is still offered.
+      assert has_element?(view, "#approve-listing")
+
+      # On a Live listing the pill is there, without the warning about approval.
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{live_listing.id}")
+
+      flag = text(view, "#listing-region-hidden")
+      assert flag =~ baguio.name
+      assert flag =~ "hidden"
+      refute flag =~ "cannot be approved"
+    end
+
+    test "REQ-004-4: a Draft is not found", %{conn: conn} do
+      employer = employer_scope_fixture()
+      draft = listing_fixture(employer, complete_listing_attrs())
+      withdrawn = listing_in_status_fixture(employer, :pending)
+      {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
+
+      for id <- [draft.id, withdrawn.id, Ecto.UUID.generate(), "not-an-id"] do
+        assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/admin/listings/#{id}") end
+      end
+    end
+
+    test "REQ-004-3: back returns to the same list", %{conn: conn} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+
+      {:ok, list, _html} = live(conn, ~p"/admin/listings?status=live")
+
+      {:ok, view, _html} =
+        list
+        |> element("#admin-listings-#{listing.id} a")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=live")
+
+      {:ok, list, _html} =
+        view
+        |> element("#back-to-admin-listings")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings?status=live")
+
+      assert has_element?(list, "#filter-live[aria-current=page]")
+      assert row_ids(list) == rows([listing])
+    end
+
+    test "without a list to go back to, back goes to the queue", %{conn: conn} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+
+      for path <- [
+            ~p"/admin/listings/#{listing.id}",
+            ~p"/admin/listings/#{listing.id}?from=nonsense",
+            ~p"/admin/listings/#{listing.id}?from=waiting"
+          ] do
+        {:ok, view, _html} = live(conn, path)
+
+        assert view
+               |> element("#back-to-admin-listings")
+               |> render()
+               |> LazyHTML.from_fragment()
+               |> LazyHTML.attribute("href") == ["/admin/listings"]
+      end
+    end
+  end
+
+  describe "approve" do
+    setup :log_in_admin
+
+    test "REQ-004-5: approve", %{conn: conn, admin: admin} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :pending)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=live")
+
+      # Two taps from the queue: open it, approve it. No confirm step.
+      assert view
+             |> element("#approve-listing")
+             |> render()
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.attribute("data-confirm") == []
+
+      # Back on the queue, whichever list the Admin came from.
+      {:ok, queue, _html} =
+        view
+        |> element("#approve-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(queue, "#flash-info", "Approved. It is live.")
+      assert row_ids(queue) == []
+
+      approved = Listings.get_listing_for_moderation!(admin, listing.id)
+      assert approved.status == :published
+      assert approved.decided_by_id == admin.user.id
+      assert %DateTime{} = approved.published_at
+
+      # Its Employer sees it marked Live in My listings.
+      {:ok, mine, _html} =
+        build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings")
+
+      assert text(mine, "#listing-status-#{listing.id}") == "Live"
+    end
+
+    test "REQ-004-5: hidden region blocks approval", %{conn: conn, admin: admin} do
+      region = region_fixture()
+
+      listing =
+        listing_in_status_fixture(employer_scope_fixture(), :pending, region_id: region.id)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, region)
+
+      view |> element("#approve-listing") |> render_click()
+
+      assert has_element?(view, "#flash-error", "Its region is hidden")
+      assert has_element?(view, "#flash-error", "Show the region again")
+      assert text(view, "#listing-status-#{listing.id}") == "Waiting for approval"
+      # The page now shows the listing as it is: with the hidden-region flag.
+      assert has_element?(view, "#listing-region-hidden")
+      assert Listings.get_listing_for_moderation!(admin, listing.id).status == :pending
+    end
+
+    test "REQ-004-5: listing is no longer waiting", %{conn: conn, admin: admin} do
+      # Its Employer withdrew it while the Admin had the page open.
+      employer = employer_scope_fixture()
+      withdrawn = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{withdrawn.id}")
+      {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
+
+      # It can no longer be shown to an Admin, so the message is given on the queue.
+      {:ok, queue, _html} =
+        view
+        |> element("#approve-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(
+               queue,
+               "#flash-error",
+               "This listing is no longer waiting for approval."
+             )
+
+      assert Listings.get_my_listing!(employer, withdrawn.id).status == :draft
+
+      # Another Admin decided it while this one had the page open.
+      rejected = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{rejected.id}")
+      reject_listing_fixture(rejected, "Salary looks like a typo")
+
+      view |> element("#approve-listing") |> render_click()
+
+      assert has_element?(
+               view,
+               "#flash-error",
+               "This listing is no longer waiting for approval."
+             )
+
+      # The page shows the listing as it now is.
+      assert text(view, "#listing-status-#{rejected.id}") == "Needs changes"
+      refute has_element?(view, "#approve-listing")
+      assert Listings.get_listing_for_moderation!(admin, rejected.id).status == :rejected
+    end
+
+    test "REQ-004-5: admin approves their own listing", %{conn: conn, admin: admin} do
+      {:ok, _user} =
+        Jairojobs.Accounts.update_business_details(admin, %{business_name: "Lutong Bahay"})
+
+      admin = Scope.for_user(Jairojobs.Accounts.get_user!(admin.user.id))
+      mine = listing_in_status_fixture(admin, :pending)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{mine.id}")
+
+      assert text(view, "#your-listing") == "Your listing"
+      # Nobody is emailed about their own action, and the page does not say otherwise.
+      assert text(view, "#moderation-help") == "Approving makes it public."
+
+      {:ok, queue, _html} =
+        view
+        |> element("#approve-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(queue, "#flash-info", "Approved. It is live.")
+      assert Listings.get_listing_for_moderation!(admin, mine.id).status == :published
+    end
+
+    test "a listing deleted in the meantime sends the Admin to the queue", %{conn: conn} do
+      employer = employer_scope_fixture()
+      listing = listing_in_status_fixture(employer, :pending)
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      {:ok, draft} = Listings.withdraw_listing(employer, listing)
+      {:ok, _deleted} = Listings.delete_listing(employer, draft)
+
+      {:ok, queue, _html} =
+        view
+        |> element("#approve-listing")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/admin/listings")
+
+      assert has_element?(queue, "#flash-error", "That listing is not available.")
+    end
+  end
 end
