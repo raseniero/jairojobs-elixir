@@ -373,8 +373,10 @@ Scenario: A Draft is not found
 **Rules**
 - "Approve" is the one accent action on the page (design guide, principle 4). Reject and
   Take down are not accent buttons.
-- The box says in one plain sentence what each action will do, e.g. "Approving makes it
-  public and emails the employer."
+- The box says in one plain sentence what the main action will do: "Approving makes it
+  public and emails the employer." on a waiting listing, and what taking it down does on a
+  live one. Reject and Edit explain themselves on their own pages ("The employer will see
+  this.", "The employer will be told what you changed.").
 - The latest decision is one of: approved, rejected, taken down — with the time and the
   Admin who made it. A listing that was rejected and sent again shows no decision until the
   next one; the old reason is gone (REQ-003-8).
@@ -731,7 +733,7 @@ Scenario: Withdrawing sends nothing
 
 Questions 1–3 are the ones spec 003's hand-offs left to this spec; 4–10 came up while
 drafting; 11–15 came out of checking the draft against its diagrams and the earlier specs;
-16 came out of writing the plan.
+16 came out of writing the plan, and 17 out of reconciling the spec with the built screens.
 The owner went through them one at a time and chose the proposed answer for each.
 
 | # | Question | Decision |
@@ -752,6 +754,7 @@ The owner went through them one at a time and chose the proposed answer for each
 | 14 | What about an owner who can no longer open My listings? | The email is sent whatever the owner's role is now; the link refuses an Admin who was demoted to Candidate. Not handled here; spec 008 decides what happens to such an account's listings (REQ-004-9) |
 | 15 | How are buttons marked in the screen flow? | Brackets for every button, bold for the screen's accent action, red for a destructive one, stated in the diagram's legend. Applies to this spec's screen flow only; the README and the screen flows of specs 002 and 003 are unchanged |
 | 16 | How does the edit email name the parts that changed? | By short names ("Area", "Salary"), not the form labels with their hints. Settled after approval, when the plan showed the rule ("the form's labels") and its scenario ("Area") disagreed (REQ-004-9) |
+| 17 | What does the Admin view say about its actions? | One sentence, for the main action (approving, or taking down). Reject and Edit explain themselves on their own pages. Settled when the diagrams were reconciled with the built screens (REQ-004-4) |
 
 ## Notes for the plan
 
@@ -829,3 +832,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-16 | Screen flow: "Listings" is the first row of the Admin area (plan decision 13, owner's choice); no requirement changed |
 | 2026-11-16 | Plan and tasks approved; status In Progress |
 | 2026-11-16 | Diagrams reconciled with the built screens and code (tasks T14): the screen flow shows the rows, the Admin view and the forms as built, and where a refused action leads; the two action flows check the status before the reason or the fields, as the code does; the sequence diagrams say what a failed email logs. No requirement changed |
+| 2026-11-16 | Amended after approval (owner's choice): REQ-004-4's rule asks for one sentence on the main action, not one per action, matching the built screen; `activity-find-and-review` updated; decision 17 added |

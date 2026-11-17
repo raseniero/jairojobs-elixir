@@ -77,8 +77,8 @@ if (Its region is hidden?) then (yes)
   endif
 else (no)
 endif
-:Say in one plain sentence what each
-offered action will do;
+:Say in one plain sentence what the main
+action will do (approving, or taking down);
 switch (Status)
 case (Pending approval)
   :Offer Approve, Reject, Edit;

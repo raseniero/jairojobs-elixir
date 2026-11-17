@@ -447,8 +447,6 @@ render-all script.
   were built, and shows that a refused action leads back to the Admin view (or the queue), not
   to the form. The two action flows check the status before the reason or the fields. The two
   sequence diagrams say a failed email logs the kind of email and the listing id.
-- T14: **one difference between the spec and the app is left for the owner.** REQ-004-4's rule
-  says the box tells "what each action will do". The app follows the plan: one sentence, for
-  approving (on a waiting listing) or taking down (on a live one). Reject and Edit have no
-  sentence on the Admin view; their own pages say "The employer will see this." and "The
-  employer will be told what you changed.".
+- T14: one difference between the spec and the app was put to the owner. REQ-004-4's rule
+  said the box tells "what each action will do"; the app, following the plan, has one sentence,
+  for approving or taking down. The owner chose to amend the rule to match (spec decision 17).
