@@ -3,7 +3,7 @@
 **Status:** Approved
 **Created:** 2026-10-29
 **Approved:** 2026-10-29
-**Last updated:** 2026-11-12 (see Changelog)
+**Last updated:** 2026-11-16 (see Changelog)
 
 The root spec. Every feature spec refers back to the personas and glossary defined here.
 
@@ -101,7 +101,7 @@ UI may say "jobs" to visitors ("Browse jobs"); the domain object is always a **L
 | Term | Definition | Code |
 |---|---|---|
 | **Region** | A supported geographic area (e.g. Davao City, Cebu, Metro Manila). Every Listing belongs to exactly one. Admin-managed. | `Jairojobs.Regions` |
-| **Listing** | A single open position posted by an Employer (or an Admin). **Must include a salary range (PHP) before it can be submitted.** Lifecycle: *Draft → Pending approval → Published → Closed*; an Admin may *Reject* a pending listing or *Take down* a published one. No automatic expiry. | `Jairojobs.Listings` |
+| **Listing** | A single open position posted by an Employer (or an Admin). **Must include a salary range (PHP) before it can be submitted.** Lifecycle: *Draft → Pending approval → Published → Closed*; an Admin may *Reject* a pending listing or *Take down* a published one, and may fix small mistakes in a pending or published one. Closed and Taken down are final. No automatic expiry. | `Jairojobs.Listings` |
 | **Employer** | An account that posts Listings; also the business identity shown on the Listing. One person per account initially. | `Jairojobs.Accounts` (role) |
 | **Candidate** | An account that applies to Listings; owns exactly one Profile. | `Jairojobs.Accounts` (role) |
 | **Profile** | A Candidate's structured résumé on the platform (contact, summary, experience, education, skills), seeded from an uploaded CV. | `Jairojobs.Profiles` |
@@ -121,7 +121,7 @@ Phase 1 (001–007) is the minimum launchable product. Each row becomes `docs/sp
 | 001 | **Accounts & authentication** — signup/login; role chosen at signup (Candidate / Employer); **admin user creation** via a privileged mechanism (mix task / release command / seed — never public signup); admin can promote/demote users | 1 | Done | [001](../001-accounts-authentication/spec.md) |
 | 002 | **Regions** — admin-managed list; seed Davao City, Cebu, Metro Manila | 1 | Done | [002](../002-regions/spec.md) |
 | 003 | **Listings — employer posting** — create/edit listing with required salary range (PHP), submit for approval, close | 1 | Done | [003](../003-listings-employer-posting/spec.md) |
-| 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit; emails the employer each decision | 1 | In Progress | [004](../004-listings-admin-moderation/spec.md) |
+| 004 | **Listings — admin moderation** — approval queue, approve / reject / take down, edit; emails the employer each decision and each Admin edit, and emails Admins each submission | 1 | In Progress | [004](../004-listings-admin-moderation/spec.md) |
 | 005 | **Public browse & search** — visitor-facing index by region, search/filter, listing detail page, shareable URLs, SEO basics, mobile-first | 1 | Not started | |
 | 006 | **Candidate profile & CV upload** — upload CV file, manually fill structured profile (auto-extraction from CV is a later enhancement) | 1 | Not started | |
 | 007 | **Applications (email phase)** — apply with profile + CV; employer receives email; candidate sees own application history | 1 | Not started | |
@@ -180,3 +180,4 @@ Reconstructed from the commit history on 2026-11-12; feature-map status changes 
 | 2026-11-10 | Free-tier limit resolved: 3 open listings per Employer (spec 003); removed from Open questions |
 | 2026-11-11 | Glossary: a Listing may be posted by an Admin, needs a salary range before it is submitted, lifecycle has no "Expired". Capability table: an Admin receives applications to their own listings. Feature map: spec 004 emails the employer each decision |
 | 2026-11-12 | Changelog and "Last updated" added |
+| 2026-11-16 | Changed by spec 004: the Listing glossary entry says an Admin may fix a pending or published listing and that Closed and Taken down are final; the feature map row for 004 names the emails to Admins and the email about an Admin edit |

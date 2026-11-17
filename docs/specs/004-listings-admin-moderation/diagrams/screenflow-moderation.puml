@@ -26,39 +26,46 @@ AdminArea : My listings · Post a job
 state "Listings (Admin)" as Listings
 Listings : Waiting for approval (2) · Live · Needs changes ·
 Listings : Taken down · Closed
-Listings : Cashier · Kape Isla · Cebu · ₱12,000–13,000/mo
-Listings : submitted 3 h ago
-Listings : Barista · Lutong Bahay · Davao City · ₱14,000–16,000/mo
-Listings : submitted 20 min ago · Your listing
+Listings : Cashier
+Listings : Kape Isla · Cebu
+Listings : ₱12,000–13,000/mo · submitted 3 h ago
+Listings : Barista  (Your listing)
+Listings : Lutong Bahay · Davao City
+Listings : ₱14,000–16,000/mo · submitted 20 min ago
 Listings : 50 rows at a time · [ Show more ]
 Listings : (empty) "Nothing is waiting for approval."
 
 state "Listing (Admin view)" as Review
-Review : status, who posted it (business, account email),
-Review : when it was submitted, "Your listing" if it is mine
+Review : ← Listings (back to the list I came from)
+Review : status, "Your listing" if it is mine
+Review : Posted by business · account email
+Review : Submitted 3 h ago
 Review : latest decision: what, when, by which Admin
-Review : the listing as visitors will see it
+Review : Needs changes / Taken down: "The reason given to the employer"
 Review : hidden region: "hidden" pill, and while it is
 Review : waiting, why it cannot be approved
+Review : one sentence on what approving / taking down does
 Review : Waiting for approval: **[ Approve ]** [ Reject ] [ Edit ]
 Review : Live: [ Take down ] [ Edit ]
-Review : Needs changes / Taken down: the reason, no actions
-Review : Closed: no actions
+Review : Needs changes / Taken down / Closed: no actions
+Review : then the listing as visitors will see it
 
 state "Reject" as Reject
+Reject : (the Admin view, with this form in place of the actions)
 Reject : "What needs to change?" ___________
 Reject : "The employer will see this."
 Reject : <color:#dc2626>[ Reject listing ]</color>   Cancel
 
 state "Take down" as TakeDown
+TakeDown : (the Admin view, with this form in place of the actions)
 TakeDown : "Why is it being taken down?" ______
-TakeDown : "This cannot be undone."
+TakeDown : "The employer will see this. This cannot be undone."
 TakeDown : <color:#dc2626>[ Take down ]</color>   Cancel
 
 state "Edit listing (Admin)" as Edit
+Edit : "For small fixes… The employer will be told what you changed."
 Edit : same fields as the Employer's form
-Edit : plus Business name and About the business
-Edit : "The employer will be told what you changed."
+Edit : plus Business name and About the business (this listing only)
 Edit : **[ Save changes ]**   Cancel
 
 state "Email to the Employer" as MailEmployer <<email>>
@@ -82,19 +89,20 @@ AdminArea --> Listings : Listings
 Listings --> Listings : choose a status\nshow more
 Listings --> Review : tap a row
 Review --> Listings : back
-Review --> Listings : Approve → Live\n(hidden region or no longer waiting → message, stays)
+Review --> Review : Approve refused (hidden region, or\ndecided by another Admin) → message,\nlisting shown as it now is
+Review --> Listings : Approve → Live\n(withdrawn meanwhile → message, on the queue)
 Review --> Reject : Reject
 Reject --> Listings : reject with a reason → Needs changes
-Reject --> Reject : reason missing or too short\n(no longer waiting → message)
-Reject --> Review : cancel
+Reject --> Reject : reason missing or too short
+Reject --> Review : cancel\n(no longer waiting → message)
 Review --> TakeDown : Take down
 TakeDown --> Review : take down with a reason → Taken down
-TakeDown --> TakeDown : reason missing or too short\n(no longer live → message)
-TakeDown --> Review : cancel
+TakeDown --> TakeDown : reason missing or too short
+TakeDown --> Review : cancel\n(no longer live → message)
 Review --> Edit : Edit\n(Waiting for approval / Live)
 Edit --> Review : save changes
-Edit --> Edit : validation error\n(can no longer be edited → message)
-Edit --> Review : cancel
+Edit --> Edit : validation error
+Edit --> Review : cancel\n(can no longer be edited → message.\nnothing changed → 'Nothing was changed.')
 
 Review -[dotted]-> MailEmployer : on approve, reject, take down or edit\n(not when the listing is the Admin's own)
 MailEmployer --> Owner : employer follows the link\n(logs in if needed)

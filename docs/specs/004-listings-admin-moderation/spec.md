@@ -828,3 +828,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-15 | Amended after approval (owner's choice): REQ-004-9's rule says the edit email uses short names of the parts, matching its scenario; `activity-emails` updated; decision 16 added |
 | 2026-11-16 | Screen flow: "Listings" is the first row of the Admin area (plan decision 13, owner's choice); no requirement changed |
 | 2026-11-16 | Plan and tasks approved; status In Progress |
+| 2026-11-16 | Diagrams reconciled with the built screens and code (tasks T14): the screen flow shows the rows, the Admin view and the forms as built, and where a refused action leads; the two action flows check the status before the reason or the fields, as the code does; the sequence diagrams say what a failed email logs. No requirement changed |

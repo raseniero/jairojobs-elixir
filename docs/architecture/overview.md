@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-16 (Listings moderation and the `/admin/listings` screens, spec 004 in progress)
+**Last updated:** 2026-11-16 (Listings moderation and the `/admin/listings` screens implemented by spec 004)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).

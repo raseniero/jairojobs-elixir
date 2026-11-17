@@ -21,6 +21,6 @@ Rel(user, app, "Uses", "HTTPS, WebSocket (LiveView)")
 Rel(app, db, "Reads / writes", "Ecto / Postgrex")
 Rel(app, files, "Stores / serves CVs")
 Rel(app, email, "Sends email", "Swoosh adapter")
-Rel(email, user, "Delivers magic links and application emails")
+Rel(email, user, "Delivers magic links, moderation emails (004) and application emails")
 
 @enduml

@@ -52,7 +52,7 @@ else someone else's listing
     W --> B : confirmation
   else refused, unreachable, or raises
     M --> L : {:error, reason}
-    L -> L : log the listing id only
+    L -> L : log the kind of email\nand the listing id, nothing else
     L --> W : {:ok, listing, :failed}
     W --> B : confirmation +\n"The employer could not be emailed."
   end

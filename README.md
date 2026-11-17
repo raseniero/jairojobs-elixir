@@ -8,7 +8,7 @@ To start your Phoenix server:
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 In development, every email the app sends (sign-up and login links, email-change
-confirmations) is viewable at [`localhost:4000/dev/mailbox`](http://localhost:4000/dev/mailbox).
+confirmations, decisions on listings) is viewable at [`localhost:4000/dev/mailbox`](http://localhost:4000/dev/mailbox).
 
 ## Regions
 
@@ -23,8 +23,19 @@ Sign up as an Employer (or use an Admin account), then choose "Post a job". The 
 you are asked for your business name; after that you can save a draft with only a title,
 finish it later, and submit it for approval. Your listings and their status are at
 `/my/listings`. An Employer can have 3 listings open (waiting for approval or live) at a
-time. Approving listings is spec 004, so until that ships a submitted listing stays
-"Waiting for approval".
+time. A submitted listing stays "Waiting for approval" until an Admin approves it.
+
+## Moderating listings
+
+Admins find submitted listings at `/admin/listings` (also the first row of `/admin`, which
+says how many are waiting). The page opens on the approval queue, longest-waiting first;
+the other statuses are one tap away. Opening a listing shows it as visitors will see it,
+with who posted it, and offers Approve, Reject (with a reason) and Edit, or Take down (with
+a reason) for a live one. Taken down is final.
+
+Each decision emails the listing's owner, and each submission emails every Admin. Nobody
+is emailed about their own action, so to see these emails in development you need two
+accounts: for example an Employer who submits a listing and an Admin who approves it.
 
 ## Checking specs against tests
 

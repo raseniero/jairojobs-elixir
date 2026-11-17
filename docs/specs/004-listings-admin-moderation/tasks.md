@@ -301,7 +301,7 @@ render-all script.
 
 ## Phase C — Close
 
-- [ ] **T14** — Docs and coverage
+- [x] **T14** — Docs and coverage — done 2026-11-16
   - `mix jairojobs.spec_coverage 004`: all 56 scenarios have a REQ-named test
   - Spec 000: feature map row and the Listing glossary entry (Admin edit, Taken down is
     final, the two extra kinds of email)
@@ -438,3 +438,17 @@ render-all script.
 - T13: looking at the edit form showed the Employer's hint under the salary fields ("Needed
   before you can submit it."), which makes no sense to an Admin. `listing_fields/1` now takes
   the hint as an attribute and the Admin form says "A listing always states its salary."
+- T14: `mix jairojobs.spec_coverage 004` reports all 56 scenarios covered.
+- T14: every row of the spec's table of earlier documents is done: spec 000 (this task), spec
+  001 and 002 (T8), spec 003 (T6, T10, T12), the overview (T11), the ERD and data model (T3),
+  both C4 diagrams and the use case diagram (this task).
+- T14: reconciling this spec's diagrams with the app changed five of the eight. The screen flow
+  now draws the list rows, the Admin view and the three forms in the order and wording that
+  were built, and shows that a refused action leads back to the Admin view (or the queue), not
+  to the form. The two action flows check the status before the reason or the fields. The two
+  sequence diagrams say a failed email logs the kind of email and the listing id.
+- T14: **one difference between the spec and the app is left for the owner.** REQ-004-4's rule
+  says the box tells "what each action will do". The app follows the plan: one sentence, for
+  approving (on a waiting listing) or taking down (on a live one). Reject and Edit have no
+  sentence on the Admin view; their own pages say "The employer will see this." and "The
+  employer will be told what you changed.".

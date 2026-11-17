@@ -7,14 +7,14 @@ start
 if (Action?) then (take down)
   :Admin writes why and is told
   it cannot be undone;
-  if (Reason is 10–500 characters?) then (no)
-    :Validation error — stays Published;
-    stop
-  else (yes)
-  endif
   if (Still Published?) then (no)
     :Refuse — "This listing is
     no longer live." Nothing changes;
+    stop
+  else (yes)
+  endif
+  if (Reason is 10–500 characters?) then (no)
+    :Validation error — stays Published;
     stop
   else (yes)
   endif
@@ -34,7 +34,8 @@ if (Action?) then (take down)
   stop
 else (edit)
   if (Pending approval or Published?) then (no)
-    :Refuse — nothing to edit;
+    :Refuse — "This listing can no longer be
+    edited." No form is shown;
     stop
   else (yes)
   endif
@@ -48,19 +49,20 @@ else (edit)
     The form says "The employer will be
     told what you changed."
   end note
-  if (Still complete and valid?\n(REQ-003-4, business name REQ-003-2)) then (no)
-    :Validation error — nothing saved;
-    stop
-  else (yes)
-  endif
   if (Still Pending approval or Published\nat the moment of saving?) then (no)
     :Refuse — say the listing can no
     longer be edited. Nothing saved;
     stop
   else (yes)
   endif
+  if (Still complete and valid?\n(REQ-003-4, business name REQ-003-2)) then (no)
+    :Validation error — nothing saved;
+    stop
+  else (yes)
+  endif
   if (Anything actually changed?) then (no)
-    :Nothing saved, no email;
+    :Nothing saved, no email. Back on the Admin
+    view with "Nothing was changed.";
     stop
   else (yes)
   endif

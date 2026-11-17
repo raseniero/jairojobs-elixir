@@ -26,7 +26,7 @@ rectangle "jairojobs" {
   usecase "Apply to listing" as UC4
   usecase "Post listing" as UC5
   usecase "Receive applications\nby email" as UC6
-  usecase "Approve / reject /\ntake down listing" as UC7
+  usecase "Approve / reject / edit /\ntake down listing" as UC7
   usecase "Manage regions" as UC8
   usecase "Promote / demote\nadmin" as UC9
   usecase "Manage applications\non-platform" as UC10 <<phase2>>

@@ -15,7 +15,8 @@ if (Decision?) then (approve)
   if (Its region is active?) then (no)
     :Refuse — the region is hidden. Suggest:
     show the region again, change the region
-    (Edit), or reject with a reason;
+    (Edit), or reject with a reason.
+    The page reloads and shows the flag;
     stop
   else (yes)
   endif
@@ -34,15 +35,15 @@ if (Decision?) then (approve)
 else (reject)
   :Admin writes what needs to change.
   The form says "The employer will see this.";
-  if (Reason is 10–500 characters?) then (no)
-    :Validation error — stays
-    Pending approval;
-    stop
-  else (yes)
-  endif
   if (Still Pending approval?) then (no)
     :Refuse — "This listing is no longer
     waiting for approval." Nothing changes;
+    stop
+  else (yes)
+  endif
+  if (Reason is 10–500 characters?) then (no)
+    :Validation error — stays
+    Pending approval;
     stop
   else (yes)
   endif

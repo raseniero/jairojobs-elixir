@@ -1,6 +1,6 @@
 # Data Model
 
-**Last updated:** 2026-11-16 (moderation columns and checks on `listings`, spec 004 in progress)
+**Last updated:** 2026-11-16 (moderation columns and checks on `listings`, spec 004)
 
 Living document. Update the ERD and table list when a spec adds or changes schemas.
 The authoritative source is `priv/repo/migrations/` + the `Ecto.Schema` modules;
@@ -29,7 +29,7 @@ this page is the readable summary.
 | `users` | `Jairojobs.Accounts.User` | Accounts | 001 | Implemented |
 | `users_tokens` | `Jairojobs.Accounts.UserToken` | Accounts | 001 | Implemented |
 | `regions` | `Jairojobs.Regions.Region` | Regions | 002 | Implemented |
-| `listings` | `Jairojobs.Listings.Listing` | Listings | 003, 004 | Implemented (employer side 003; moderation columns 004, its screens in progress; public slug in 005) |
+| `listings` | `Jairojobs.Listings.Listing` | Listings | 003, 004 | Implemented (employer side 003, moderation 004; public slug in 005) |
 
 Spec 003 also added `business_name` and `business_about` to `users`.
 

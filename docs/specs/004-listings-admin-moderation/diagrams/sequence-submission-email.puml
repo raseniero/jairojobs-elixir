@@ -39,7 +39,7 @@ loop each Admin
   alt accepted
     R -> IN : "A listing is waiting for approval: <title>"
   else refused, unreachable, or raises
-    L -> L : log the listing id only
+    L -> L : log the kind of email\nand the listing id, nothing else
   end
 end
 L --> W : {:ok, listing}
