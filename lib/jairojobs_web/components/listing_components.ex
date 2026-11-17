@@ -53,6 +53,10 @@ defmodule JairojobsWeb.ListingComponents do
   attr :form, Phoenix.HTML.Form, required: true
   attr :region_options, :list, required: true
 
+  attr :salary_hint, :string,
+    default: "Shown on the listing. Needed before you can submit it.",
+    doc: "the line under the salary inputs; the Admin edit form says something else"
+
   def listing_fields(assigns) do
     ~H"""
     <.input
@@ -100,7 +104,7 @@ defmodule JairojobsWeb.ListingComponents do
         />
       </div>
       <p class="text-xs text-base-content/70">
-        Shown on the listing. Needed before you can submit it.
+        {@salary_hint}
       </p>
     </fieldset>
 

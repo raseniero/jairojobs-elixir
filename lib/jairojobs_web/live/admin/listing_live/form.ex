@@ -36,7 +36,11 @@ defmodule JairojobsWeb.Admin.ListingLive.Form do
         phx-submit="save"
         class="space-y-4"
       >
-        <.listing_fields form={@form} region_options={@region_options} />
+        <.listing_fields
+          form={@form}
+          region_options={@region_options}
+          salary_hint="Shown on the listing. A listing always states its salary."
+        />
 
         <.input field={@form[:business_name]} type="text" label="Business name" maxlength="80" />
         <.input

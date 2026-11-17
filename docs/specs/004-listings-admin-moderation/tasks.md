@@ -279,7 +279,7 @@ render-all script.
     `activity-after-submitting` (the resubmit branch); changelog row
   - Commit: `feat(listings): email admins when a listing is submitted (REQ-004-10)`
 
-- [ ] **T13** — Journey test and the phone check
+- [x] **T13** — Journey test and the phone check — done 2026-11-16
   - `test/jairojobs_web/live/moderation_journey_test.exs`, one `Phoenix.LiveViewTest`
     test, no browser (constitution §3.1), following every navigation and redirect:
     1. An Employer posts a complete listing and submits it; the Admin is emailed
@@ -423,3 +423,18 @@ render-all script.
   addresses, because every region a fixture creates also creates an Admin.
 - T12: spec 003's REQ-003-6 and REQ-003-8 and two activity diagrams were updated in this commit,
   with a changelog row there.
+- T13: the journey test follows one listing through 7 steps on both sides' real screens and
+  checks six emails by recipient and subject (two "waiting", then needs changes, edited, live,
+  taken down). It follows the links inside the emails to reach the Admin view and the owner view.
+- T13: the phone check ran in headless Chromium at 375 px against the dev server on a spare
+  port: 15 pages (Admin area; the queue, a Live list and an empty list; the Admin view of a
+  waiting, hidden-region, own, live, taken-down and rejected listing; the reject form with and
+  without an error; the take-down form; the edit form; the owner's view of a taken-down
+  listing). On every page the document was exactly 375 px wide and every button, status link,
+  row and Cancel link was at least 44 px tall. I looked at 8 of the 15 screenshots.
+- T13: the check created throwaway accounts, listings and one region in the dev database and
+  removed them afterwards; the counts of listings, users and regions are what they were before.
+  The scripts are in `scratchpad/phone-check/` (not committed).
+- T13: looking at the edit form showed the Employer's hint under the salary fields ("Needed
+  before you can submit it."), which makes no sense to an Admin. `listing_fields/1` now takes
+  the hint as an attribute and the Admin form says "A listing always states its salary."

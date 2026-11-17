@@ -903,6 +903,9 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
                "The employer will be told what you changed."
              )
 
+      # The Employer's hint about submitting does not belong on the Admin's form.
+      refute has_element?(form_view, "#listing-form", "before you can submit it")
+
       {:ok, view, _html} =
         form_view
         |> form("#listing-form", listing: %{title: "Barista (full-time)"})

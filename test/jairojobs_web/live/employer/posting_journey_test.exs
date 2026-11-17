@@ -5,14 +5,12 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
 
   A `Phoenix.LiveViewTest` journey, not a browser test (constitution §3.1):
   JavaScript, CSS and the confirm dialogs are outside it. The two Admin steps
-  (reject, approve) call the real moderation functions; going through the
-  Admin's screens is spec 004's own journey test.
+  (reject, approve) go through the Admin's real screens (spec 004).
   """
   use JairojobsWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Jairojobs.AccountsFixtures
-  import Jairojobs.ListingsFixtures
   import Jairojobs.RegionsFixtures
 
   alias Jairojobs.Accounts.Scope
@@ -130,11 +128,16 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
     show |> element("#submit-listing") |> render_click()
     assert text(show, status) == "Waiting for approval"
 
-    # 7a. An Admin rejects it (through the context; the Admin's screens are spec 004's
-    # own journey test): the reason is shown; resubmit
-    scope
-    |> Listings.get_my_listing!(listing.id)
-    |> reject_listing_fixture("Please name the shift hours")
+    # 7a. An Admin rejects it on the Admin's own screens: the reason is shown; resubmit
+    admin_conn = log_in_user(build_conn(), admin_fixture())
+
+    {:ok, reject, _html} = live(admin_conn, ~p"/admin/listings/#{listing.id}/reject")
+
+    {:ok, _queue, _html} =
+      reject
+      |> form("#decision-form", decision: %{reason: "Please name the shift hours"})
+      |> render_submit()
+      |> follow_redirect(admin_conn, ~p"/admin/listings")
 
     {:ok, show, _html} = live(conn, ~p"/my/listings/#{listing.id}")
     assert text(show, status) == "Needs changes"
@@ -144,8 +147,14 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
     assert text(show, status) == "Waiting for approval"
     refute has_element?(show, "#listing-rejection-reason")
 
-    # 7b. An Admin approves it (through the context): close it
-    scope |> Listings.get_my_listing!(listing.id) |> approve_listing_fixture()
+    # 7b. An Admin approves it: close it
+    {:ok, review, _html} = live(admin_conn, ~p"/admin/listings/#{listing.id}")
+
+    {:ok, _queue, _html} =
+      review
+      |> element("#approve-listing")
+      |> render_click()
+      |> follow_redirect(admin_conn, ~p"/admin/listings")
 
     {:ok, show, _html} = live(conn, ~p"/my/listings/#{listing.id}")
     assert text(show, status) == "Live"
