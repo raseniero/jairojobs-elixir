@@ -1,6 +1,6 @@
 # 004 — Listings: admin moderation
 
-**Status:** In Progress
+**Status:** Done (2026-11-16)
 **Created:** 2026-11-14
 **Approved:** 2026-11-14
 **Owner:** Jairo
@@ -833,3 +833,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-16 | Plan and tasks approved; status In Progress |
 | 2026-11-16 | Diagrams reconciled with the built screens and code (tasks T14): the screen flow shows the rows, the Admin view and the forms as built, and where a refused action leads; the two action flows check the status before the reason or the fields, as the code does; the sequence diagrams say what a failed email logs. No requirement changed |
 | 2026-11-16 | Amended after approval (owner's choice): REQ-004-4's rule asks for one sentence on the main action, not one per action, matching the built screen; `activity-find-and-review` updated; decision 17 added |
+| 2026-11-16 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |

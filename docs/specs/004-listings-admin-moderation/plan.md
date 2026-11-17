@@ -1,7 +1,7 @@
 # 004 — Listings: admin moderation — Plan
 
-**Status:** Approved
-**Spec:** [spec.md](./spec.md) (Approved 2026-11-14)
+**Status:** Done (2026-11-16)
+**Spec:** [spec.md](./spec.md) (Done 2026-11-16)
 **Created:** 2026-11-14
 **Approved:** 2026-11-16
 

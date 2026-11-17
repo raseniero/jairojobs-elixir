@@ -1,6 +1,6 @@
 # 004 — Listings: admin moderation — Tasks
 
-**Status:** In Progress
+**Status:** Done (2026-11-16)
 **Plan:** [plan.md](./plan.md) (Approved 2026-11-16)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
@@ -315,25 +315,35 @@ render-all script.
     screen flow's example wording (button labels, prompts) with the real screens
   - Commit: `docs(spec 004): architecture and earlier specs brought in line`
 
-- [ ] **T15** — Push; CI green on `main`; set spec, plan and tasks status to `Done`;
+- [x] **T15** — done 2026-11-16 — Push; CI green on `main`; set spec, plan and tasks status to `Done`;
   feature map in spec 000 → Done
   - Only when the owner says to push
   - Commit: `docs(spec 004): mark done`
 
-## Definition of Done (constitution §7)
+## Definition of Done (constitution §7) — walked 2026-11-16
 
-<!-- Walk this at the end and say how each item was met (test counts, CI run, what was checked
-     at 375 px). Leave an item unchecked, with the reason, if it cannot be met yet. -->
-
-- [ ] Every REQ in the spec has a passing, REQ-named test
-- [ ] Authorization tests present for any private resource
-- [ ] `mix precommit` green locally **and** CI green on `main`
-- [ ] Works at 375 px width (phone) before desktop
-- [ ] No new deps without a justification line in `plan.md`
-- [ ] `docs/architecture/` updated if contexts or data model changed
-- [ ] Diagrams in this spec and in earlier specs it changed match the built screens and code
-- [ ] `tasks.md` checked off; spec status set to `Done`
-- [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
+- [x] Every REQ in the spec has a passing, REQ-named test — REQ-004-1…10, all 56 Gherkin
+  scenarios (`mix jairojobs.spec_coverage 004`); 526 tests in the suite, 132 added by this
+  spec
+- [x] Authorization tests present for any private resource — every moderation function
+  refuses the listing's own Employer, another Employer, a Candidate, `nil` and the system
+  scope, and an Admin demoted after their scope was built; all five `/admin/listings` routes
+  refuse Employers and Candidates and send visitors to log in
+- [x] `mix precommit` green locally **and** CI green on `main` — run 44032506958 (commit
+  d1a5349), 526 passed. That commit holds all the code; the commit that marks the spec Done
+  changes documents only, which CI skips by design (constitution §3.10)
+- [x] Works at 375 px width — 15 pages checked in headless Chromium at a 375 px viewport
+  (T13): no horizontal overflow, every button, status link, row and Cancel link at least
+  44 px tall. Not clicked through by hand in a desktop browser by the implementer
+- [x] No new deps without a justification line in `plan.md` — none added; `mix.exs` and
+  `mix.lock` are unchanged
+- [x] `docs/architecture/` updated — overview, data model, ERD, both C4 diagrams, use case
+- [x] Diagrams in this spec and in earlier specs it changed match the built screens and code
+  — this spec's eight reconciled in T14; specs 000, 001, 002 and 003 updated in the tasks
+  that changed them. Not every re-rendered image was viewed: see the notes for T14
+- [x] `tasks.md` checked off; spec status set to `Done` — spec, plan, tasks and the spec 000
+  feature map
+- [ ] Deployed to Fly.io and smoke-checked — **deferred**, no deployment exists yet
 
 ## Notes / deviations from plan
 
