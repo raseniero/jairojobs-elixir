@@ -1,7 +1,7 @@
 # Design Guide
 
 **Status:** Accepted
-**Last updated:** 2026-11-17 (seven internal contradictions resolved with the owner; see Changelog)
+**Last updated:** 2026-11-18 (see Changelog)
 **Brief:** "A clean, trustworthy, modern craigslist.org."
 
 The single reference for how jairojobs looks and feels. Agents and humans build every screen
@@ -42,14 +42,14 @@ Reference render (375 px, listing index + detail):
 | Page background | `#ffffff` | `bg-base-100` | pages |
 | Section background | `#f8fafc` | `bg-base-200` / slate-50 | filters bar, fact boxes, footers |
 | Border | `#e2e8f0` | `border-base-300` / slate-200 | row dividers, inputs, boxes (facts box, status box) |
-| Text | `#0f172a` | `text-base-content` / slate-900 | body |
-| Muted text | `#64748b` | slate-500 | meta, hints, timestamps |
-| **Primary** | `#1d4ed8` | `text-primary` / blue-700 | listing titles, links, selected chips, secondary buttons |
-| **Accent (CTA)** | `#b45309` | `btn-accent` / amber-700 | the one primary action per screen |
-| Success | `#047857` | emerald-700 | "✓ Approved" badge, "Live" pill |
-| Warning | `#b45309` | amber-700 | pending states |
-| Error | `#dc2626` | red-600 | validation, destructive |
-| Info | `#2563eb` | blue-600 | confirmation messages (flash) |
+| Text | `#0f172b` | `text-base-content` / slate-900 | body |
+| Muted text | `#62748e` | slate-500 | meta, hints, timestamps |
+| **Primary** | `#1447e6` | `text-primary` / blue-700 | listing titles, links, selected chips, secondary buttons |
+| **Accent (CTA)** | `#bb4d00` | `btn-accent` / amber-700 | the one primary action per screen |
+| Success | `#007a55` | emerald-700 | "✓ Approved" badge, "Live" pill |
+| Warning | `#bb4d00` | amber-700 | pending states |
+| Error | `#e7000b` | red-600 | validation, destructive |
+| Info | `#165dfc` | blue-600 | confirmation messages (flash) |
 | Font | system stack | default `font-sans` | everything; no web fonts |
 | Base size | 16 px | `text-base` | body |
 | Listing title | 17 px / 600 | `text-[17px] font-semibold` | index rows |
@@ -65,6 +65,10 @@ Reference render (375 px, listing index + detail):
 | Theme | light only | — | dark deferred |
 | Icons | Heroicons outline 20 px | `<.icon name="hero-…" class="size-5"/>` | stock only |
 
+The hex values are what the theme in §3 renders in a browser (read from the running app on
+2026-11-18). They are Tailwind's current palette, which differs slightly from the hex codes its older
+versions used for the same colour names.
+
 ## 3. daisyUI theme
 
 The tokens are encoded as the single daisyUI theme in `assets/css/app.css`. Replace the
@@ -79,22 +83,22 @@ generated `light` and `dark` theme blocks with this one (dark removed; `prefersd
   --color-base-100: oklch(100% 0 0);            /* white */
   --color-base-200: oklch(98.4% 0.003 247.9);   /* slate-50  #f8fafc */
   --color-base-300: oklch(92.9% 0.013 255.5);   /* slate-200 #e2e8f0 */
-  --color-base-content: oklch(20.8% 0.042 265.8); /* slate-900 #0f172a */
-  --color-primary: oklch(48.8% 0.243 264.4);    /* blue-700  #1d4ed8 */
+  --color-base-content: oklch(20.8% 0.042 265.8); /* slate-900 #0f172b */
+  --color-primary: oklch(48.8% 0.243 264.4);    /* blue-700  #1447e6 */
   --color-primary-content: oklch(100% 0 0);
-  --color-secondary: oklch(55.4% 0.046 257.4);  /* slate-500 #64748b */
+  --color-secondary: oklch(55.4% 0.046 257.4);  /* slate-500 #62748e */
   --color-secondary-content: oklch(100% 0 0);
-  --color-accent: oklch(55.5% 0.163 49.0);      /* amber-700 #b45309 */
+  --color-accent: oklch(55.5% 0.163 49.0);      /* amber-700 #bb4d00 */
   --color-accent-content: oklch(100% 0 0);
-  --color-neutral: oklch(37.2% 0.044 257.3);    /* slate-700 */
+  --color-neutral: oklch(37.2% 0.044 257.3);    /* slate-700 #314158 */
   --color-neutral-content: oklch(100% 0 0);
-  --color-info: oklch(54.6% 0.245 262.9);       /* blue-600 #2563eb */
+  --color-info: oklch(54.6% 0.245 262.9);       /* blue-600 #165dfc */
   --color-info-content: oklch(100% 0 0);
-  --color-success: oklch(50.8% 0.118 165.6);    /* emerald-700 #047857 */
+  --color-success: oklch(50.8% 0.118 165.6);    /* emerald-700 #007a55 */
   --color-success-content: oklch(100% 0 0);
   --color-warning: oklch(55.5% 0.163 49.0);     /* amber-700 */
   --color-warning-content: oklch(100% 0 0);
-  --color-error: oklch(57.7% 0.245 27.3);       /* red-600 #dc2626 */
+  --color-error: oklch(57.7% 0.245 27.3);       /* red-600 #e7000b */
   --color-error-content: oklch(100% 0 0);
   --radius-selector: 0.375rem;
   --radius-field: 0.375rem;
@@ -212,3 +216,4 @@ Entries before 2026-11-17 are in the commit history.
 | Date | Change |
 |---|---|
 | 2026-11-17 | Seven contradictions inside this guide resolved, each chosen by the owner. (1) Tap targets: principle 5 is the rule, every interactive element is at least 44 px, except a link inside a sentence; the tokens row says the same. (2) The theme's `--size-field` is `0.275rem`, so fields and buttons are 44 px by default (was `0.25rem`, 40 px). (3) Contrast: accent and warning are amber-700, success emerald-700, info blue-600 (were amber-600, emerald-600, blue-500, which failed 4.5:1 under white text); Info added to the tokens table. (4) Region is visible for every row, on the row or as the list's heading. (5) Principle 4 names status and destructive colours as exceptions. (6) "cards" → "boxes" in the Border row. (7) A 15 px section-heading token added; fine print is 12 px. Reference mock redrawn to match |
+| 2026-11-18 | Hex values in the tokens table and the theme comments now give what the theme renders (for example accent `#bb4d00`, was listed as `#b45309`). No colour changed in the app; the reference mock uses the same values |
