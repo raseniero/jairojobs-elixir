@@ -107,7 +107,7 @@ defmodule JairojobsWeb.Layouts do
         <nav aria-label="Menu" class="min-h-full w-72 bg-base-100 p-4">
           <div class="mb-2 flex min-h-11 items-center justify-between px-2">
             <.wordmark id="wordmark-drawer" />
-            <label for="nav-drawer" aria-label="Close menu" class="btn btn-ghost btn-square btn-sm">
+            <label for="nav-drawer" aria-label="Close menu" class="btn btn-ghost btn-square">
               <.icon name="hero-x-mark" class="size-5" />
             </label>
           </div>

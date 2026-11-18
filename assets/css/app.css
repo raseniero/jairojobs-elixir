@@ -32,15 +32,15 @@
   --color-primary-content: oklch(100% 0 0);
   --color-secondary: oklch(55.4% 0.046 257.4);  /* slate-500 #64748b */
   --color-secondary-content: oklch(100% 0 0);
-  --color-accent: oklch(66.6% 0.179 58.3);      /* amber-600 #d97706 */
+  --color-accent: oklch(55.5% 0.163 49.0);      /* amber-700 #b45309 */
   --color-accent-content: oklch(100% 0 0);
   --color-neutral: oklch(37.2% 0.044 257.3);    /* slate-700 */
   --color-neutral-content: oklch(100% 0 0);
-  --color-info: oklch(62.3% 0.214 259.8);       /* blue-500 */
+  --color-info: oklch(54.6% 0.245 262.9);       /* blue-600 #2563eb */
   --color-info-content: oklch(100% 0 0);
-  --color-success: oklch(59.6% 0.145 163.2);    /* emerald-600 #059669 */
+  --color-success: oklch(50.8% 0.118 165.6);    /* emerald-700 #047857 */
   --color-success-content: oklch(100% 0 0);
-  --color-warning: oklch(66.6% 0.179 58.3);     /* amber-600 */
+  --color-warning: oklch(55.5% 0.163 49.0);     /* amber-700 */
   --color-warning-content: oklch(100% 0 0);
   --color-error: oklch(57.7% 0.245 27.3);       /* red-600 #dc2626 */
   --color-error-content: oklch(100% 0 0);
@@ -48,7 +48,7 @@
   --radius-field: 0.375rem;
   --radius-box: 0.375rem;
   --size-selector: 0.25rem;
-  --size-field: 0.25rem;
+  --size-field: 0.275rem;   /* × 10 = 2.75rem = 44 px: fields and buttons (principle 5) */
   --border: 1px;
   --depth: 0;
   --noise: 0;

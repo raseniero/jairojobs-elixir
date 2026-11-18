@@ -13,15 +13,22 @@ defmodule JairojobsWeb.Admin.RegionLive.Form do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <nav aria-label="Breadcrumb" class="text-sm text-base-content/70">
-        <.link navigate={~p"/admin"} id="breadcrumb-admin" class="text-primary hover:underline">
+      <nav
+        aria-label="Breadcrumb"
+        class="flex flex-wrap items-center gap-1 text-sm text-base-content/70"
+      >
+        <.link
+          navigate={~p"/admin"}
+          id="breadcrumb-admin"
+          class="inline-flex min-h-11 items-center text-primary hover:underline"
+        >
           Admin
         </.link>
         <span aria-hidden="true">▸</span>
         <.link
           navigate={~p"/admin/regions"}
           id="breadcrumb-regions"
-          class="text-primary hover:underline"
+          class="inline-flex min-h-11 items-center text-primary hover:underline"
         >
           Regions
         </.link>
