@@ -116,7 +116,7 @@ def main():
                         if step[0] == "fill":
                             page.fill(step[1], step[2])
                         elif step[0] == "click":
-                            page.locator(step[1]).click()
+                            page.locator(step[1]).first.click()
                         page.wait_for_timeout(400)
                     found = page.evaluate(MEASURE, [WIDTH, MIN_TAP])
                     page.screenshot(path=os.path.join(out, name + ".png"), full_page=True)
