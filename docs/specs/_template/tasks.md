@@ -18,7 +18,9 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
   - 
 - [ ] **T4** — <wire routes, nav, auth> 
 - [ ] **T5** — run `mix jairojobs.spec_coverage NNN`: every scenario must have a REQ-named
-  test; docs: update `docs/architecture/` if data model or boundaries changed;
+  test; list this spec's screens in `priv/phone_check/NNN.exs` and run
+  `scripts/phone-check.sh NNN` (and for earlier specs whose screens this one changed, where
+  a pages file exists), then look at the screenshots; docs: update `docs/architecture/` if data model or boundaries changed;
   re-read every diagram in this spec against the built screens and code and fix what drifted
   (reconcile the wireframes — `docs/README.md`, Diagrams rule 6); update diagrams in earlier
   specs that this spec changed, and note it in their changelogs
@@ -27,8 +29,9 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 
 ## Definition of Done (constitution §7)
 
-<!-- Walk this at the end and say how each item was met (test counts, CI run, what was checked
-     at 375 px). Leave an item unchecked, with the reason, if it cannot be met yet. -->
+<!-- Walk this at the end and say how each item was met (test counts, CI run, how many pages
+     `scripts/phone-check.sh` checked at 375 px and how many screenshots were looked at).
+     Leave an item unchecked, with the reason, if it cannot be met yet. -->
 
 - [ ] Every REQ in the spec has a passing, REQ-named test
 - [ ] Authorization tests present for any private resource

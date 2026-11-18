@@ -49,6 +49,25 @@ mix jairojobs.spec_coverage 003    # one spec
 
 It exits non-zero if any scenario is uncovered. It is run by hand when closing a spec, not in CI.
 
+## Checking screens at phone width
+
+The Definition of Done asks that every screen works at 375 px. To check a spec's screens:
+
+```bash
+scripts/phone-check.sh 004
+```
+
+It creates throwaway data in the dev database (everything named `phonecheck…`), starts the
+dev server on port 4010, opens each page listed in `priv/phone_check/004.exs` in a headless
+browser at 375 px, and removes the data again. A page fails if it scrolls sideways or has an
+interactive element under 44 px tall. Screenshots go to `tmp/phone-check/004/`; look at
+them, because a page can pass both measurements and still look wrong.
+
+It needs Python 3 with Playwright (`pip install playwright && playwright install chromium`);
+set `PHONE_CHECK_PYTHON` if that is not your default `python3`. It is run by hand when
+closing a spec, not by `mix precommit` or CI, and it is not a test. So far only spec 004 has
+a pages file.
+
 ## Admin accounts
 
 There is no admin sign-up. Admins are created and removed by the operator from the command

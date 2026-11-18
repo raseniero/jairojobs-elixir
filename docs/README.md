@@ -31,6 +31,11 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
 5. **Close** — before setting status to `Done`:
    - run `mix jairojobs.spec_coverage NNN`; every Gherkin scenario must have a test whose
      name starts with `REQ-NNN-n: <scenario name>`;
+   - run `scripts/phone-check.sh NNN` for this spec, and for any earlier spec whose screens
+     it changed (where a pages file exists in `priv/phone_check/`), and look at the
+     screenshots. It checks each listed page at 375 px for sideways scrolling and for
+     interactive elements under 44 px (`design.md`, principle 5). It is a hand-run layout
+     check, not a test: the suite has no browser tests (constitution §3.1);
    - update `architecture/` if boundaries or data model changed;
    - re-read **every diagram in this spec** against the built screens and code, and fix what
      drifted — wireframes included (see Diagrams, rule 6);
