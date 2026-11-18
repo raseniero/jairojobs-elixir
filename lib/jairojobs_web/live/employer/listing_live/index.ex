@@ -43,7 +43,14 @@ defmodule JairojobsWeb.Employer.ListingLive.Index do
               <span class="block text-[17px] font-semibold break-words text-primary group-hover:underline">
                 {listing.title}
               </span>
-              <span class="block text-sm text-base-content/70">{summary(listing)}</span>
+              <span class="block text-sm text-base-content/70">
+                <%= case summary(listing) do %>
+                  <% {region, salary} -> %>
+                    {region} · <span class="whitespace-nowrap">{salary}</span>
+                  <% unfinished -> %>
+                    {unfinished}
+                <% end %>
+              </span>
             </span>
             <.status_badge listing={listing} />
           </.link>
@@ -58,7 +65,12 @@ defmodule JairojobsWeb.Employer.ListingLive.Index do
             Edit business details
           </.link>
         <% else %>
-          <.link navigate={~p"/my/business"} id="edit-business" class="text-primary hover:underline">
+          <%!-- A standalone link, so a 44 px tap target (design guide, principle 5). --%>
+          <.link
+            navigate={~p"/my/business"}
+            id="edit-business"
+            class="inline-flex min-h-11 items-center text-primary hover:underline"
+          >
             Add your business details
           </.link>
         <% end %>
@@ -86,7 +98,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Index do
     salary = Format.salary_range(listing.salary_min, listing.salary_max, :short)
 
     if listing.region && salary do
-      "#{listing.region.name} · #{salary}"
+      {listing.region.name, salary}
     else
       "Not finished yet"
     end

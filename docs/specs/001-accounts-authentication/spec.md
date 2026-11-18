@@ -579,3 +579,4 @@ Scenario: Admin navigation
 | 2026-11-14 | REQ-001-3 wording tightened: an unconfirmed account cannot log in with a password or without using the emailed link (using the link is what confirms it). State diagram and sign-up sequence note aligned. No behaviour change |
 | 2026-11-16 | Changed by spec 004: the navigation wireframe's note on what the Admin area holds now starts with Listings |
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall and the accent, success and info colours are one step darker, on every screen of this spec; the drawer's "Close menu" button is 44 px. No requirement changed |
+| 2026-11-18 | Settings brought in line with the design guide after a look at 375 px: a left-aligned "Settings" page title in place of the centred "Account Settings", and sentence-case buttons ("Change email", "Save password"). No requirement changed |

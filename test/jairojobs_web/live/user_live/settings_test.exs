@@ -12,8 +12,8 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
         |> log_in_user(user_fixture())
         |> live(~p"/users/settings")
 
-      assert html =~ "Change Email"
-      assert html =~ "Save Password"
+      assert html =~ "Change email"
+      assert html =~ "Save password"
     end
 
     test "REQ-001-1: settings redirects a visitor to log in", %{conn: conn} do
@@ -122,7 +122,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
           "user" => %{"email" => "with spaces"}
         })
 
-      assert result =~ "Change Email"
+      assert result =~ "Change email"
       assert result =~ "must have the @ sign and no spaces"
     end
 
@@ -139,7 +139,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
         })
         |> render_submit()
 
-      assert result =~ "Change Email"
+      assert result =~ "Change email"
       assert result =~ "did not change"
     end
   end
@@ -191,7 +191,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
           }
         })
 
-      assert result =~ "Save Password"
+      assert result =~ "Save password"
       assert result =~ "should be at least 12 character(s)"
       assert result =~ "does not match password"
     end
@@ -209,7 +209,7 @@ defmodule JairojobsWeb.UserLive.SettingsTest do
         })
         |> render_submit()
 
-      assert result =~ "Save Password"
+      assert result =~ "Save password"
       assert result =~ "should be at least 12 character(s)"
       assert result =~ "does not match password"
     end

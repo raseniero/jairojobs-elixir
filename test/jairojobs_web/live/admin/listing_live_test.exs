@@ -98,6 +98,14 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert row =~ "Kape Isla"
       assert row =~ region.name
       assert row =~ "₱12,000–13,000/mo"
+
+      # The salary is never broken across two lines.
+      assert has_element?(
+               view,
+               "#admin-listings-#{listing.id} .whitespace-nowrap",
+               "₱12,000–13,000/mo"
+             )
+
       assert text(view, "#listing-when-#{listing.id}") == "submitted just now"
 
       # The row leads to the listing's Admin view, remembering the list it came from.

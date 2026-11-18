@@ -121,6 +121,17 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       end
     end
 
+    test "the salary in a row is never broken across two lines", %{conn: conn, scope: scope} do
+      listing = listing_fixture(scope, complete_listing_attrs())
+      {:ok, view, _html} = live(conn, ~p"/my/listings")
+
+      assert has_element?(
+               view,
+               "#my-listings-#{listing.id} .whitespace-nowrap",
+               "₱14,000–16,000/mo"
+             )
+    end
+
     test "REQ-003-13: unfinished draft in the list", %{conn: conn, scope: scope} do
       draft = listing_fixture(scope, %{title: "Dishwasher"})
 

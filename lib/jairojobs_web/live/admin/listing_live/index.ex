@@ -93,7 +93,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Index do
             </span>
             <span class="block break-words">{listing.business_name} · {listing.region.name}</span>
             <span class="block text-sm text-base-content/70">
-              <span class="font-semibold text-base-content">
+              <span class="font-semibold whitespace-nowrap text-base-content">
                 {Format.salary_range(listing.salary_min, listing.salary_max, :short)}
               </span>
               · <span id={"listing-when-#{listing.id}"}>{when_line(listing)}</span>

@@ -9,12 +9,8 @@ defmodule JairojobsWeb.UserLive.Settings do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="text-center">
-        <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
-        </.header>
-      </div>
+      <h1 class="text-[22px] font-bold">Settings</h1>
+      <p class="text-sm text-base-content/70">Change your email address or your password.</p>
 
       <%!-- spec 001 — REQ-001-9: role is read-only here; it is never cast from Settings --%>
       <div class="fieldset mb-2">
@@ -38,7 +34,7 @@ defmodule JairojobsWeb.UserLive.Settings do
           spellcheck="false"
           required
         />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+        <.button variant="primary" phx-disable-with="Changing...">Change email</.button>
       </.form>
 
       <div class="divider" />
@@ -75,7 +71,7 @@ defmodule JairojobsWeb.UserLive.Settings do
           spellcheck="false"
         />
         <.button variant="primary" phx-disable-with="Saving...">
-          Save Password
+          Save password
         </.button>
       </.form>
     </Layouts.app>
