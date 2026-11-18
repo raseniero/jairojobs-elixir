@@ -17,9 +17,9 @@ PAGES.json is what a priv/phone_check/NNN.exs prints on `setup`:
 
 For each page it checks, at 375 px wide:
   * the document is no wider than the viewport (no sideways scrolling);
-  * every visible tap target is at least 44 px tall (docs/design.md, "Tap target"):
-    buttons, links styled as buttons, links in a <nav>, and links that fill a list row.
-Text fields, selects and text areas under 44 px are listed as notes; they do not fail a page.
+  * every visible interactive element is at least 44 px tall (docs/design.md, principle 5):
+    buttons, links, text fields, selects and text areas. The one exception is a link
+    inside a sentence, which is the height of its text.
 
 A full-page screenshot of each page is saved to OUT_DIR. Exits 1 if any page failed.
 """
@@ -41,24 +41,32 @@ MEASURE = """
   const label = el =>
     (el.id ? '#' + el.id : (el.getAttribute('aria-label') || el.textContent || el.tagName))
       .trim().replace(/\\s+/g, ' ').slice(0, 40);
-  const short = selector => {
-    const out = [];
-    for (const el of document.querySelectorAll(selector)) {
-      const r = seen(el);
-      if (r && Math.round(r.height) < minTap) out.push(label(el) + ' (' + Math.round(r.height) + ' px)');
-    }
-    return [...new Set(out)];
-  };
   const wide = [];
   for (const el of document.querySelectorAll('body *')) {
     const r = seen(el);
     if (r && r.right > width + 0.5) wide.push(label(el) + ' (to ' + Math.round(r.right) + ' px)');
   }
+  // A link inside a sentence shares its parent with other text; a standalone link does not.
+  const inSentence = el => {
+    if (el.tagName !== 'A' || el.classList.contains('btn')) return false;
+    for (const node of el.parentElement.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 1) return true;
+    }
+    return false;
+  };
+  const targets = 'button, a, .btn, [role="button"], label.btn, summary, select, textarea, ' +
+    'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])';
+  const taps = [];
+  for (const el of document.querySelectorAll(targets)) {
+    const r = seen(el);
+    if (!r || inSentence(el)) continue;
+    // A row that is one link is measured as the link; a field's own height is what counts.
+    if (Math.round(r.height) < minTap) taps.push(label(el) + ' (' + Math.round(r.height) + ' px)');
+  }
   return {
     scrollWidth: document.documentElement.scrollWidth,
     wide: [...new Set(wide)].slice(0, 5),
-    taps: short('button, .btn, [role="button"], label[for], nav a, li > a'),
-    fields: short('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea'),
+    taps: [...new Set(taps)],
   };
 }
 """
@@ -113,7 +121,7 @@ def main():
                     found = page.evaluate(MEASURE, [WIDTH, MIN_TAP])
                     page.screenshot(path=os.path.join(out, name + ".png"), full_page=True)
                 except Exception as error:  # a page that cannot be opened has failed
-                    results.append((name, [f"could not be checked: {str(error).splitlines()[0]}"], []))
+                    results.append((name, [f"could not be checked: {str(error).splitlines()[0]}"]))
                     continue
 
                 problems = []
@@ -121,17 +129,15 @@ def main():
                     problems.append(f'{found["scrollWidth"]} px wide: ' + ", ".join(found["wide"]))
                 if found["taps"]:
                     problems.append(f"under {MIN_TAP} px tall: " + ", ".join(found["taps"]))
-                results.append((name, problems, found["fields"]))
+                results.append((name, problems))
             context.close()
         browser.close()
 
     failed = 0
-    for name, problems, fields in results:
+    for name, problems in results:
         print(("FAIL " if problems else "OK   ") + name)
         for problem in problems:
             print("       " + problem)
-        if fields:
-            print(f"       note, fields under {MIN_TAP} px: " + ", ".join(fields))
         failed += 1 if problems else 0
 
     print(f"{len(results)} page(s) checked at {WIDTH} px, {failed} failed. Screenshots: {out}")
