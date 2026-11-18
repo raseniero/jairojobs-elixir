@@ -1,7 +1,7 @@
 # Design Guide
 
 **Status:** Accepted
-**Last updated:** 2026-11-16 (seven internal contradictions resolved with the owner; see Changelog)
+**Last updated:** 2026-11-17 (seven internal contradictions resolved with the owner; see Changelog)
 **Brief:** "A clean, trustworthy, modern craigslist.org."
 
 The single reference for how jairojobs looks and feels. Agents and humans build every screen
@@ -190,7 +190,7 @@ real logo exists; keep it text so it stays crisp and fast.
 ## 6. Accessibility
 
 - Contrast ≥ 4.5:1 for text. Every colour token passes on white, both as text on a white
-  page and as a background under white text (checked 2026-11-16; the lowest is muted text
+  page and as a background under white text (checked 2026-11-17; the lowest is muted text
   at 4.76).
 - Focus rings visible (daisyUI default `focus-visible` outline in primary).
 - Every interactive element reachable by keyboard; drawer traps focus while open.
@@ -207,8 +207,8 @@ real logo exists; keep it text so it stays crisp and fast.
 
 ## Changelog
 
-Entries before 2026-11-16 are in the commit history.
+Entries before 2026-11-17 are in the commit history.
 
 | Date | Change |
 |---|---|
-| 2026-11-16 | Seven contradictions inside this guide resolved, each chosen by the owner. (1) Tap targets: principle 5 is the rule, every interactive element is at least 44 px, except a link inside a sentence; the tokens row says the same. (2) The theme's `--size-field` is `0.275rem`, so fields and buttons are 44 px by default (was `0.25rem`, 40 px). (3) Contrast: accent and warning are amber-700, success emerald-700, info blue-600 (were amber-600, emerald-600, blue-500, which failed 4.5:1 under white text); Info added to the tokens table. (4) Region is visible for every row, on the row or as the list's heading. (5) Principle 4 names status and destructive colours as exceptions. (6) "cards" → "boxes" in the Border row. (7) A 15 px section-heading token added; fine print is 12 px. Reference mock redrawn to match |
+| 2026-11-17 | Seven contradictions inside this guide resolved, each chosen by the owner. (1) Tap targets: principle 5 is the rule, every interactive element is at least 44 px, except a link inside a sentence; the tokens row says the same. (2) The theme's `--size-field` is `0.275rem`, so fields and buttons are 44 px by default (was `0.25rem`, 40 px). (3) Contrast: accent and warning are amber-700, success emerald-700, info blue-600 (were amber-600, emerald-600, blue-500, which failed 4.5:1 under white text); Info added to the tokens table. (4) Region is visible for every row, on the row or as the list's heading. (5) Principle 4 names status and destructive colours as exceptions. (6) "cards" → "boxes" in the Border row. (7) A 15 px section-heading token added; fine print is 12 px. Reference mock redrawn to match |
