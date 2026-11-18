@@ -54,6 +54,14 @@
   --noise: 0;
 }
 
+/* A placeholder is a hint, but it is still text: 60 % of the text colour reaches 4.5:1 on
+   white (docs/design.md §6). Tailwind's default is 50 %, which does not. */
+@layer base {
+  ::placeholder {
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  }
+}
+
 /* Add variants based on LiveView classes */
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
