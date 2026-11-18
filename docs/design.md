@@ -196,6 +196,11 @@ real logo exists; keep it text so it stays crisp and fast.
 - Contrast ≥ 4.5:1 for text. Every colour token passes on white, both as text on a white
   page and as a background under white text (checked 2026-11-17; the lowest is muted text
   at 4.76).
+- Text made lighter by lowering its opacity (hints, labels, placeholders, "Not set yet") must
+  still reach 4.5:1. On the page and section backgrounds that means 60 % of the text colour
+  or more (60 % gives 4.7 on white, 4.6 on the section background; 70 % gives 6.6). Icons
+  need 3:1: 50 % or more on those backgrounds, 80 % or more for a white icon on a coloured
+  message.
 - Focus rings visible (daisyUI default `focus-visible` outline in primary).
 - Every interactive element reachable by keyboard; drawer traps focus while open.
 - `aria-label` on icon-only buttons (☰ = "Open menu").
@@ -217,3 +222,4 @@ Entries before 2026-11-17 are in the commit history.
 |---|---|
 | 2026-11-17 | Seven contradictions inside this guide resolved, each chosen by the owner. (1) Tap targets: principle 5 is the rule, every interactive element is at least 44 px, except a link inside a sentence; the tokens row says the same. (2) The theme's `--size-field` is `0.275rem`, so fields and buttons are 44 px by default (was `0.25rem`, 40 px). (3) Contrast: accent and warning are amber-700, success emerald-700, info blue-600 (were amber-600, emerald-600, blue-500, which failed 4.5:1 under white text); Info added to the tokens table. (4) Region is visible for every row, on the row or as the list's heading. (5) Principle 4 names status and destructive colours as exceptions. (6) "cards" → "boxes" in the Border row. (7) A 15 px section-heading token added; fine print is 12 px. Reference mock redrawn to match |
 | 2026-11-18 | Hex values in the tokens table and the theme comments now give what the theme renders (for example accent `#bb4d00`, was listed as `#b45309`). No colour changed in the app; the reference mock uses the same values |
+| 2026-11-18 | §6: lighter text made by lowering opacity must still reach 4.5:1 (60 % or more), icons 3:1. Measured in the app: 70 % and 60 % text and field labels pass; placeholders (50 %, 3.41) and the "×" on messages (40 %, about 2.0) did not, and were raised to 60 % and 80 % |
