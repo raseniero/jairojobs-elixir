@@ -173,6 +173,12 @@ specific part of it visible and must agree with it.
    user action. It sits in `spec.md` with a table mapping every user story to its path. Shade
    public screens, emails, and operator/terminal steps differently. Keep per-screen layout
    detail in Salt wireframes, not in the flow.
+   **Mark the buttons** (from spec 004 onwards; earlier screen flows are not redrawn for
+   this): write a button as `[ Label ]`, the screen's accent action in bold
+   (`**[ Label ]**`, at most one per screen: `design.md`, principle 4), and a destructive action
+   in red (`<color:#dc2626>[ Label ]</color>`). The diagram's legend has a row for each
+   mark it uses. `specs/004-listings-admin-moderation/diagrams/screenflow-moderation.puml`
+   is the example to copy.
 
 Not used: timing, composite structure, Gantt, mind map / WBS, JSON/YAML renders.
 
