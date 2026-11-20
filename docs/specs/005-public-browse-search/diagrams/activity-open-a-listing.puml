@@ -1,0 +1,65 @@
+@startuml activity-open-a-listing
+' Spec 005 — what is public, the listing's public page, and a listing that is no longer listed (REQ-005-1, -5, -7)
+title Open a listing (REQ-005-1/5/7)
+
+start
+:Anyone, logged in or not, opens a public
+listing address: region + listing slug;
+if (Was a listing ever published\nat this address?) then (no)
+  :Not found — the same page as for
+  an address that never existed;
+  note right
+    A Draft, a listing Waiting for approval and one
+    that Needs changes have no public address at all.
+    An address built from a listing's id is not found.
+  end note
+  stop
+else (yes)
+endif
+switch (Status now)
+case (Published)
+  :Show the public page;
+  note left
+    Only the status decides. A Published listing
+    is shown whatever its region (active or hidden)
+    and whatever the owner's role is now.
+  end note
+case (Closed or\nTaken down)
+  :Show "This job is no longer listed." and a link
+  to the jobs in its region. Nothing from the listing
+  is shown. The page is answered as "gone";
+  note right
+    The same words for both, so the public cannot
+    tell a take-down from a close. No reason is shown.
+    The owner and Admins are no exception:
+    they see this page too, with their link.
+  end note
+  if (Viewer is the owner or an Admin?) then (yes)
+    :Add the link to the owner view
+    or to the Admin view (REQ-005-10);
+  else (no)
+  endif
+  stop
+endswitch
+:Title, business name;
+:Trust line: "✓ Approved", "Posted" with the time
+of approval, and the region;
+:Facts: salary range per month, location
+(area and region), type, schedule if given;
+:Sections: About the job, Requirements and Benefits
+if given, About <business> if given;
+note right
+  Never shown: the poster's email address,
+  who approved it, any status label.
+end note
+:Offer "Share" (REQ-005-8);
+:Say "Applying through jairojobs is coming soon."
+There is no Apply button until spec 007;
+:Offer the way back: "Jobs in <region>";
+if (Viewer is the owner or an Admin?) then (yes)
+  :Add the link to the owner view
+  or to the Admin view (REQ-005-10);
+else (no)
+endif
+stop
+@enduml

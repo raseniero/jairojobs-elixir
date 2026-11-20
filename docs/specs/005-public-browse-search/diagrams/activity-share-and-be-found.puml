@@ -1,0 +1,45 @@
+@startuml activity-share-and-be-found
+' Spec 005 — sharing a listing, and what search engines are told (REQ-005-8, -9)
+title Share and be found (REQ-005-8/9)
+
+start
+if (Who is asking?) then (a visitor on a listing's public page)
+  :Taps "Share";
+  if (The phone has a share sheet?) then (yes)
+    :Open it with the listing's title and address;
+  else (no)
+    :Copy the address and say "Link copied";
+  endif
+  :A friend receives the link. The chat app
+  shows a preview: the title and business name,
+  then the salary range, area and region;
+  :The friend follows the link and sees the
+  public page with no account (REQ-005-5);
+  stop
+else (a search engine or a chat app reading a page)
+  switch (Which page?)
+  case (a Published listing)
+    :Own page title: job title, business, region.
+    Description: salary range, type, area and region.
+    Job details a search engine can read: title, business,
+    area and region, salary range in PHP per month,
+    type, date posted, the text;
+  case (the home page or\na region's jobs)
+    :Own page title: "Jobs in Davao City".
+    Description: one plain sentence;
+  case (a list with search\nwords or a type)
+    :Asks not to be listed in search results;
+  case (a closed or taken\ndown listing)
+    :Answered as "gone", so it is dropped;
+  case (a private page: Admin area,\nMy listings, Settings)
+    :Behind log-in, and never in the sitemap;
+  endswitch
+  :Every public page states its one address, and is
+  complete as first delivered: its text does not
+  wait for scripts to run;
+  :The sitemap lists the home page, each active
+  region's jobs and each Published listing,
+  and nothing else;
+  stop
+endif
+@enduml

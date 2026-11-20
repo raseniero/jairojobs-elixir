@@ -1,0 +1,77 @@
+@startuml activity-browse-and-search
+' Spec 005 — the jobs lists: all regions, one region, search and type (REQ-005-2, -3, -4)
+title Browse and search (REQ-005-2/3/4)
+
+start
+:Anyone, logged in or not, opens the home page
+or the address of a region's jobs;
+if (A region's address?) then (yes)
+  if (A region with that address exists,\nactive or hidden?) then (no)
+    :Not found;
+    stop
+  else (yes)
+  endif
+  :List = Published listings of that region.
+  Heading names the region, so rows show
+  business and area only;
+  note right
+    A hidden region still opens by its address.
+    It is not among the region choices,
+    so no choice is marked.
+  end note
+else (no, the home page)
+  :List = Published listings of every region,
+  hidden regions included.
+  Rows show business, area and region;
+endif
+:Offer the region choices: every active region
+in alphabetical order, plus "All regions".
+A region with no jobs is still offered;
+if (Search words or a type in the address?) then (yes)
+  :Keep only listings where every word is found
+  in the title, business name, area, About the job,
+  Requirements or Benefits, ignoring capitals;
+  :Keep only listings of the chosen type, if one is chosen;
+  note right
+    Search and type work inside the list being
+    shown: one region, or all regions.
+    They are part of the address, so the
+    result can be shared or reopened.
+    An empty search is no search.
+  end note
+else (no)
+endif
+if (Any listings left?) then (no)
+  if (Was a search or type applied?) then (yes)
+    :"No jobs match your search."
+    and a way to clear the search;
+  elseif (A region's list?) then (yes)
+    :"No jobs are listed in <region> yet."
+    and a link to all regions;
+  else (no)
+    :"No jobs are listed yet.";
+  endif
+  stop
+else (yes)
+endif
+:Say how many jobs, and "newest first":
+"38 jobs in Davao City · newest first";
+:Show the first 20 rows, newest approval first.
+Each row: title, business and area (and region on
+the all-regions list), salary range, posted date,
+"✓ Approved". The whole row is the link;
+:Show the line "Every listing shows salary and is
+checked by jairojobs before it goes live.";
+if (More than 20?) then (yes)
+  :Offer "Show more" — 20 more each time;
+else (no)
+endif
+if (Visitor chooses a region, searches,\nchooses a type or clears?) then (yes)
+  :Show that list. Choosing a region keeps
+  the search words and the type;
+  stop
+else (taps a row)
+  :Open the listing's public page (REQ-005-5);
+  stop
+endif
+@enduml

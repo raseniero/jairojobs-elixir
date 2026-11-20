@@ -1,0 +1,136 @@
+@startuml screenflow-browse
+' Spec 005 — screen flow. Each state is a screen (key elements listed); each arrow is a user action.
+' Every user story US-005-1..11 is a path through this diagram (see table in spec.md).
+
+hide empty description
+skinparam state {
+  BackgroundColor white
+  BackgroundColor<<public>> #f8fafc
+  BackgroundColor<<email>> #fef3c7
+  BackgroundColor<<other>> #e0e7ff
+  BackgroundColor<<outside>> #dcfce7
+  BorderColor #94a3b8
+  FontSize 12
+}
+skinparam arrowFontSize 11
+
+title Spec 005 — screen flow (375 px, Visitor; the Employer and the Admin appear where they reach a public page)
+
+state "Outside jairojobs" as Outside <<outside>>
+Outside : a search engine result
+Outside : a link shared in a chat, with its preview:
+Outside : "Barista (full-time) — Kape Isla"
+Outside : "₱14,000–16,000 / month · Matina, Davao City"
+
+state "Drawer (☰)" as Drawer <<public>>
+Drawer : Visitor: Browse jobs · Sign up · Log in
+Drawer : Candidate, Employer, Admin: Browse jobs · (their own items)
+
+state "Jobs (home, all regions)" as All
+All : region choices: Cebu · Davao City · Metro Manila · ● All regions
+All : search field ________  [ Search ]
+All : type: Any type ▾
+All : "142 jobs · newest first"
+All : Barista (full-time)
+All : Kape Isla · Matina, Davao City
+All : ₱14,000–16,000/mo · 2 h ago · ✓ Approved
+All : 20 rows at a time · [ Show more ]
+All : (none yet) "No jobs are listed yet."
+All : (search finds nothing) "No jobs match your search." · Clear search
+All : "Every listing shows salary and is checked by jairojobs before it goes live."
+
+state "Jobs in a region" as Region
+Region : region choices: Cebu · ● Davao City · Metro Manila · All regions
+Region : search field ________  [ Search ]
+Region : type: Any type ▾
+Region : "38 jobs in Davao City · newest first"
+Region : Barista (full-time)
+Region : Kape Isla · Matina
+Region : ₱14,000–16,000/mo · 2 h ago · ✓ Approved
+Region : 20 rows at a time · [ Show more ]
+Region : (none yet) "No jobs are listed in Davao City yet." · See all regions
+Region : (search finds nothing) "No jobs match your search." · Clear search
+Region : (a hidden region opens by its address, with no region choice marked)
+Region : the same footer line
+
+state "Listing (public page)" as Listing
+Listing : ← Jobs in Davao City
+Listing : Barista (full-time)
+Listing : Kape Isla
+Listing : ✓ Approved · Posted 2 h ago · Davao City
+Listing : facts box: Salary ₱14,000–16,000 / month ·
+Listing : Location Matina, Davao City · Type · Schedule
+Listing : About the job · Requirements · Benefits · About Kape Isla
+Listing : [ Share ]
+Listing : "Applying through jairojobs is coming soon."
+Listing : owner only: "This is your listing." · Manage this listing
+Listing : Admin only: Open the Admin view
+
+state "No longer listed" as Gone
+Gone : "This job is no longer listed."
+Gone : See jobs in Davao City
+Gone : (nothing from the listing is shown)
+Gone : owner only: Manage this listing
+Gone : Admin only: Open the Admin view
+
+state "Not found" as NotFound
+NotFound : the usual "not found" page
+
+state "The phone's share sheet" as Sheet <<outside>>
+Sheet : the listing's title and address,
+Sheet : ready to send in any app
+Sheet : (where there is no share sheet:
+Sheet : the address is copied, "Link copied")
+
+state "Email to the Employer (spec 004)" as Mail <<email>>
+Mail : Your listing is live
+Mail : link → the public page
+Mail : link → the listing in My listings
+
+state "Employer: Listing (owner view, spec 003)" as Owner <<other>>
+Owner : Live: See the public page
+Owner : [ Close listing ]
+
+state "Admin: Listing (Admin view, spec 004)" as Admin <<other>>
+Admin : Live: See the public page
+Admin : [ Take down ] [ Edit ]
+
+[*] --> All : opens jairojobs.com
+Drawer --> All : Browse jobs
+All --> Region : choose a region
+Region --> Region : choose another region
+Region --> All : All regions
+All --> All : search, choose a type,\nclear, show more
+Region --> Region : search, choose a type,\nclear, show more
+All --> Listing : tap a row
+Region --> Listing : tap a row
+Listing --> Region : ← Jobs in Davao City
+Listing --> Sheet : Share
+Sheet -[dotted]-> Outside : sent to a friend
+Outside --> Listing : follows the link\n(the listing is Published)
+Outside --> Gone : follows the link\n(the listing was closed or taken down)
+Outside --> Listing : follows an address from before the\nlisting moved region → forwarded
+Outside --> NotFound : an address that never was a public listing\n(or one built from a listing's id)
+Outside --> Region : follows a region's address\n(unknown region → Not found)
+Gone --> Region : See jobs in Davao City
+
+Mail --> Listing : employer follows the public link
+Listing --> Owner : Manage this listing\n(owner, logged in)
+Owner --> Listing : See the public page
+Listing --> Admin : Open the Admin view\n(Admin, logged in)
+Admin --> Listing : See the public page
+Gone --> Owner : Manage this listing
+Gone --> Admin : Open the Admin view
+
+legend right
+  |= Mark |= Meaning |
+  | white | a public screen, no account needed |
+  | light grey | shared navigation |
+  | amber | an email, not a screen |
+  | blue | a screen from an earlier spec, behind log-in |
+  | green | outside jairojobs |
+  | dotted arrow | happens outside the app |
+  | ● | the region choice that is selected |
+  | [ brackets ] | a button |
+endlegend
+@enduml

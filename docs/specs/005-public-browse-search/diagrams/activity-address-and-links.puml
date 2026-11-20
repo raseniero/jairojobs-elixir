@@ -1,0 +1,47 @@
+@startuml activity-address-and-links
+' Spec 005 — how a listing gets its public address, and the links to and from it (REQ-005-6, -10)
+title A listing's address, and the links to it (REQ-005-6/10)
+
+start
+:An Admin approves a listing (REQ-004-5);
+:Make the slug from the title as it is now:
+lowercase letters, digits and hyphens,
+at most 60 characters;
+if (Another listing in this region\nalready has that slug?) then (yes)
+  :Add the next free number: "barista-2";
+else (no)
+endif
+:The public address is now
+/jobs/<region slug>/<listing slug>
+and the listing is on the public lists;
+if (The Admin owns the listing?) then (yes)
+  :No email (REQ-004-9);
+else (no)
+  :"Your listing is live" email to the owner, with a link
+  to the public page and a link to it in My listings;
+endif
+:While it is Live, the owner view (003) and the
+Admin view (004) each show "See the public page";
+:On the public page, the owner sees "This is your listing."
+with "Manage this listing" (if they can still open
+My listings). An Admin sees "Open the Admin view".
+Nobody else sees either;
+repeat
+  switch (What happens to the listing later?)
+  case (title or business\nname is edited)
+    :The address stays exactly as it was;
+  case (an Admin moves it\nto another region)
+    :The address changes to the new region
+    (same slug, or the next free number there).
+    The old address forwards to the new one;
+  case (its region is renamed\nor hidden)
+    :The address stays as it was
+    (a region's slug never changes, spec 002);
+  endswitch
+repeat while (Still Published?) is (yes)
+->no, closed or taken down;
+:The address stays the listing's own and is never
+given to another listing. It now shows
+"This job is no longer listed." (REQ-005-7);
+stop
+@enduml
