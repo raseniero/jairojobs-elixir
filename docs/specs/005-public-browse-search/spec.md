@@ -302,7 +302,7 @@ Scenario: An edit does not move a listing
   Then "Barista" is still listed above "Cashier"
 
 Scenario: The trust line is shown
-  Given at least one listing is Published
+  Given no listing is Published
   When I open the home page
   Then I see "Every listing shows salary and is checked by jairojobs before it goes live."
 ```
@@ -313,10 +313,14 @@ Scenario: The trust line is shown
   salary, posted date and "✓ Approved". On this list the row also names the region, after
   the area: "Kape Isla · Matina, Davao City".
 - The posted date is the time of approval (REQ-004-5), shown in `Asia/Manila`: relative
-  under 7 days ("2 h ago", "Yesterday", "3 d ago"), a date after that.
+  under 7 days ("20 min ago", "2 h ago", "3 d ago"), a date after that. This is what the
+  site's one time helper already gives on the Admin lists (constitution §4.6); the mock's
+  "Yesterday" is not used.
 - Salary in a row reads "₱14,000–16,000/mo", or "₱15,000/mo" when minimum and maximum are
   the same (REQ-003-4).
 - The count reads "1 job" for one.
+- The trust line sits under every public list, also when the list is empty (design guide,
+  trust signals: "Footer line on public lists").
 - "Browse jobs" in the menu leads here, as it does today.
 - The region choices, the search field and the type choice of REQ-005-3 and REQ-005-4 are
   on this page too.
@@ -582,6 +586,12 @@ Scenario: An address is never given to another listing
   Given the listing at "/jobs/davao-city/barista-full-time" was closed
   When an Admin approves a new "Barista (full-time)" in "Davao City"
   Then the new listing's address ends in "/jobs/davao-city/barista-full-time-2"
+
+Scenario: An earlier address is not given to another listing either
+  Given a Published listing was moved from "/jobs/davao-city/barista-full-time" to "Cebu"
+  When an Admin approves a new "Barista (full-time)" in "Davao City"
+  Then the new listing's address ends in "/jobs/davao-city/barista-full-time-2"
+  And "/jobs/davao-city/barista-full-time" still forwards to the moved listing
 ```
 
 **Rules**
@@ -589,6 +599,10 @@ Scenario: An address is never given to another listing
   moment of approval, by the same rule as a region's slug (REQ-002-2). At most 60
   characters, cut at a word where possible. A title that leaves nothing usable gives "job".
 - The slug is unique within its region. A clash gets the next free number: "-2", "-3".
+  An address counts as taken if any listing has it or ever had it: a closed or taken down
+  listing keeps its address, and so does the earlier address of a listing that was moved.
+- The shape `/jobs/<region>/<listing>` is the one ADR-0004 gives as its example, and
+  `/jobs/<region>` is the address the Admin's Regions screens have shown since spec 002.
 - Set once. Neither an edit of the title or the business name nor a change to the region's
   name changes it.
 - The address never contains the listing's id (constitution §4.8).
@@ -839,7 +853,7 @@ changed.
 | 1 | Does the public see a Published listing whose region is hidden? | Yes. Only the status decides. Hiding a region stops it being offered as a choice; its listings stay on the all-regions list, in search and at their own addresses, and the region's own address still opens. The same holds when the owner's role changes. An Admin who wants such a listing gone takes it down or moves it (REQ-005-1, REQ-005-3) |
 | 2 | How is a listing's slug made, and what happens when the title changes? | Made from the title at approval and never changed, as a region's slug is; unique within its region; a clash gets a number (REQ-005-6) |
 | 3 | On the all-regions list, does a row show the area as well as the region? | Both: "Kape Isla · Matina, Davao City". On a region's list the row shows the area only (REQ-005-2, REQ-005-3) |
-| 4 | What is the shape of the addresses? | `/jobs/<region>` for a region and `/jobs/<region>/<listing>` for a listing; the home page is the all-regions list. Not `/<region>/<listing>`, which was named when question 2 was answered: a region called "Admin", "Users" or "My" would collide with addresses the site already uses (REQ-005-3, REQ-005-6) |
+| 4 | What is the shape of the addresses? | `/jobs/<region>` for a region and `/jobs/<region>/<listing>` for a listing; the home page is the all-regions list. Not `/<region>/<listing>`, which was named when question 2 was answered: a region called "Admin", "Users" or "My" would collide with addresses the site already uses. Found afterwards, on checking: this is also the shape ADR-0004 gives as its example, and the address the Admin's Regions screens already show (REQ-005-3, REQ-005-6) |
 | 5 | What happens to the address when an Admin moves a Published listing to another region? | The address follows the listing to the new region, and every earlier address forwards to the current one. Known cost: the site must remember a listing's earlier addresses (REQ-005-6) |
 | 6 | What does someone see at the address of a listing that is Closed or Taken down? | One page for both: "This job is no longer listed.", a link to the region's jobs, nothing of the listing, answered as "gone". The owner and Admins see the same page. An address that never was a listing is "not found" (REQ-005-7) |
 | 7 | Is the home page the list of jobs? | Yes. It is the all-regions list and replaces "Listings are coming soon", with no headline above the list. "Browse jobs" keeps leading there (REQ-005-2) |
@@ -868,11 +882,22 @@ Decided while drafting, without asking. Say so if any should change.
   (REQ-005-5).
 - On a listing that is no longer listed, the owner and Admins see the same page as
   everyone, plus their link (REQ-005-7, REQ-005-10).
+- The trust line is shown under an empty list too (REQ-005-2).
+- Posted dates read as the built time helper writes them ("3 d ago"), not the mock's
+  "Yesterday" (REQ-005-2).
+- An address a listing once had is never given to another listing, including the earlier
+  address of a listing that was moved (REQ-005-6).
+- Not said anywhere: whether the list of a hidden region asks search engines not to list
+  it. It is not in the sitemap; beyond that the spec is silent.
 
 ## Notes for the plan
 
 Not requirements; reminders for whoever writes `plan.md`.
 
+- **ADRs.** ADR-0006 says the shape of public addresses is an architecture choice that
+  gets an ADR. ADR-0004 already gives `/jobs/davao-city/barista-cafe-x` as the shape, and
+  this spec keeps it, so no new ADR is proposed. ADR-0004 expected "redirects on rename";
+  with a slug that never changes, the only forwarding is after a move between regions.
 - **Sequence diagram.** This spec adds no flow with three parties of its own. The "live"
   email already has one, `sequence-decision-email` in spec 004, which changes with
   REQ-005-10.
@@ -891,18 +916,25 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 002 REQ-002-4 | the rule "what happens to a hidden region's published listings on public pages is decided in spec 005" states the decision (decision 1) |
   | 002 `state-region` | "Hidden : not offered in pickers or public index" becomes: not offered as a choice; its Published listings stay public |
   | 002 `activity-seed-and-consume` | check the step for the consuming feature against REQ-005-3 |
-  | 003 lifecycle table, `state-listing` | "everyone" and "visible to everyone (005)" stay true; check the wording against REQ-005-1 |
+  | 003 lifecycle table, `state-listing` | "everyone", "visible to everyone (005)" and "no longer public" on Closed and Taken down stay true; check the wording against REQ-005-1 and REQ-005-7 |
   | 003 REQ-003-9 and `activity-after-submitting` | "no longer visible to the public" / "No longer public (005)" now means the page in REQ-005-7 |
-  | 003 REQ-003-10, `screenflow-posting`, `wireframe-posting` | the owner view of a Live listing gains "See the public page" |
+  | 003 REQ-003-10, `activity-my-listings`, `screenflow-posting`, `wireframe-posting` | the owner view of a Live listing gains "See the public page" |
   | 004 REQ-004-9, `activity-emails`, `sequence-decision-email`, `screenflow-moderation` | the "Your listing is live" email also links to the public page |
   | 004 REQ-004-4, `activity-find-and-review`, `screenflow-moderation` | the Admin view of a Live listing gains "See the public page" |
   | 004 REQ-004-3 and REQ-004-7 | "Until the public pages exist…" and "Until spec 005 there are no public pages" are no longer true and point here |
+  | 004 REQ-004-5 and `activity-approve-or-reject` | approving also gives the listing its public address (REQ-005-6); the note "the approval time is the 'posted' date (005)" stays true |
+  | 004 REQ-004-8 and `activity-take-down-and-edit` | moving a Published listing to another region changes its public address, and the old one forwards (REQ-005-6); the public address joins what an Admin edit cannot set directly; "No longer public (005)" after a take-down now means the page in REQ-005-7 |
   | 004 `state-listing` | check "Published" against REQ-005-1 and REQ-005-6: it gets its public address on approval |
   | `architecture/overview.md` | the `:current_user` row of the `live_session` table gains the public pages; the Listings row says the public pages are implemented |
-  | `architecture/data-model.md`, ERD | the listing's slug, and whatever remembers earlier addresses |
+  | `architecture/data-model.md`, ERD | the listing's slug, and whatever remembers earlier addresses; the Conventions line "a unique slug only" becomes: the region's slug plus a listing slug unique within the region; the ERD's planning comment for 005 goes |
   | `usecase-product`, C4 diagrams | check "Browse / search listings" and the Visitor against what is built; a search engine reading the sitemap is a new outside party |
-  | `docs/design.md` and its mock | decisions 10 and 14 leave the mock showing two things the site does not have: the "Apply for this job" button until spec 007, and "Member since". To be proposed to the owner at the plan stage as one note beside the mock, in its own commit with a changelog row |
+  | `docs/design.md` and its mock | decisions 10 and 14 leave the mock showing two things the site does not have: the "Apply for this job" button until spec 007, and "Member since". A third difference came out of the check: the mock's rows say "Yesterday" where the site says "1 d ago". To be proposed to the owner at the plan stage as one note beside the mock, in its own commit with a changelog row |
   | the home page | the text "Listings are coming soon" goes; the page becomes the list (REQ-005-2) |
+  | the Admin's Regions screens (spec 002) | no change needed: they already show `/jobs/<slug>`, which is now a real address. Whether it becomes a link is for the plan |
+
+  Not in the table on purpose: `plan.md` and `tasks.md` of earlier specs. They record how
+  each spec was built at the time (for example spec 004's plan describes the "live" email
+  with one link) and were not updated by spec 004 either.
 
 ## Hand-offs to later specs
 
@@ -938,3 +970,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 |---|---|
 | 2026-11-20 | Created (Draft) with a screen flow and four activity diagrams; the lifecycle is spec 004's, by reference. Fourteen open questions, each with a proposed answer written into the requirements; question 2 was answered by the owner before drafting |
 | 2026-11-20 | Open questions resolved: the owner went through the thirteen still open, one at a time, and chose the proposed answer for each; no requirement or diagram changed. Still Draft |
+| 2026-11-20 | Checked scenario by scenario against the five diagrams, and the table of earlier documents against each document. Requirements: REQ-005-6 says an address a listing ever had is never reused, with a scenario for a moved listing, and names ADR-0004; REQ-005-2 shows the trust line under an empty list too, and its dates follow the built time helper, not the mock's "Yesterday". Diagrams: all five brought in line (who is never on a list, the fixed order, the forwarding of earlier addresses, the links on a listing no longer listed, the email's second link, page titles). Table: rows added for REQ-004-5, REQ-004-8 and their two diagrams, spec 003's `activity-my-listings`, the data-model convention line and the Admin's Regions screens |

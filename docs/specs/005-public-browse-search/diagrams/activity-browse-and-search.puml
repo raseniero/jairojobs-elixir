@@ -27,6 +27,15 @@ endif
 :Offer the region choices: every active region
 in alphabetical order, plus "All regions".
 A region with no jobs is still offered;
+note right
+  Only Published listings are ever on a list
+  (REQ-005-1): never a Draft, one Waiting for
+  approval, one that Needs changes, a Closed
+  or a Taken down one. Logging in changes nothing.
+end note
+:Under the list, always, also when it is empty:
+"Every listing shows salary and is checked
+by jairojobs before it goes live.";
 if (Search words or a type in the address?) then (yes)
   :Keep only listings where every word is found
   in the title, business name, area, About the job,
@@ -36,8 +45,10 @@ if (Search words or a type in the address?) then (yes)
     Search and type work inside the list being
     shown: one region, or all regions.
     They are part of the address, so the
-    result can be shared or reopened.
+    result can be shared, or reopened with
+    the words and the type filled in.
     An empty search is no search.
+    Words beyond 100 characters are cut.
   end note
 else (no)
 endif
@@ -54,14 +65,18 @@ if (Any listings left?) then (no)
   stop
 else (yes)
 endif
-:Say how many jobs, and "newest first":
-"38 jobs in Davao City · newest first";
+:Say how many jobs matched, and "newest first":
+"38 jobs in Davao City · newest first"
+("1 job" for one);
 :Show the first 20 rows, newest approval first.
 Each row: title, business and area (and region on
 the all-regions list), salary range, posted date,
 "✓ Approved". The whole row is the link;
-:Show the line "Every listing shows salary and is
-checked by jairojobs before it goes live.";
+note right
+  The order never changes: an Admin's edit
+  does not move a listing, and a search
+  keeps newest first.
+end note
 if (More than 20?) then (yes)
   :Offer "Show more" — 20 more each time;
 else (no)

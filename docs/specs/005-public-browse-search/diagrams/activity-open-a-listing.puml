@@ -5,6 +5,11 @@ title Open a listing (REQ-005-1/5/7)
 start
 :Anyone, logged in or not, opens a public
 listing address: region + listing slug;
+note right
+  An earlier address of a listing that was moved
+  to another region forwards to its current
+  address first (REQ-005-6).
+end note
 if (Was a listing ever published\nat this address?) then (no)
   :Not found — the same page as for
   an address that never existed;
@@ -42,8 +47,13 @@ case (Closed or\nTaken down)
   stop
 endswitch
 :Title, business name;
+note right
+  The listing as it is now, an Admin's edits included.
+  The business name and "about" are the listing's own copy.
+end note
 :Trust line: "✓ Approved", "Posted" with the time
-of approval, and the region;
+of approval (relative under 7 days, a date after),
+and the region;
 :Facts: salary range per month, location
 (area and region), type, schedule if given;
 :Sections: About the job, Requirements and Benefits

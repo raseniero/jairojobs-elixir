@@ -10,6 +10,11 @@ if (Who is asking?) then (a visitor on a listing's public page)
   else (no)
     :Copy the address and say "Link copied";
   endif
+  note right
+    No buttons for particular apps.
+    Nothing is added to the address
+    to track who shared it.
+  end note
   :A friend receives the link. The chat app
   shows a preview: the title and business name,
   then the salary range, area and region;
@@ -23,9 +28,12 @@ else (a search engine or a chat app reading a page)
     Description: salary range, type, area and region.
     Job details a search engine can read: title, business,
     area and region, salary range in PHP per month,
-    type, date posted, the text;
+    type, date posted (the approval), the text.
+    No closing date: listings do not expire;
   case (the home page or\na region's jobs)
-    :Own page title: "Jobs in Davao City".
+    :Own page title: "Jobs in Davao City | jairojobs"
+    for a region, "Jobs in the Philippines, with the
+    salary shown | jairojobs" for the home page.
     Description: one plain sentence;
   case (a list with search\nwords or a type)
     :Asks not to be listed in search results;
@@ -40,6 +48,10 @@ else (a search engine or a chat app reading a page)
   :The sitemap lists the home page, each active
   region's jobs and each Published listing,
   and nothing else;
+  note right
+    No third-party script, tag or tracker
+    is added for any of this.
+  end note
   stop
 endif
 @enduml

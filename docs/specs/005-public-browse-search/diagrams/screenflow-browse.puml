@@ -64,7 +64,7 @@ Listing : About the job · Requirements · Benefits · About Kape Isla
 Listing : [ Share ]
 Listing : "Applying through jairojobs is coming soon."
 Listing : owner only: "This is your listing." · Manage this listing
-Listing : Admin only: Open the Admin view
+Listing : Admin only: Open the Admin view (an Admin who owns it sees both)
 
 state "No longer listed" as Gone
 Gone : "This job is no longer listed."
@@ -114,7 +114,9 @@ Outside --> NotFound : an address that never was a public listing\n(or one built
 Outside --> Region : follows a region's address\n(unknown region → Not found)
 Gone --> Region : See jobs in Davao City
 
+Admin -[dotted]-> Mail : on approve (004)\n(not when the listing is the Admin's own)
 Mail --> Listing : employer follows the public link
+Mail --> Owner : employer follows the My listings link\n(logs in if needed)
 Listing --> Owner : Manage this listing\n(owner, logged in)
 Owner --> Listing : See the public page
 Listing --> Admin : Open the Admin view\n(Admin, logged in)
@@ -129,7 +131,7 @@ legend right
   | amber | an email, not a screen |
   | blue | a screen from an earlier spec, behind log-in |
   | green | outside jairojobs |
-  | dotted arrow | happens outside the app |
+  | dotted arrow | not a tap: sent by the app, or happens outside it |
   | ● | the region choice that is selected |
   | [ brackets ] | a button |
 endlegend
