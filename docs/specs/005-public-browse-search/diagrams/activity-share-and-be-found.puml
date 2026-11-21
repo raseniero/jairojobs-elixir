@@ -35,8 +35,12 @@ else (a search engine or a chat app reading a page)
     for a region, "Jobs in the Philippines, with the
     salary shown | jairojobs" for the home page.
     Description: one plain sentence;
-  case (a list with search\nwords or a type)
+  case (a list with search\nwords or a type, or\na hidden region's list)
     :Asks not to be listed in search results;
+    note right
+      A hidden region's listings are
+      treated like any others.
+    end note
   case (a closed or taken\ndown listing)
     :Answered as "gone", so it is dropped;
   case (a private page: Admin area,\nMy listings, Settings)

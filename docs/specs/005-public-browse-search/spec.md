@@ -595,6 +595,8 @@ Scenario: An earlier address is not given to another listing either
 - The slug is unique within its region. A clash gets the next free number: "-2", "-3".
   An address counts as taken if any listing has it or ever had it: a closed or taken down
   listing keeps its address, and so does the earlier address of a listing that was moved.
+  A listing that is moved back to a region it was in before returns to the address it had
+  there.
 - The shape `/jobs/<region>/<listing>` is the one ADR-0004 gives as its example, and
   `/jobs/<region>` is the address the Admin's Regions screens have shown since spec 002.
 - Set once. Neither an edit of the title or the business name nor a change to the region's
@@ -722,6 +724,12 @@ Scenario: Search results ask not to be listed
   When a search engine reads that page
   Then the page asks not to be listed in search results
 
+Scenario: A hidden region's list asks not to be listed
+  Given a listing is Published in the hidden region "Baguio"
+  When a search engine reads the jobs in Baguio, and then that listing's public page
+  Then the list asks not to be listed in search results
+  And the listing's page does not
+
 Scenario: The sitemap lists the public pages only
   Given a Published listing, a Closed listing and a Draft, an active region and a hidden region
   When a search engine reads the sitemap
@@ -742,6 +750,8 @@ Scenario: A page is complete as first delivered
 - The job details follow the format search engines publish for job postings. The date
   posted is the time of approval. No closing date is given, because listings do not expire
   (spec 000).
+- A hidden region's list is not in the sitemap and asks not to be listed, for as long as
+  the region is hidden. Its Published listings are treated like any others (REQ-005-1).
 - Private pages (the Admin area, My listings, Settings) are behind log-in and never in the
   sitemap. A Closed or Taken down listing is answered as gone (REQ-005-7).
 - No third-party script, tag or tracker is added for any of this (constitution §5).
@@ -838,9 +848,10 @@ Scenario: The same links on a listing that is no longer listed
 ## Decisions (resolved 2026-11-20)
 
 Questions 1–3 are the ones the hand-offs of specs 003 and 004 left to this spec; 4–14 came
-up while drafting. Question 2 was answered by the owner before drafting. The owner went
-through the others one at a time and chose the proposed answer for each, so no requirement
-changed.
+up while drafting; 15–24 are smaller choices made while drafting or while checking the
+draft, confirmed afterwards; 25 was found unanswered in that check. Question 2 was answered
+by the owner before drafting. The owner went through all the others one at a time and chose
+the proposed answer for each.
 
 | # | Question | Decision |
 |---|---|---|
@@ -858,31 +869,17 @@ changed.
 | 12 | Is there a Share button, or is a clean address enough? | A "Share" button on the listing page, using the phone's share sheet or copying the address, plus a text preview for chat apps. No buttons for particular apps. The tap is checked by hand at close (REQ-005-8) |
 | 13 | Which links join a public page to the pages that manage it? | The two spec 004 asked for (the approval email, and an Admin's link to the Admin view), plus: the owner view and the Admin view of a Published listing link to the public page; the owner on their public page gets a link back; the same owner and Admin links on the "no longer listed" page (REQ-005-10) |
 | 14 | The mock's listing page says "Member since Oct 2026" under the business. Is that shown? | No. The section shows the listing's "about the business" text only (REQ-005-5) |
-
-### Smaller choices made while drafting
-
-Decided while drafting, without asking. Say so if any should change.
-
-- A listing slug is at most 60 characters, and a title with nothing usable gives "job"
-  (REQ-005-6).
-- Search words are cut at 100 characters; part-words, typing mistakes and synonyms are not
-  promised (REQ-005-4).
-- A region with no jobs is still offered as a choice (REQ-005-3).
-- The wording of the messages: "No jobs are listed yet.", "No jobs are listed in Cebu
-  yet.", "No jobs match your search.", "This job is no longer listed.", "Applying through
-  jairojobs is coming soon.", "This is your listing.", "Link copied".
-- The page titles in REQ-005-9, and the preview's two lines in REQ-005-8.
-- The way back from a listing goes to its region, not to the list the visitor came from
-  (REQ-005-5).
-- On a listing that is no longer listed, the owner and Admins see the same page as
-  everyone, plus their link (REQ-005-7, REQ-005-10).
-- The trust line is shown under an empty list too (REQ-005-2).
-- Posted dates read as the built time helper writes them ("3 d ago"), not the mock's
-  "Yesterday" (REQ-005-2).
-- An address a listing once had is never given to another listing, including the earlier
-  address of a listing that was moved (REQ-005-6).
-- Not said anywhere: whether the list of a hidden region asks search engines not to list
-  it. It is not in the sitemap; beyond that the spec is silent.
+| 15 | How long can a listing's slug be, and what does a title with nothing usable become? | At most 60 characters, cut at a word; an empty result becomes "job". Approval is never refused because of the address (REQ-005-6) |
+| 16 | What is the limit on search words, and what does search not promise? | Cut at 100 characters. Whole words are promised; finding part of a word, forgiving a typing mistake and knowing synonyms are not (REQ-005-4) |
+| 17 | Is a region with no jobs still offered as a choice? | Yes. The choices are the active regions, with or without jobs, and no counts beside them (REQ-005-3) |
+| 18 | How are the messages worded? | As written: "No jobs are listed yet.", "No jobs are listed in Cebu yet.", "No jobs match your search.", "This job is no longer listed.", "Applying through jairojobs is coming soon.", "This is your listing.", "Link copied". The empty lists carry no invitation to post (REQ-005-2 to REQ-005-5, REQ-005-7, REQ-005-8, REQ-005-10) |
+| 19 | How do the page titles and the link preview read? | As written in REQ-005-9 and REQ-005-8. The salary is in the description and the preview's second line, not in the title; "\| jairojobs" stays on every title |
+| 20 | Where does the way back from a listing lead? | Always to the listing's region, "← Jobs in Davao City", not to the list the visitor came from. The browser's own back button returns to that list (REQ-005-5) |
+| 21 | What do the owner and Admins see at the address of a listing that is no longer listed? | The same page as everyone, "This job is no longer listed.", plus their one link. They read the listing on the owner view or the Admin view (REQ-005-7, REQ-005-10) |
+| 22 | Is the trust line shown under an empty list? | Yes, always: under every public list, with or without rows (REQ-005-2) |
+| 23 | How do posted dates read? | As the site's one time helper writes them: "20 min ago", "2 h ago", "1 d ago", then a date after 7 days. Not the mock's "Yesterday" (REQ-005-2) |
+| 24 | Can an address a listing once had be given to another listing? | Never. That covers a closed or taken down listing's address and every earlier address of a moved listing. A listing moved back to a region returns to the address it had there. Known cost: numbers only go up (REQ-005-6) |
+| 25 | Does a hidden region's list ask search engines not to list it? | Yes. Its listings stay findable, each at its own address and in the sitemap; only the region's list asks not to be listed, until the region is shown again (REQ-005-9) |
 
 ## Notes for the plan
 
@@ -895,6 +892,10 @@ Not requirements; reminders for whoever writes `plan.md`.
 - **Sequence diagram.** This spec adds no flow with three parties of its own. The approval
   email already has one, `sequence-decision-email` in spec 004, which changes with
   REQ-005-10.
+- **The browser's back button.** The way back on a listing page goes to the region
+  (decision 20), so a visitor who wants the list they came from uses the browser's back
+  button. The plan should say what that restores: the search words, the type, and how far
+  the list was opened with "Show more" (decision 9 left the last of these to the plan).
 - **Listings that are already Published.** A listing approved before this spec is built has
   no slug. Each one needs an address when the spec ships (in the dev database: "Software
   Engineer").
@@ -966,3 +967,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-20 | Open questions resolved: the owner went through the thirteen still open, one at a time, and chose the proposed answer for each; no requirement or diagram changed. Still Draft |
 | 2026-11-20 | Checked scenario by scenario against the five diagrams, and the table of earlier documents against each document. Requirements: REQ-005-6 says an address a listing ever had is never reused, with a scenario for a moved listing, and names ADR-0004; REQ-005-2 shows the trust line under an empty list too, and its dates follow the built time helper, not the mock's "Yesterday". Diagrams: all five brought in line (who is never on a list, the fixed order, the forwarding of earlier addresses, the links on a listing no longer listed, the email's second link, page titles). Table: rows added for REQ-004-5, REQ-004-8 and their two diagrams, spec 003's `activity-my-listings`, the data-model convention line and the Admin's Regions screens |
 | 2026-11-20 | Wording (owner's decision, docs/design.md changelog): one word per status. "Published" is the only word for that status, on screens too, so the note explaining "Published" and "Live" is gone and "Live" is no longer used; the email is "Your listing is published". This spec also writes "Pending approval" and "Rejected" for those statuses, not the screen labels "Waiting for approval" and "Needs changes". Two scenarios in REQ-005-10 renamed ("The approval email links to the public page", "Only a Published listing has the link"); four diagrams changed to match. No requirement changed meaning |
+| 2026-11-20 | Smaller choices settled: the owner went through all eleven one at a time and chose the proposed answer for each; they are decisions 15–25 and the "Smaller choices" section is gone. Three additions came with them: REQ-005-9 says a hidden region's list asks search engines not to list it, with a scenario (decision 25); REQ-005-6 says a listing moved back to a region returns to the address it had there (decision 24); a note for the plan on what the browser's back button restores (decision 20). `activity-share-and-be-found` and `activity-address-and-links` updated. Still Draft |

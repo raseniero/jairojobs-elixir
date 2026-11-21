@@ -36,7 +36,8 @@ repeat
     :The address stays exactly as it was;
   case (an Admin moves it\nto another region)
     :The address changes to the new region
-    (same slug, or the next free number there).
+    (same slug, or the next free number there.
+    Moved back: the address it had there before).
     The old address forwards to the new one;
   case (its region is renamed\nor hidden)
     :The address stays as it was
