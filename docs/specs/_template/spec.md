@@ -131,6 +131,26 @@ Scenario: <short name>
 
 - 
 
+## Review before approval
+
+<!-- Mandatory before the spec is put forward (README, Feature lifecycle, step 1). Fill it in
+     after the last change to the spec and its diagrams, naming the commit that was read.
+     Say plainly what was found and what was not checked. `mix jairojobs.spec_review NNN`
+     must pass before the status is set to Approved; it fails if a row has no result or if
+     the spec or a diagram changed after the commit named here. -->
+
+**Reviewed:** YYYY-MM-DD at commit `<sha>`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | |
+| `architecture/data-model.md` and the ERD | |
+| C4 and use case diagrams | |
+| ADRs and the constitution | |
+| Earlier specs this one changes ("Notes for the plan") | |
+| Not checked | |
+
 ## Hand-offs to later specs
 
 <!-- Sentences that later specs inherit from this one (who decides what, what stays true).

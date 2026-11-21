@@ -24,6 +24,23 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
 
 1. **Spec** — copy `specs/_template/` to `specs/NNN-kebab-name/`. Fill in `spec.md` only.
    No implementation detail here; user stories and acceptance criteria.
+   **Review before approval** (from spec 005 onwards). Before a spec is put forward:
+   - read every diagram against the requirements, scenario by scenario; and read the
+     requirements against `architecture/overview.md`, `architecture/data-model.md` and the
+     ERD, the C4 and use case diagrams, the ADRs and constitution rules they touch, and the
+     earlier specs they change;
+   - fix what disagrees, or list it for the owner;
+   - write the outcome in the spec's "Review before approval" section: what was checked,
+     what was found, what was not checked, the date, and the commit that was reviewed;
+   - run `mix jairojobs.spec_review NNN`. It checks what a machine can (every requirement
+     in one flow, stories and requirements traced, references and diagrams exist, images
+     not older than their sources, no open questions) and that nothing in the spec or its
+     diagrams changed after the reviewed commit. It cannot judge meaning; the reading
+     above does that.
+
+   A spec is set to `Approved` only on the owner's word, and only while that command
+   passes. A change after the review means reviewing the changed part again and naming the
+   new commit.
 2. **Plan** — once the spec is `Approved`, write `plan.md`: contexts, schemas, routes,
    LiveViews, migrations, test strategy.
 3. **Tasks** — break the plan into `tasks.md`: ordered, checkable, each small enough for one commit.

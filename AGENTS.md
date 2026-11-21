@@ -2,7 +2,7 @@ This is a web application written using the Phoenix web framework.
 
 ## Project guidelines
 
-- **Read `docs/README.md`, `docs/constitution.md`, and `docs/design.md` before implementing anything.** Feature work is spec-driven: `docs/specs/NNN-name/` holds `spec.md` (what/why) → `plan.md` (how) → `tasks.md` (steps). Do not write code for a feature without an `Approved` spec and a plan. Reference requirement IDs (`REQ-NNN-n`) in test names and commit messages. Architecture decisions go in `docs/decisions/` as ADRs.
+- **Read `docs/README.md`, `docs/constitution.md`, and `docs/design.md` before implementing anything.** Feature work is spec-driven: `docs/specs/NNN-name/` holds `spec.md` (what/why) → `plan.md` (how) → `tasks.md` (steps). Do not write code for a feature without an `Approved` spec and a plan. Never set a spec to `Approved` yourself: the owner approves, and only after the spec's "Review before approval" section is filled in and `mix jairojobs.spec_review NNN` passes (`docs/README.md`, Feature lifecycle, step 1). Reference requirement IDs (`REQ-NNN-n`) in test names and commit messages. Architecture decisions go in `docs/decisions/` as ADRs.
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
 
