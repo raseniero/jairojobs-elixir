@@ -931,6 +931,20 @@ Not requirements; reminders for whoever writes `plan.md`.
   each spec was built at the time (for example spec 004's plan describes the approval email
   with one link) and were not updated by spec 004 either.
 
+## Review before approval
+
+**Reviewed:** 2026-11-20 at commit `4f3a9f8`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | Agrees. All 74 scenarios and the rules were read against the five diagram sources, twice: once after drafting, once after the decisions and the change of wording. The first pass found one gap in a requirement (an earlier address could be reused; REQ-005-6), two places where the draft differed from what is built ("Yesterday"; the trust line under an empty list) and steps missing from every diagram. All fixed. The second pass found one missing detail (the order of the email's links), fixed |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees. No new context; Listings already depends on Regions and Accounts. The public pages join the `:current_user` session. The overview does not show them yet: listed in "Notes for the plan" |
+| `architecture/data-model.md` and the ERD | Agrees. Every field the search reads is a column; only Published, Closed and Taken down listings have `published_at`, which matches which statuses have an address; a Published listing always has a region. The slug and the record of earlier addresses are not in the ERD yet, by design. The line "a unique slug only" needs rewording: listed |
+| C4 and use case diagrams | Agrees. A search engine and a chat app are new outside parties: listed. The use case diagram lacked the arrow from Admin to "Browse & search listings"; fixed in spec 000 on 2026-11-20 |
+| ADRs and the constitution | Agrees. ADR-0004 gives the address shape; the owner confirmed no new ADR is needed. §4.8 (no id in public addresses), §2.3 (the Share script), §3.1 (no browser tests: the tap is checked by hand), §4.6 (one time helper), §5 (no analytics, no background jobs) are each met by a rule in this spec |
+| Earlier specs this one changes ("Notes for the plan") | Every row was opened and checked against the document it names. Five rows were missing and were added (REQ-004-5, REQ-004-8 and their two diagrams, spec 003's `activity-my-listings`, the data-model line, the Admin's Regions screens) |
+| Not checked | Specs 001 and 002 were read only where they concern public pages, navigation, hiding a region and slugs. Earlier specs' rendered images were not looked at, only their sources. The search of earlier documents was by word ("005", "public", "visitor", "browse"); a document that depends on this spec without those words would have been missed |
+
 ## Hand-offs to later specs
 
 | Spec | Inherits |
@@ -970,3 +984,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-20 | Smaller choices settled: the owner went through all eleven one at a time and chose the proposed answer for each; they are decisions 15–25 and the "Smaller choices" section is gone. Three additions came with them: REQ-005-9 says a hidden region's list asks search engines not to list it, with a scenario (decision 25); REQ-005-6 says a listing moved back to a region returns to the address it had there (decision 24); a note for the plan on what the browser's back button restores (decision 20). `activity-share-and-be-found` and `activity-address-and-links` updated. Still Draft |
 | 2026-11-20 | Checked again against its five diagrams, and against the architecture overview, the data model, the ERD, the C4 diagrams and the use case diagram. No contradiction found. The owner confirmed that no new ADR is needed (ADR-0004 has the address shape). The table of earlier documents names what the use case diagram and the C4 diagrams need; `activity-address-and-links` says the public link comes first in the email |
 | 2026-11-20 | The use case diagram's missing arrow (Admin to "Browse & search listings") was fixed in spec 000 at the owner's request, so its row left the table of earlier documents |
+| 2026-11-20 | "Review before approval" section added, under the new rule (constitution §6, README): what was checked, what was found, what was not, and the commit reviewed. `mix jairojobs.spec_review 005` passes |
