@@ -9,7 +9,7 @@
 ## Problem / Why
 
 An Employer can post a listing and an Admin can approve it, and then nobody can see it. The
-home page still says "Listings are coming soon", and a Live listing is visible only to its
+home page still says "Listings are coming soon", and a Published listing is visible only to its
 owner and to Admins. The board has no public side, so it is not yet a job board.
 
 This spec builds the public side: a list of jobs for all regions and for each region, a
@@ -21,12 +21,6 @@ what is open in their city and send a listing to a friend.
 It also settles what earlier specs left to it: what the public sees of a listing in a
 hidden region, how a listing's public address is made, and what happens to that address
 when the listing is closed or taken down.
-
-**A note on two words.** A listing's status is **Published**. The label an Employer or an
-Admin sees for that status is **"Live"** (design guide, Status labels). They are the same
-thing. This spec says "Published" for the status and "Live" only when it quotes a screen or
-an email. A visitor sees neither word: a public listing carries no status label, only the
-"✓ Approved" badge and its posted date.
 
 ## Goals
 
@@ -67,7 +61,7 @@ an email. A visitor sees neither word: a public listing carries no status label,
 - **Visitor** — the main persona; every public screen is written for them.
 - **Candidate** — browses exactly as a Visitor does. Logging in changes the menu, not the
   lists.
-- **Employer** — gains the public address of each Live listing, in the email and on the
+- **Employer** — gains the public address of each Published listing, in the email and on the
   owner view.
 - **Admin** — gains a link from a public listing page to its Admin view, and back.
 
@@ -111,7 +105,7 @@ an email. A visitor sees neither word: a public listing carries no status label,
 
 **US-005-8**
 - As an Employer,
-- I want the public address of my live listing,
+- I want the public address of my published listing,
 - so that I can post it on my own page and send it to people I know.
 
 **US-005-9**
@@ -219,7 +213,7 @@ Scenario: A Published listing is public without an account
   And I can open its public page
 
 Scenario: Other statuses are on no public list
-  Given listings that are Draft, Waiting for approval, Needs changes, Closed and Taken down
+  Given listings that are Draft, Pending approval, Rejected, Closed and Taken down
   When I open the home page, their region's jobs, or search for their titles
   Then none of them is listed
 
@@ -304,7 +298,7 @@ Scenario: An edit does not move a listing
 Scenario: The trust line is shown
   Given no listing is Published
   When I open the home page
-  Then I see "Every listing shows salary and is checked by jairojobs before it goes live."
+  Then I see "Every listing shows salary and is checked by jairojobs before it is published."
 ```
 
 **Rules**
@@ -541,7 +535,7 @@ does not change.
 
 ```gherkin
 Scenario: The address is made at approval
-  Given the listing "Barista (full-time)" is Waiting for approval in "Davao City"
+  Given the listing "Barista (full-time)" is Pending approval in "Davao City"
   When an Admin approves it
   Then its public address ends in "/jobs/davao-city/barista-full-time"
 
@@ -562,12 +556,12 @@ Scenario: A changed title keeps the address
   And the page shows the new title
 
 Scenario: Unusual characters in a title
-  Given the listing "Café Staff — ₱500/day!!" is Waiting for approval in "Cebu"
+  Given the listing "Café Staff — ₱500/day!!" is Pending approval in "Cebu"
   When an Admin approves it
   Then its public address ends in "/jobs/cebu/cafe-staff-500-day"
 
 Scenario: An unpublished listing has no public address
-  Given a listing is Draft, Waiting for approval or Needs changes
+  Given a listing is Draft, Pending approval or Rejected
   When I look for its public address
   Then it has none
 
@@ -760,25 +754,25 @@ The people who manage a listing can get from it to its public page and back. Nob
 an action; these are links.
 
 ```gherkin
-Scenario: The live email links to the public page
-  Given an Employer's listing "Barista (full-time)" is Waiting for approval
+Scenario: The approval email links to the public page
+  Given an Employer's listing "Barista (full-time)" is Pending approval
   When an Admin approves it
-  Then the Employer receives the "Your listing is live" email
+  Then the Employer receives the "Your listing is published" email
   And it links to the listing's public page
   And it links to the listing in My listings
 
 Scenario: The owner view links to the public page
-  Given I am an Employer with a Live listing
+  Given I am an Employer with a Published listing
   When I open it in My listings
   Then I see a link to its public page
 
 Scenario: The Admin view links to the public page
-  Given I am an Admin and a listing is Live
+  Given I am an Admin and a listing is Published
   When I open its Admin view
   Then I see a link to its public page
 
-Scenario: Only a Live listing has the link
-  Given listings that are Draft, Waiting for approval, Needs changes, Closed and Taken down
+Scenario: Only a Published listing has the link
+  Given listings that are Draft, Pending approval, Rejected, Closed and Taken down
   When their owner or an Admin opens each one
   Then none of them shows a link to a public page
 
@@ -805,7 +799,7 @@ Scenario: The same links on a listing that is no longer listed
 ```
 
 **Rules**
-- This amends REQ-004-9: the "Your listing is live" email gains the link to the public
+- This amends REQ-004-9: the "Your listing is published" email gains the link to the public
   page, placed first, and keeps the link to My listings. The other three emails do not
   change.
 - An Admin who owns the listing sees both links on the public page.
@@ -862,7 +856,7 @@ changed.
 | 10 | What does the listing page offer for applying, before spec 007 exists? | One plain line, "Applying through jairojobs is coming soon.", and no button. The page has no accent action until spec 007 adds "Apply for this job" there (REQ-005-5) |
 | 11 | What does "SEO basics" cover? | Own title and description per page; job details in the format search engines read; a sitemap of public pages; narrowed lists ask not to be listed; a removed listing is answered as gone; pages are complete without scripts. Search engines are not told directly of each change (REQ-005-9) |
 | 12 | Is there a Share button, or is a clean address enough? | A "Share" button on the listing page, using the phone's share sheet or copying the address, plus a text preview for chat apps. No buttons for particular apps. The tap is checked by hand at close (REQ-005-8) |
-| 13 | Which links join a public page to the pages that manage it? | The two spec 004 asked for (the live email, and an Admin's link to the Admin view), plus: the owner view and the Admin view of a Live listing link to the public page; the owner on their public page gets a link back; the same owner and Admin links on the "no longer listed" page (REQ-005-10) |
+| 13 | Which links join a public page to the pages that manage it? | The two spec 004 asked for (the approval email, and an Admin's link to the Admin view), plus: the owner view and the Admin view of a Published listing link to the public page; the owner on their public page gets a link back; the same owner and Admin links on the "no longer listed" page (REQ-005-10) |
 | 14 | The mock's listing page says "Member since Oct 2026" under the business. Is that shown? | No. The section shows the listing's "about the business" text only (REQ-005-5) |
 
 ### Smaller choices made while drafting
@@ -898,7 +892,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   gets an ADR. ADR-0004 already gives `/jobs/davao-city/barista-cafe-x` as the shape, and
   this spec keeps it, so no new ADR is proposed. ADR-0004 expected "redirects on rename";
   with a slug that never changes, the only forwarding is after a move between regions.
-- **Sequence diagram.** This spec adds no flow with three parties of its own. The "live"
+- **Sequence diagram.** This spec adds no flow with three parties of its own. The approval
   email already has one, `sequence-decision-email` in spec 004, which changes with
   REQ-005-10.
 - **Listings that are already Published.** A listing approved before this spec is built has
@@ -918,9 +912,9 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 002 `activity-seed-and-consume` | check the step for the consuming feature against REQ-005-3 |
   | 003 lifecycle table, `state-listing` | "everyone", "visible to everyone (005)" and "no longer public" on Closed and Taken down stay true; check the wording against REQ-005-1 and REQ-005-7 |
   | 003 REQ-003-9 and `activity-after-submitting` | "no longer visible to the public" / "No longer public (005)" now means the page in REQ-005-7 |
-  | 003 REQ-003-10, `activity-my-listings`, `screenflow-posting`, `wireframe-posting` | the owner view of a Live listing gains "See the public page" |
-  | 004 REQ-004-9, `activity-emails`, `sequence-decision-email`, `screenflow-moderation` | the "Your listing is live" email also links to the public page |
-  | 004 REQ-004-4, `activity-find-and-review`, `screenflow-moderation` | the Admin view of a Live listing gains "See the public page" |
+  | 003 REQ-003-10, `activity-my-listings`, `screenflow-posting`, `wireframe-posting` | the owner view of a Published listing gains "See the public page" |
+  | 004 REQ-004-9, `activity-emails`, `sequence-decision-email`, `screenflow-moderation` | the "Your listing is published" email also links to the public page |
+  | 004 REQ-004-4, `activity-find-and-review`, `screenflow-moderation` | the Admin view of a Published listing gains "See the public page" |
   | 004 REQ-004-3 and REQ-004-7 | "Until the public pages exist…" and "Until spec 005 there are no public pages" are no longer true and point here |
   | 004 REQ-004-5 and `activity-approve-or-reject` | approving also gives the listing its public address (REQ-005-6); the note "the approval time is the 'posted' date (005)" stays true |
   | 004 REQ-004-8 and `activity-take-down-and-edit` | moving a Published listing to another region changes its public address, and the old one forwards (REQ-005-6); the public address joins what an Admin edit cannot set directly; "No longer public (005)" after a take-down now means the page in REQ-005-7 |
@@ -933,7 +927,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   | the Admin's Regions screens (spec 002) | no change needed: they already show `/jobs/<slug>`, which is now a real address. Whether it becomes a link is for the plan |
 
   Not in the table on purpose: `plan.md` and `tasks.md` of earlier specs. They record how
-  each spec was built at the time (for example spec 004's plan describes the "live" email
+  each spec was built at the time (for example spec 004's plan describes the approval email
   with one link) and were not updated by spec 004 either.
 
 ## Hand-offs to later specs
@@ -971,3 +965,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-20 | Created (Draft) with a screen flow and four activity diagrams; the lifecycle is spec 004's, by reference. Fourteen open questions, each with a proposed answer written into the requirements; question 2 was answered by the owner before drafting |
 | 2026-11-20 | Open questions resolved: the owner went through the thirteen still open, one at a time, and chose the proposed answer for each; no requirement or diagram changed. Still Draft |
 | 2026-11-20 | Checked scenario by scenario against the five diagrams, and the table of earlier documents against each document. Requirements: REQ-005-6 says an address a listing ever had is never reused, with a scenario for a moved listing, and names ADR-0004; REQ-005-2 shows the trust line under an empty list too, and its dates follow the built time helper, not the mock's "Yesterday". Diagrams: all five brought in line (who is never on a list, the fixed order, the forwarding of earlier addresses, the links on a listing no longer listed, the email's second link, page titles). Table: rows added for REQ-004-5, REQ-004-8 and their two diagrams, spec 003's `activity-my-listings`, the data-model convention line and the Admin's Regions screens |
+| 2026-11-20 | Wording (owner's decision, docs/design.md changelog): one word per status. "Published" is the only word for that status, on screens too, so the note explaining "Published" and "Live" is gone and "Live" is no longer used; the email is "Your listing is published". This spec also writes "Pending approval" and "Rejected" for those statuses, not the screen labels "Waiting for approval" and "Needs changes". Two scenarios in REQ-005-10 renamed ("The approval email links to the public page", "Only a Published listing has the link"); four diagrams changed to match. No requirement changed meaning |

@@ -14,8 +14,8 @@ if (Was a listing ever published\nat this address?) then (no)
   :Not found — the same page as for
   an address that never existed;
   note right
-    A Draft, a listing Waiting for approval and one
-    that Needs changes have no public address at all.
+    A Draft, a Pending approval and a Rejected
+    listing have no public address at all.
     An address built from a listing's id is not found.
   end note
   stop

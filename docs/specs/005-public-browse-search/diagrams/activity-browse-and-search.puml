@@ -29,13 +29,12 @@ in alphabetical order, plus "All regions".
 A region with no jobs is still offered;
 note right
   Only Published listings are ever on a list
-  (REQ-005-1): never a Draft, one Waiting for
-  approval, one that Needs changes, a Closed
-  or a Taken down one. Logging in changes nothing.
+  (REQ-005-1): never a Draft, a Pending approval,
+  a Rejected, a Closed or a Taken down one. Logging in changes nothing.
 end note
 :Under the list, always, also when it is empty:
 "Every listing shows salary and is checked
-by jairojobs before it goes live.";
+by jairojobs before it is published.";
 if (Search words or a type in the address?) then (yes)
   :Keep only listings where every word is found
   in the title, business name, area, About the job,

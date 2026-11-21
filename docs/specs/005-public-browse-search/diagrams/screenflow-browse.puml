@@ -37,7 +37,7 @@ All : ₱14,000–16,000/mo · 2 h ago · ✓ Approved
 All : 20 rows at a time · [ Show more ]
 All : (none yet) "No jobs are listed yet."
 All : (search finds nothing) "No jobs match your search." · Clear search
-All : "Every listing shows salary and is checked by jairojobs before it goes live."
+All : "Every listing shows salary and is checked by jairojobs before it is published."
 
 state "Jobs in a region" as Region
 Region : region choices: Cebu · ● Davao City · Metro Manila · All regions
@@ -83,16 +83,16 @@ Sheet : (where there is no share sheet:
 Sheet : the address is copied, "Link copied")
 
 state "Email to the Employer (spec 004)" as Mail <<email>>
-Mail : Your listing is live
+Mail : Your listing is published
 Mail : link → the public page
 Mail : link → the listing in My listings
 
 state "Employer: Listing (owner view, spec 003)" as Owner <<other>>
-Owner : Live: See the public page
+Owner : Published: See the public page
 Owner : [ Close listing ]
 
 state "Admin: Listing (Admin view, spec 004)" as Admin <<other>>
-Admin : Live: See the public page
+Admin : Published: See the public page
 Admin : [ Take down ] [ Edit ]
 
 [*] --> All : opens jairojobs.com

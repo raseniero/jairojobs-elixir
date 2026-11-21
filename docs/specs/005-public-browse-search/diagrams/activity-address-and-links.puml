@@ -21,10 +21,10 @@ and the listing is on the public lists;
 if (The Admin owns the listing?) then (yes)
   :No email (REQ-004-9);
 else (no)
-  :"Your listing is live" email to the owner, with a link
+  :"Your listing is published" email to the owner, with a link
   to the public page and a link to it in My listings;
 endif
-:While it is Live, the owner view (003) and the
+:While it is Published, the owner view (003) and the
 Admin view (004) each show "See the public page";
 :On the public page, the owner sees "This is your listing."
 with "Manage this listing" (if they can still open
