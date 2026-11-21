@@ -22,7 +22,7 @@ if (The Admin owns the listing?) then (yes)
   :No email (REQ-004-9);
 else (no)
   :"Your listing is published" email to the owner, with a link
-  to the public page and a link to it in My listings;
+  to the public page first, then a link to it in My listings;
 endif
 :While it is Published, the owner view (003) and the
 Admin view (004) each show "See the public page";
