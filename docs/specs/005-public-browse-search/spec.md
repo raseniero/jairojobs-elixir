@@ -50,7 +50,7 @@ an email. A visitor sees neither word: a public listing carries no status label,
 - Candidate profiles and CVs — spec 006.
 - Email alerts for new jobs in a region — spec 010.
 - A filter by salary, sorting other than newest first, and search that forgives typing
-  mistakes or knows synonyms. Open question 8 lists the salary filter as an option.
+  mistakes or knows synonyms. Decision 8 records the salary filter as an option not taken.
 - Remembering a visitor's region between visits, and guessing it from their location.
 - Saved jobs, "report this listing", and a public page for each business — later ideas in
   spec 000. The business name on a listing is text, not a link.
@@ -175,7 +175,7 @@ a listing's life (Closed and Taken down are final), so the first three rows neve
 
 No wireframe is included. The two main screens are already drawn at 375 px in the design
 guide's reference mock (`docs/design/mock-listing-375.html`): the jobs list and the listing
-page. Where this spec differs from the mock, open questions 10 and 14 say so. The "No
+page. Where this spec differs from the mock, decisions 10 and 14 say so. The "No
 longer listed" page is one sentence and one link.
 
 ## Flows (activity diagrams)
@@ -825,30 +825,35 @@ Scenario: The same links on a listing that is no longer listed
 
 ## Open questions
 
-Each has a proposed answer, and the requirements above are written with that answer. So
-approving this spec settles them. Questions 1–3 are the ones the hand-offs of specs 003 and
-004 left to this spec; question 2 was answered by the owner on 2026-11-20, before drafting.
+- None.
 
-| # | Question | Proposed answer | Written into | Other options |
-|---|---|---|---|---|
-| 1 | Does the public see a Published listing whose region is hidden? | Yes. Only the status decides. Hiding a region stops it being offered as a choice; its listings stay on the all-regions list, in search, and at their own addresses, and the region's own address still opens. The same reasoning keeps a listing public when its owner's role changes | REQ-005-1, REQ-005-3 | (b) hide them everywhere while the region is hidden, which leaves the Employer with a listing marked "Live" that nobody can see; (c) keep the listing's page but drop it from every list |
-| 2 | How is a listing's slug made, and what happens when the title changes? | **Answered by the owner, 2026-11-20:** made from the title at approval and never changed, as a region's slug is; unique within its region; a clash gets a number | REQ-005-6 | — |
-| 3 | On the all-regions list, does a row show the area as well as the region? | Yes, both: "Kape Isla · Matina, Davao City". It matches the location line on the listing page. On a region's list the row shows the area only | REQ-005-2, REQ-005-3 | (b) region only on the mixed list |
-| 4 | What is the shape of the addresses? | `/jobs/<region>` for a region and `/jobs/<region>/<listing>` for a listing; the home page is the all-regions list. **This differs from the `/<region>/<listing>` named when question 2 was answered.** Without the `/jobs` part, a region called "Admin", "Users" or "My" would collide with addresses the site already uses | REQ-005-3, REQ-005-6 | (b) `/<region>/<listing>` with a list of names a region may not have, which needs a change to spec 002 |
-| 5 | What happens to the address when an Admin moves a Published listing to another region? | The address follows the listing to the new region, and every earlier address forwards to the current one | REQ-005-6 | (b) the address keeps the first region for good, which shows a wrong region in the address; (c) leave the region out of listing addresses |
-| 6 | What does someone see at the address of a listing that is Closed or Taken down? | One page for both: "This job is no longer listed.", a link to the region's jobs, nothing of the listing, answered as "gone". An address that never was a listing is "not found" | REQ-005-7 | (b) plain "not found" for everything, which tells a friend following a shared link nothing; (c) show the closed listing greyed out, which spec 004's hand-off rules out |
-| 7 | Is the home page the list of jobs? | Yes. The home page is the all-regions list and replaces "Listings are coming soon". "Browse jobs" keeps leading there | REQ-005-2 | (b) a separate welcome page with a link to the list |
-| 8 | Which filters are there? | Words (looked for in the title, business name, area and the three texts) and type of work. Both work inside the chosen region or across all | REQ-005-4 | (b) add "pays at least ₱…", which fits the product's promise about salary but needs a rule for ranges that straddle the amount; (c) search the title, business and area only |
-| 9 | In what order, and how many at a time? | Newest approval first, always. 20 rows, then "Show more" for 20 more. Search results keep that order | REQ-005-2, REQ-005-4 | (b) 50 at a time, as the Admin lists do; (c) numbered pages |
-| 10 | What does the listing page offer for applying, before spec 007 exists? | One plain line, "Applying through jairojobs is coming soon.", and no button. The mock's "Apply for this job" button arrives with spec 007 | REQ-005-5 | (b) show the button now, leading to sign-up, which invites people to an action that does not exist yet; (c) show nothing at all |
-| 11 | What does "SEO basics" cover? | Own title and description per page; job details in the format search engines read; a sitemap of public pages; search-result pages ask not to be listed; a removed listing is answered as gone; pages are complete without scripts | REQ-005-9 | (b) titles and descriptions only, leaving the job-posting details and the sitemap for later |
-| 12 | Is there a Share button, or is a clean address enough? | A "Share" button on the listing page, using the phone's share sheet, plus a text preview for chat apps. It needs a few lines of hand-written script, which the constitution allows where LiveView cannot do it (§2.3) | REQ-005-8 | (b) no button: people copy the address from the browser |
-| 13 | Which links join a public page to the pages that manage it? | Spec 004 asked for two: the live email links to the public page, and an Admin on a public page gets a link to the Admin view. Proposed in addition: the owner view and the Admin view of a Live listing link to the public page, and the owner on their public page gets a link back | REQ-005-10 | (b) only the two that spec 004 asked for |
-| 14 | The mock's listing page says "Member since Oct 2026" under the business. Is that shown? | No. No requirement asks for it, and it would publish something about the account. The section shows the listing's "about the business" text only | REQ-005-5 | (b) show it, as a trust signal |
+## Decisions (resolved 2026-11-20)
+
+Questions 1–3 are the ones the hand-offs of specs 003 and 004 left to this spec; 4–14 came
+up while drafting. Question 2 was answered by the owner before drafting. The owner went
+through the others one at a time and chose the proposed answer for each, so no requirement
+changed.
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Does the public see a Published listing whose region is hidden? | Yes. Only the status decides. Hiding a region stops it being offered as a choice; its listings stay on the all-regions list, in search and at their own addresses, and the region's own address still opens. The same holds when the owner's role changes. An Admin who wants such a listing gone takes it down or moves it (REQ-005-1, REQ-005-3) |
+| 2 | How is a listing's slug made, and what happens when the title changes? | Made from the title at approval and never changed, as a region's slug is; unique within its region; a clash gets a number (REQ-005-6) |
+| 3 | On the all-regions list, does a row show the area as well as the region? | Both: "Kape Isla · Matina, Davao City". On a region's list the row shows the area only (REQ-005-2, REQ-005-3) |
+| 4 | What is the shape of the addresses? | `/jobs/<region>` for a region and `/jobs/<region>/<listing>` for a listing; the home page is the all-regions list. Not `/<region>/<listing>`, which was named when question 2 was answered: a region called "Admin", "Users" or "My" would collide with addresses the site already uses (REQ-005-3, REQ-005-6) |
+| 5 | What happens to the address when an Admin moves a Published listing to another region? | The address follows the listing to the new region, and every earlier address forwards to the current one. Known cost: the site must remember a listing's earlier addresses (REQ-005-6) |
+| 6 | What does someone see at the address of a listing that is Closed or Taken down? | One page for both: "This job is no longer listed.", a link to the region's jobs, nothing of the listing, answered as "gone". The owner and Admins see the same page. An address that never was a listing is "not found" (REQ-005-7) |
+| 7 | Is the home page the list of jobs? | Yes. It is the all-regions list and replaces "Listings are coming soon", with no headline above the list. "Browse jobs" keeps leading there (REQ-005-2) |
+| 8 | Which filters are there? | Words, looked for in the title, business name, area and the three texts, and type of work. Both work inside the chosen region or across all. No salary filter for now (REQ-005-4) |
+| 9 | In what order, and how many at a time? | Newest approval first, always, with no ordering by how well a listing matches. 20 rows, then "Show more" for 20 more. Whether the list remembers how far it was opened is left to the plan (REQ-005-2, REQ-005-4) |
+| 10 | What does the listing page offer for applying, before spec 007 exists? | One plain line, "Applying through jairojobs is coming soon.", and no button. The page has no accent action until spec 007 adds "Apply for this job" there (REQ-005-5) |
+| 11 | What does "SEO basics" cover? | Own title and description per page; job details in the format search engines read; a sitemap of public pages; narrowed lists ask not to be listed; a removed listing is answered as gone; pages are complete without scripts. Search engines are not told directly of each change (REQ-005-9) |
+| 12 | Is there a Share button, or is a clean address enough? | A "Share" button on the listing page, using the phone's share sheet or copying the address, plus a text preview for chat apps. No buttons for particular apps. The tap is checked by hand at close (REQ-005-8) |
+| 13 | Which links join a public page to the pages that manage it? | The two spec 004 asked for (the live email, and an Admin's link to the Admin view), plus: the owner view and the Admin view of a Live listing link to the public page; the owner on their public page gets a link back; the same owner and Admin links on the "no longer listed" page (REQ-005-10) |
+| 14 | The mock's listing page says "Member since Oct 2026" under the business. Is that shown? | No. The section shows the listing's "about the business" text only (REQ-005-5) |
 
 ### Smaller choices made while drafting
 
-Not open questions, but decided without asking. Say so if any should change.
+Decided while drafting, without asking. Say so if any should change.
 
 - A listing slug is at most 60 characters, and a title with nothing usable gives "job"
   (REQ-005-6).
@@ -883,7 +888,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   | 000 feature map | the 005 row is linked and its status follows this spec |
   | 001 REQ-001-1 and `screenflow-auth` | the "Home / Browse jobs" and "Listing detail" boxes show what is built: region choices, search, rows; the detail has "Share" and the "coming soon" line, not "Apply for this job" |
   | 001 `activity-request-access` | check its list of public pages against the addresses here |
-  | 002 REQ-002-4 | the rule "what happens to a hidden region's published listings on public pages is decided in spec 005" states the decision (question 1) |
+  | 002 REQ-002-4 | the rule "what happens to a hidden region's published listings on public pages is decided in spec 005" states the decision (decision 1) |
   | 002 `state-region` | "Hidden : not offered in pickers or public index" becomes: not offered as a choice; its Published listings stay public |
   | 002 `activity-seed-and-consume` | check the step for the consuming feature against REQ-005-3 |
   | 003 lifecycle table, `state-listing` | "everyone" and "visible to everyone (005)" stay true; check the wording against REQ-005-1 |
@@ -896,7 +901,7 @@ Not requirements; reminders for whoever writes `plan.md`.
   | `architecture/overview.md` | the `:current_user` row of the `live_session` table gains the public pages; the Listings row says the public pages are implemented |
   | `architecture/data-model.md`, ERD | the listing's slug, and whatever remembers earlier addresses |
   | `usecase-product`, C4 diagrams | check "Browse / search listings" and the Visitor against what is built; a search engine reading the sitemap is a new outside party |
-  | `docs/design.md` and its mock | only if the owner's answers to questions 10 and 14 leave the mock showing something the site does not: the "Apply for this job" button until spec 007, and "Member since" |
+  | `docs/design.md` and its mock | decisions 10 and 14 leave the mock showing two things the site does not have: the "Apply for this job" button until spec 007, and "Member since". To be proposed to the owner at the plan stage as one note beside the mock, in its own commit with a changelog row |
   | the home page | the text "Listings are coming soon" goes; the page becomes the list (REQ-005-2) |
 
 ## Hand-offs to later specs
@@ -932,3 +937,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | Date | Change |
 |---|---|
 | 2026-11-20 | Created (Draft) with a screen flow and four activity diagrams; the lifecycle is spec 004's, by reference. Fourteen open questions, each with a proposed answer written into the requirements; question 2 was answered by the owner before drafting |
+| 2026-11-20 | Open questions resolved: the owner went through the thirteen still open, one at a time, and chose the proposed answer for each; no requirement or diagram changed. Still Draft |
