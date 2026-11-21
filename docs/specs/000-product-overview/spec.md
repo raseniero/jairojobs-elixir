@@ -182,3 +182,4 @@ Reconstructed from the commit history on 2026-11-12; feature-map status changes 
 | 2026-11-12 | Changelog and "Last updated" added |
 | 2026-11-16 | Changed by spec 004: the Listing glossary entry says an Admin may fix a pending or published listing and that Closed and Taken down are final; the feature map row for 004 names the emails to Admins and the email about an Admin edit |
 | 2026-11-20 | Wording only: the Admin persona "approves every listing before it is published" (was "before it goes live"), since "Published" is now the one word for that status (docs/design.md changelog) |
+| 2026-11-20 | Use case diagram: the Admin is linked to "Browse & search listings", as the capability table has always said. Found while checking spec 005 |
