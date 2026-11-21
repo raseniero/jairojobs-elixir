@@ -1,7 +1,7 @@
 # Constitution
 
 **Status:** Accepted
-**Last updated:** 2026-11-14 (see Changelog)
+**Last updated:** 2026-11-20 (see Changelog)
 
 Non-negotiable principles for jairojobs. Every spec, plan, and PR is measured against this file.
 Change it deliberately (ADR-0006):
@@ -114,6 +114,11 @@ Change it deliberately (ADR-0006):
   diagrams for the requirements/Gherkin, a state diagram for any lifecycle (see
   `docs/README.md` → Diagrams). Spec text and diagrams must agree.
 - "Out of scope" and "Open questions" sections are mandatory, even if empty.
+- A spec is reviewed before it is approved: its diagrams against its requirements, and its
+  requirements against the architecture documents and the earlier specs it changes. The
+  outcome is written in the spec, and `mix jairojobs.spec_review NNN` must pass on the
+  version put forward (see `docs/README.md` → Feature lifecycle, step 1). Only the owner
+  approves.
 - A spec must be `Approved` before a plan is written.
 
 ## 7. Definition of Done
@@ -148,3 +153,4 @@ Entries before 2026-11-12 were reconstructed from the commit history.
 | 2026-11-13 | Change process tightened: removing or relaxing a rule needs an ADR; every edit needs the owner's approval and its own commit; Changelog added | ADR-0006 (amended) |
 | 2026-11-13 | §7 Definition of Done: added "Diagrams in this spec and in earlier specs it changed match the built screens and code" (new rule; approved by the owner) | direct edit |
 | 2026-11-14 | §4.12 widened from "No PII in logs" to "No PII or secrets in logs": passwords and sign-in / email-change tokens added, including in request addresses (stricter rule; approved by the owner) | direct edit |
+| 2026-11-20 | §6: a spec is reviewed against its diagrams and the architecture before it is approved, the outcome is recorded in the spec, and `mix jairojobs.spec_review` must pass; only the owner approves (new rule; approved by the owner). Applies from spec 005 | direct edit |
