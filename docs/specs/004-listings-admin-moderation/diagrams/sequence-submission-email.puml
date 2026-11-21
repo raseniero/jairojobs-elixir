@@ -43,7 +43,7 @@ loop each Admin
   end
 end
 L --> W : {:ok, listing}
-W --> B : "Submitted. An admin will check it\nbefore it goes live."
+W --> B : "Submitted. An admin will check it\nbefore it is published."
 
 note over B, IN
   The Employer never sees an email failure. The listing is in the queue

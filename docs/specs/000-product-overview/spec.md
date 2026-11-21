@@ -3,7 +3,7 @@
 **Status:** Approved
 **Created:** 2026-10-29
 **Approved:** 2026-10-29
-**Last updated:** 2026-11-16 (see Changelog)
+**Last updated:** 2026-11-20 (see Changelog)
 
 The root spec. Every feature spec refers back to the personas and glossary defined here.
 
@@ -57,7 +57,7 @@ from outside the region, no simple local option.
 
 ### Admin
 
-The operator (initially the owner). **Approves every listing before it goes live**, can edit or
+The operator (initially the owner). **Approves every listing before it is published**, can edit or
 take down listings, manages employer accounts and the list of supported regions, and sees
 basic usage stats. Needs tooling that keeps moderation fast enough to not become the bottleneck
 as volume grows.
@@ -181,3 +181,4 @@ Reconstructed from the commit history on 2026-11-12; feature-map status changes 
 | 2026-11-11 | Glossary: a Listing may be posted by an Admin, needs a salary range before it is submitted, lifecycle has no "Expired". Capability table: an Admin receives applications to their own listings. Feature map: spec 004 emails the employer each decision |
 | 2026-11-12 | Changelog and "Last updated" added |
 | 2026-11-16 | Changed by spec 004: the Listing glossary entry says an Admin may fix a pending or published listing and that Closed and Taken down are final; the feature map row for 004 names the emails to Admins and the email about an Admin edit |
+| 2026-11-20 | Wording only: the Admin persona "approves every listing before it is published" (was "before it goes live"), since "Published" is now the one word for that status (docs/design.md changelog) |

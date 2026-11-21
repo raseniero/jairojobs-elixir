@@ -3,7 +3,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Index do
   The Admin's Listings page (spec 004 — REQ-004-2, REQ-004-3): the approval
   queue first, and every other submitted listing one status at a time.
 
-  The chosen status is part of the address (`?status=live`), so the browser's
+  The chosen status is part of the address (`?status=published`), so the browser's
   Back button returns to the same list. Drafts are never shown: they belong to
   their Employer alone.
   """
@@ -19,7 +19,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Index do
   # Address value, status, and what to say when no listing has that status.
   @filters [
     {"waiting", :pending, "Nothing is waiting for approval."},
-    {"live", :published, "No listings are live."},
+    {"published", :published, "No listings are published."},
     {"needs-changes", :rejected, "No listings need changes."},
     {"taken-down", :taken_down, "No listings have been taken down."},
     {"closed", :closed, "No listings are closed."}

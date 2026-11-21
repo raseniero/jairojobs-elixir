@@ -2,7 +2,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
   @moduledoc """
   The owner's view of one listing (spec 003 — REQ-003-10): a status box that
   says where the listing stands and offers only the actions that status
-  allows, then the listing as visitors will see it once it is Live.
+  allows, then the listing as visitors will see it once it is Published.
 
   Submit, withdraw, close and delete all go through `Jairojobs.Listings`,
   which re-checks ownership and status every time (REQ-003-6 to REQ-003-12).
@@ -123,7 +123,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
       {:ok, listing} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Submitted. An admin will check it before it goes live.")
+         |> put_flash(:info, "Submitted. An admin will check it before it is published.")
          |> assign_listing(listing)}
 
       {:error, reason} ->
@@ -219,18 +219,18 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
   defp headline(:taken_down), do: "no longer public"
 
   defp next_step(:draft, []),
-    do: "Submit it and an admin will check it before it goes live."
+    do: "Submit it and an admin will check it before it is published."
 
   defp next_step(:draft, _missing),
-    do: "Finish it, then submit it. An admin will check it before it goes live."
+    do: "Finish it, then submit it. An admin will check it before it is published."
 
   defp next_step(:pending, _missing),
     do:
-      "An admin will check it before it goes live. It can't be edited while it waits — " <>
+      "An admin will check it before it is published. It can't be edited while it waits — " <>
         "withdraw it to make changes."
 
   defp next_step(:published, _missing),
-    do: "It can't be edited while it is live. Close it when the job is filled."
+    do: "It can't be edited while it is published. Close it when the job is filled."
 
   defp next_step(:rejected, _missing),
     do: "An admin asked for changes. Edit the listing, then resubmit it."

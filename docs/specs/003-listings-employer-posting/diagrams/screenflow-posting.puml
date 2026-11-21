@@ -23,7 +23,7 @@ AdminArea : Regions · My listings · Post a job
 state "My listings" as Mine
 Mine : [ + Post a job ]
 Mine : "2 of 3 open listings used"
-Mine : Barista · Davao City · ₱14,000–16,000/mo   Live
+Mine : Barista · Davao City · ₱14,000–16,000/mo   Published
 Mine : Cashier · Cebu · ₱12,000–13,000/mo   Waiting for approval
 Mine : Line cook · Davao City · ₱15,000–18,000/mo   Needs changes
 Mine : Dishwasher · Not finished yet   Draft
@@ -49,7 +49,7 @@ Listing : the listing as visitors will see it
 Listing : Draft: [ Submit for approval ] Edit · Delete
 Listing : Waiting for approval: Withdraw
 Listing : Needs changes: reason, Edit, [ Resubmit ] · Delete
-Listing : Live: Close listing
+Listing : Published: Close listing
 Listing : Closed: no actions
 Listing : Taken down: reason, no actions
 

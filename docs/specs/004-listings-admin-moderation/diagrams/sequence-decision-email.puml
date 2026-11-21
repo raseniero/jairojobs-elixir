@@ -46,7 +46,7 @@ else someone else's listing
   L -> M : deliver_approved(owner, listing, url)\n(rejected / taken down / edited)
   M -> R : send
   alt accepted
-    R -> IN : "Your listing is live: <title>"
+    R -> IN : "Your listing is published: <title>"
     M --> L : {:ok, email}
     L --> W : {:ok, listing, :sent}
     W --> B : confirmation

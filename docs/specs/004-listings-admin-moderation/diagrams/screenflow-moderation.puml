@@ -24,7 +24,7 @@ AdminArea : Regions
 AdminArea : My listings · Post a job
 
 state "Listings (Admin)" as Listings
-Listings : Waiting for approval (2) · Live · Needs changes ·
+Listings : Waiting for approval (2) · Published · Needs changes ·
 Listings : Taken down · Closed
 Listings : Cashier
 Listings : Kape Isla · Cebu
@@ -46,7 +46,7 @@ Review : hidden region: "hidden" pill, and while it is
 Review : waiting, why it cannot be approved
 Review : one sentence on what approving / taking down does
 Review : Waiting for approval: **[ Approve ]** [ Reject ] [ Edit ]
-Review : Live: [ Take down ] [ Edit ]
+Review : Published: [ Take down ] [ Edit ]
 Review : Needs changes / Taken down / Closed: no actions
 Review : then the listing as visitors will see it
 
@@ -69,7 +69,7 @@ Edit : plus Business name and About the business (this listing only)
 Edit : **[ Save changes ]**   Cancel
 
 state "Email to the Employer" as MailEmployer <<email>>
-MailEmployer : Your listing is live
+MailEmployer : Your listing is published
 MailEmployer : Your listing needs changes + the reason
 MailEmployer : Your listing was taken down + the reason
 MailEmployer : We edited your listing + what changed
@@ -80,7 +80,7 @@ MailAdmins : A listing is waiting for approval
 MailAdmins : link → the listing (Admin view)
 
 state "Employer: Listing (owner view, spec 003)" as Owner <<other>>
-Owner : Live / Needs changes + reason /
+Owner : Published / Needs changes + reason /
 Owner : Taken down + reason
 
 [*] --> Drawer : logged in as Admin
@@ -90,7 +90,7 @@ Listings --> Listings : choose a status\nshow more
 Listings --> Review : tap a row
 Review --> Listings : back
 Review --> Review : Approve refused (hidden region, or\ndecided by another Admin) → message,\nlisting shown as it now is
-Review --> Listings : Approve → Live\n(withdrawn meanwhile → message, on the queue)
+Review --> Listings : Approve → Published\n(withdrawn meanwhile → message, on the queue)
 Review --> Reject : Reject
 Reject --> Listings : reject with a reason → Needs changes
 Reject --> Reject : reason missing or too short
@@ -98,8 +98,8 @@ Reject --> Review : cancel\n(no longer waiting → message)
 Review --> TakeDown : Take down
 TakeDown --> Review : take down with a reason → Taken down
 TakeDown --> TakeDown : reason missing or too short
-TakeDown --> Review : cancel\n(no longer live → message)
-Review --> Edit : Edit\n(Waiting for approval / Live)
+TakeDown --> Review : cancel\n(no longer published → message)
+Review --> Edit : Edit\n(Waiting for approval / Published)
 Edit --> Review : save changes
 Edit --> Edit : validation error
 Edit --> Review : cancel\n(can no longer be edited → message.\nnothing changed → 'Nothing was changed.')

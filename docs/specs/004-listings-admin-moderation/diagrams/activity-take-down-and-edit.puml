@@ -1,5 +1,5 @@
 @startuml activity-take-down-and-edit
-' Spec 004 — taking down a live listing, and Admin edits (REQ-004-7, -8)
+' Spec 004 — taking down a published listing, and Admin edits (REQ-004-7, -8)
 title Take down and edit (REQ-004-7/8)
 
 start
@@ -9,7 +9,7 @@ if (Action?) then (take down)
   it cannot be undone;
   if (Still Published?) then (no)
     :Refuse — "This listing is
-    no longer live." Nothing changes;
+    no longer published." Nothing changes;
     stop
   else (yes)
   endif

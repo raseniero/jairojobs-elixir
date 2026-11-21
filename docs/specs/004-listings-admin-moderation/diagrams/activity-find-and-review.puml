@@ -27,9 +27,9 @@ else (yes)
 endif
 :Show "Waiting for approval" first (the approval queue),
 with the number waiting next to it. Choices: Waiting for
-approval, Live, Needs changes, Taken down, Closed — no Draft;
+approval, Published, Needs changes, Taken down, Closed — no Draft;
 if (Admin chooses another status?) then (yes)
-  :Show Live, Needs changes, Taken down
+  :Show Published, Needs changes, Taken down
   or Closed listings, most recently changed first;
 else (no)
   :Show waiting listings,

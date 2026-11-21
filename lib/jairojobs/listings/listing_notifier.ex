@@ -41,13 +41,13 @@ defmodule Jairojobs.Listings.ListingNotifier do
   end
 
   @doc """
-  Tells the owner their listing was approved and is live.
+  Tells the owner their listing was approved and is published.
   """
   def deliver_approved(%User{} = owner, %Listing{} = listing, url) do
-    deliver(owner.email, "Your listing is live: #{listing.title}", """
+    deliver(owner.email, "Your listing is published: #{listing.title}", """
     Hi,
 
-    Your listing "#{listing.title}" was approved and is live on jairojobs.
+    Your listing "#{listing.title}" was approved and is published on jairojobs.
 
     It stays up until you close it. Close it when the job is filled:
 
@@ -73,7 +73,7 @@ defmodule Jairojobs.Listings.ListingNotifier do
   end
 
   @doc """
-  Tells the owner their live listing was taken down, with the Admin's reason.
+  Tells the owner their published listing was taken down, with the Admin's reason.
   """
   def deliver_taken_down(%User{} = owner, %Listing{} = listing, url) do
     deliver(owner.email, "Your listing was taken down: #{listing.title}", """

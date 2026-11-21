@@ -29,7 +29,7 @@ else (an Admin approved, rejected,\ntook down or edited a listing)
   endif
   switch (Decision)
   case (approved)
-    :"Your listing is live";
+    :"Your listing is published";
   case (rejected)
     :"Your listing needs changes"
     with the reason, and that it can

@@ -20,7 +20,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
   alias JairojobsWeb.Format
 
   # The lists an Admin can have come from, by their value in the address.
-  @lists ~w(waiting live needs-changes taken-down closed)
+  @lists ~w(waiting published needs-changes taken-down closed)
 
   @region_hidden "Its region is hidden, so it cannot be approved as it is. Show the region " <>
                    "again, move the listing to another region with Edit, or reject it with " <>
@@ -217,7 +217,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
       {:ok, _listing, email} ->
         {:noreply,
          socket
-         |> put_flash(:info, with_email("Approved. It is live.", email))
+         |> put_flash(:info, with_email("Approved. It is published.", email))
          |> push_navigate(to: ~p"/admin/listings")}
 
       {:error, reason} ->
@@ -291,7 +291,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
   defp with_email(message, _sent_or_own_listing), do: message
 
   defp refusal(:not_pending), do: "This listing is no longer waiting for approval."
-  defp refusal(:not_published), do: "This listing is no longer live."
+  defp refusal(:not_published), do: "This listing is no longer published."
   defp refusal(:not_editable), do: "This listing can no longer be edited."
   defp refusal(:region_hidden), do: @region_hidden
   defp refusal(:not_found), do: "That listing is not available."

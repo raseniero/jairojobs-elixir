@@ -17,7 +17,7 @@ half built.
 
 This spec builds the second half. It gives Admins a queue of what is waiting, a page to read
 each listing the way a job seeker will, and four actions: approve it, reject it with a
-reason, take a live one down, or fix a small mistake themselves. It also makes sure the
+reason, take a published one down, or fix a small mistake themselves. It also makes sure the
 other side hears about it: the Employer is emailed each decision, and Admins are emailed
 when something is submitted, so approval does not depend on anyone remembering to look.
 Spec 000 sets the target: median approval time under 24 hours.
@@ -37,7 +37,7 @@ Spec 000 sets the target: median approval time under 24 hours.
 ## Non-goals / Out of scope
 
 - Public listing pages, the "✓ Approved" badge and the posted date — spec 005. Until then a
-  Live listing is visible only to its owner and to Admins.
+  Published listing is visible only to its owner and to Admins.
 - Restoring a Taken down listing. Taken down is final, like Closed (decision 1).
 - Seeing or touching Drafts. A Draft belongs to its Employer alone (REQ-003-3).
 - Admin editing of a Rejected, Closed or Taken down listing.
@@ -77,7 +77,7 @@ Spec 000 sets the target: median approval time under 24 hours.
 **US-004-3**
 - As an Admin,
 - I want to approve a listing,
-- so that it goes live.
+- so that it is published.
 
 **US-004-4**
 - As an Admin,
@@ -86,18 +86,18 @@ Spec 000 sets the target: median approval time under 24 hours.
 
 **US-004-5**
 - As an Admin,
-- I want to take down a live listing and say why,
+- I want to take down a published listing and say why,
 - so that something that should not be public is removed at once.
 
 **US-004-6**
 - As an Admin,
-- I want to fix a small mistake in a waiting or live listing myself,
+- I want to fix a small mistake in a waiting or published listing myself,
 - so that a typo does not cost the employer a rejection and a second wait.
 
 **US-004-7**
 - As an Admin,
 - I want to find any submitted listing by its status,
-- so that I can check on live listings and look up what was decided earlier.
+- so that I can check on published listings and look up what was decided earlier.
 
 **US-004-8**
 - As an Admin,
@@ -134,7 +134,7 @@ with this diagram, and it must stay in agreement with `state-listing` in spec 00
 |---|---|---|---|
 | Draft | Draft | no | none |
 | Pending approval | Waiting for approval | yes, in the queue | Approve, Reject, Edit |
-| Published | Live | yes | Take down, Edit |
+| Published | Published | yes | Take down, Edit |
 | Rejected | Needs changes | yes, with the reason | none — it is back with the Employer |
 | Closed | Closed | yes | none — final |
 | Taken down | Taken down | yes, with the reason | none — final |
@@ -149,7 +149,7 @@ with this diagram, and it must stay in agreement with `state-listing` in spec 00
 | US-004-2 read before deciding | Listings → tap a row → Listing (Admin view) |
 | US-004-3 approve | Listing (Admin view) → Approve → Listings |
 | US-004-4 reject with a reason | Listing (Admin view) → Reject → write the reason → Listings |
-| US-004-5 take down | Listings → Live → Listing (Admin view) → Take down → write the reason → Listing (Taken down) |
+| US-004-5 take down | Listings → Published → Listing (Admin view) → Take down → write the reason → Listing (Taken down) |
 | US-004-6 fix a small mistake | Listing (Admin view) → Edit → Edit listing → save → Listing (Admin view) |
 | US-004-7 find by status | Listings → choose a status → tap a row → Listing (Admin view) |
 | US-004-8 told of a submission | Employer submits (spec 003) → Email to Admins → link → Listing (Admin view) |
@@ -290,19 +290,19 @@ Scenario: Nothing waiting
 **Serves:** US-004-7
 
 Until the public pages exist (spec 005) this page is the only way for an Admin to reach a
-Live listing, so it lists every submitted listing, one status at a time.
+Published listing, so it lists every submitted listing, one status at a time.
 
 ```gherkin
 Scenario: Choose a status
-  Given listings that are Live, Needs changes, Taken down and Closed
-  When I choose "Live" on the Listings page
-  Then I see only the Live listings
+  Given listings that are Published, Needs changes, Taken down and Closed
+  When I choose "Published" on the Listings page
+  Then I see only the Published listings
   And the most recently changed is first
 
 Scenario: Each status can be chosen
   Given I am on the Listings page
   When I look at the choices
-  Then they are Waiting for approval, Live, Needs changes, Taken down and Closed
+  Then they are Waiting for approval, Published, Needs changes, Taken down and Closed
   And there is no choice for Draft
 
 Scenario: Nothing with that status
@@ -311,15 +311,15 @@ Scenario: Nothing with that status
   Then I see a plain sentence saying there are none
 
 Scenario: A long list is shown in parts
-  Given 60 listings are Live
-  When I choose "Live"
+  Given 60 listings are Published
+  When I choose "Published"
   Then I see the first 50
   And I can ask for more
 
 Scenario: Back returns to the same list
-  Given I chose "Live" and opened a listing from that list
+  Given I chose "Published" and opened a listing from that list
   When I go back
-  Then I am on the Live list again
+  Then I am on the Published list again
 ```
 
 **Rules**
@@ -349,7 +349,7 @@ Scenario: Actions follow the status
   Given listings in each status other than Draft
   When I open each one's Admin view
   Then Waiting for approval offers Approve, Reject and Edit
-  And Live offers Take down and Edit
+  And Published offers Take down and Edit
   And Needs changes, Closed and Taken down offer nothing
 
 Scenario: The latest decision is shown
@@ -375,7 +375,7 @@ Scenario: A Draft is not found
   Take down are not accent buttons.
 - The box says in one plain sentence what the main action will do: "Approving makes it
   public and emails the employer." on a waiting listing, and what taking it down does on a
-  live one. Reject and Edit explain themselves on their own pages ("The employer will see
+  published one. Reject and Edit explain themselves on their own pages ("The employer will see
   this.", "The employer will be told what you changed.").
 - The latest decision is one of: approved, rejected, taken down — with the time and the
   Admin who made it. A listing that was rejected and sent again shows no decision until the
@@ -398,7 +398,7 @@ Scenario: Approve
   When I approve it
   Then its status is Published
   And the time and my account are recorded as the approval
-  And its Employer sees it marked "Live" in My listings
+  And its Employer sees it marked "Published" in My listings
   And I am back on the queue with a confirmation
 
 Scenario: Approving does not change the listing
@@ -457,7 +457,7 @@ Scenario: A reason is required
   And it stays Waiting for approval
 
 Scenario: Only a waiting listing can be rejected
-  Given a listing is Live, Needs changes, Closed or Taken down, or has been withdrawn
+  Given a listing is Published, Needs changes, Closed or Taken down, or has been withdrawn
   When I try to reject it
   Then nothing changes
   And I am told "This listing is no longer waiting for approval."
@@ -474,13 +474,13 @@ Scenario: Rejecting frees a place
 - What the Employer does next is spec 003: edit, resubmit or delete (REQ-003-8,
   REQ-003-11).
 
-### REQ-004-7: Take down a live listing
+### REQ-004-7: Take down a published listing
 
 **Serves:** US-004-5, US-004-11
 
 ```gherkin
 Scenario: Take down with a reason
-  Given a listing is Live
+  Given a listing is Published
   When I take it down with the reason "The business asked us to remove it."
   Then its status is Taken down
   And it is no longer visible to the public
@@ -489,29 +489,29 @@ Scenario: Take down with a reason
   And I am on the listing's Admin view, which shows it as Taken down, with a confirmation
 
 Scenario: A reason is required
-  Given a listing is Live
+  Given a listing is Published
   When I take it down with no reason, one shorter than 10 characters, or one longer than 500
   Then I see a validation error
-  And it stays Live
+  And it stays Published
 
 Scenario: Taking down asks first
-  Given a listing is Live
+  Given a listing is Published
   When I choose "Take down"
   Then I am asked for the reason and told it cannot be undone
 
-Scenario: Only a live listing can be taken down
+Scenario: Only a published listing can be taken down
   Given a listing is Waiting for approval, Needs changes, Closed or Taken down
   When I try to take it down
   Then nothing changes
-  And I am told "This listing is no longer live."
+  And I am told "This listing is no longer published."
 
 Scenario: Taken down is final
   Given a listing is Taken down
   When an Admin or its Employer opens it
-  Then there is no action that makes it Live again
+  Then there is no action that makes it Published again
 
 Scenario: Taking down frees a place
-  Given an Employer has 3 open listings, all Live
+  Given an Employer has 3 open listings, all Published
   When I take one down
   Then the Employer can submit another listing
 ```
@@ -529,7 +529,7 @@ Scenario: Taking down frees a place
 
 **Serves:** US-004-6, US-004-10
 
-An Admin can correct a listing that is Waiting for approval or Live. This is meant for
+An Admin can correct a listing that is Waiting for approval or Published. This is meant for
 small fixes — a typo, a wrong area, stray formatting. Anything that changes what the
 Employer is offering is a reason to reject, not to edit.
 
@@ -541,11 +541,11 @@ Scenario: Fix a waiting listing
   And it is still Waiting for approval, at the same place in the queue
   And I am back on the listing's Admin view with a confirmation
 
-Scenario: Fix a live listing
-  Given a listing is Live
+Scenario: Fix a published listing
+  Given a listing is Published
   When I change its "About the job" text and save
   Then the listing shows the new text
-  And it is still Live
+  And it is still Published
   And I am back on the listing's Admin view with a confirmation
 
 Scenario: The listing must stay complete
@@ -567,13 +567,13 @@ Scenario: Other listings cannot be edited
   And the listing is unchanged
 
 Scenario: Only active regions can be chosen
-  Given a Live listing in region "Baguio", which is hidden, and an active region "Cebu"
+  Given a Published listing in region "Baguio", which is hidden, and an active region "Cebu"
   When I open the Admin edit form
   Then I can keep "Baguio" or choose "Cebu"
   And I cannot choose any other hidden region
 
 Scenario: Saving without changes does nothing
-  Given a listing is Live
+  Given a listing is Published
   When I open the Admin edit form and save without changing anything
   Then nothing is saved
   And no email is sent
@@ -608,7 +608,7 @@ The exceptions are in the rules below.
 Scenario: Approved email
   Given an Employer's listing "Barista (full-time)" is Waiting for approval
   When an Admin approves it
-  Then the Employer receives an email saying the listing "Barista (full-time)" is live
+  Then the Employer receives an email saying the listing "Barista (full-time)" is published
   And the email links to the listing in My listings
 
 Scenario: Rejected email carries the reason
@@ -618,13 +618,13 @@ Scenario: Rejected email carries the reason
   And the email contains that reason and says the listing can be edited and sent again
 
 Scenario: Taken-down email carries the reason
-  Given an Employer's listing is Live
+  Given an Employer's listing is Published
   When an Admin takes it down with the reason "The business asked us to remove it."
   Then the Employer receives an email saying the listing was taken down
   And the email contains that reason
 
 Scenario: Edit email names what changed
-  Given an Employer's listing is Live
+  Given an Employer's listing is Published
   When an Admin changes its job title and area and saves
   Then the Employer receives an email saying jairojobs edited the listing
   And the email names "Job title" and "Area" as the parts that changed
@@ -658,7 +658,7 @@ Scenario: The decision stands if the email cannot be sent
   will refuse them. That case is not handled here; it is handed to spec 008.
 - The decision is saved before the email is sent and is never undone because of it. There
   is no automatic second attempt; the Employer still sees the outcome in My listings.
-- Subjects: "Your listing is live: <title>", "Your listing needs changes: <title>",
+- Subjects: "Your listing is published: <title>", "Your listing needs changes: <title>",
   "Your listing was taken down: <title>", "We edited your listing: <title>".
 
 ### REQ-004-10: Admins are emailed when a listing is submitted
@@ -742,7 +742,7 @@ The owner went through them one at a time and chose the proposed answer for each
 | 2 | Can a Pending listing in a hidden region be approved? | No. The Admin is told why and can show the region again, move the listing to an active region, or reject it with a reason (REQ-004-5) |
 | 3 | Who may approve a listing that an Admin posted? | Any Admin, including the one who posted it. It still goes through the queue and the approval is recorded (REQ-004-5). Revisit when there are several Admins |
 | 4 | Does a take-down need a reason the Employer can read? | Yes: required, 10–500 characters, shown on the listing and in the email (REQ-004-7, REQ-004-9). There is no Admin-only note |
-| 5 | Which listings can an Admin edit, and which fields? | Waiting for approval and Live; every listing field plus the listing's business name and "about". Meant for small fixes; that is left to the Admin's judgement (REQ-004-8) |
+| 5 | Which listings can an Admin edit, and which fields? | Waiting for approval and Published; every listing field plus the listing's business name and "about". Meant for small fixes; that is left to the Admin's judgement (REQ-004-8) |
 | 6 | Is the Employer told when an Admin edits their listing? | Yes, by an email naming the parts that changed, without quoting old or new text; one email per save (REQ-004-8, REQ-004-9). A fourth email beyond the three in spec 003's hand-off |
 | 7 | How do Admins learn that a listing is waiting? | An email to every Admin on each submission and resubmission, plus a count on the Admin area (REQ-004-10, REQ-004-1). Adds a step to spec 003's submit action |
 | 8 | Is anyone emailed about their own action? | No. An Admin gets no email for submitting, approving, rejecting, taking down or editing their own listing (REQ-004-9, REQ-004-10) |
@@ -787,7 +787,7 @@ Not requirements; reminders for whoever writes `plan.md`.
 |---|---|
 | 005 | Only a Published listing is public. Rejected, Closed and Taken down listings are never shown, whatever address is used. |
 | 005 | The time of approval is the listing's "posted" date, and an approval is what the "✓ Approved" badge stands for. |
-| 005 | Once public pages exist, the "Your listing is live" email also links to the public page; spec 005 amends REQ-004-9. |
+| 005 | Once public pages exist, the "Your listing is published" email also links to the public page; spec 005 amends REQ-004-9. |
 | 005 | An Admin looking at a public listing page gets a link to its Admin view, so a take-down is one step from where the problem is seen. |
 | 005 | An Admin can still edit or take down a Published listing in a hidden region; whether the public sees it is for spec 005 (also in spec 003's hand-offs). |
 | 007 | A Taken down listing accepts no new applications. What happens to applications already sent is decided in spec 007. |
@@ -835,3 +835,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-16 | Amended after approval (owner's choice): REQ-004-4's rule asks for one sentence on the main action, not one per action, matching the built screen; `activity-find-and-review` updated; decision 17 added |
 | 2026-11-16 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-17 | Design guide change (docs/design.md changelog), after Done: the breadcrumb link on the Admin Listings page is 44 px tall; fields and buttons are 44 px; the accent, status and confirmation colours are one step darker. No requirement changed; the 15 pages were re-checked at 375 px |
+| 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". Changed with it: the lifecycle table's label, REQ-004-7's title, the scenario names "Only a published listing can be taken down" and "Fix a published listing", the message "This listing is no longer published.", the email subject "Your listing is published: <title>" (REQ-004-9), and the address of the Admin list (`?status=published`). Six diagrams were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |

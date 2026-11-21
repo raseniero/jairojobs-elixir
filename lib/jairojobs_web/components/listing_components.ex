@@ -11,7 +11,7 @@ defmodule JairojobsWeb.ListingComponents do
   @status_labels %{
     draft: "Draft",
     pending: "Waiting for approval",
-    published: "Live",
+    published: "Published",
     rejected: "Needs changes",
     closed: "Closed",
     taken_down: "Taken down"
@@ -175,7 +175,7 @@ defmodule JairojobsWeb.ListingComponents do
   then the text sections (design guide §4, "Listing detail").
 
   The trust line (approved badge, posted date) is not part of this component:
-  it only exists once a listing is Live and is added by the public page
+  it only exists once a listing is Published and is added by the public page
   (spec 005). Parts that are not filled in yet read "Not set yet".
 
   `business_name` / `business_about` are passed in because the caller decides

@@ -33,7 +33,7 @@ else (no)
 endif
 :Status → Pending approval;
 :Tell the employer: "An admin will
-check it before it goes live.";
+check it before it is published.";
 :Listing appears in the
 Admin approval queue (004);
 :Every Admin except the submitter is

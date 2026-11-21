@@ -630,7 +630,7 @@ defmodule Jairojobs.ListingsTest do
       assert Enum.map(Listings.list_my_listings(scope), & &1.id) == [live.id]
     end
 
-    test "REQ-003-9: only live listings can be closed", %{scope: scope} do
+    test "REQ-003-9: only published listings can be closed", %{scope: scope} do
       for status <- [:draft, :pending, :rejected, :closed, :taken_down] do
         listing = listing_in_status_fixture(scope, status)
 

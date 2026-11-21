@@ -157,7 +157,7 @@ defmodule JairojobsWeb.Employer.PostingJourneyTest do
       |> follow_redirect(admin_conn, ~p"/admin/listings")
 
     {:ok, show, _html} = live(conn, ~p"/my/listings/#{listing.id}")
-    assert text(show, status) == "Live"
+    assert text(show, status) == "Published"
 
     show |> element("#close-listing") |> render_click()
     assert text(show, status) == "Closed"

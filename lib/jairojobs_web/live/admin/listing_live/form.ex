@@ -1,6 +1,6 @@
 defmodule JairojobsWeb.Admin.ListingLive.Form do
   @moduledoc """
-  An Admin's fix to a Waiting or Live listing (spec 004 — REQ-004-8): the
+  An Admin's fix to a Waiting or Published listing (spec 004 — REQ-004-8): the
   Employer's listing form, plus this listing's own copy of the business name
   and "about".
 
@@ -16,7 +16,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Form do
   alias Jairojobs.Regions
 
   # The lists an Admin can have come from, by their value in the address.
-  @lists ~w(waiting live needs-changes taken-down closed)
+  @lists ~w(waiting published needs-changes taken-down closed)
 
   @impl true
   def render(assigns) do

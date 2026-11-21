@@ -42,7 +42,7 @@ defmodule JairojobsWeb.ModerationEmailFailureTest do
     assert has_element?(
              queue,
              "#flash-info",
-             "Approved. It is live. The employer could not be emailed."
+             "Approved. It is published. The employer could not be emailed."
            )
 
     assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
@@ -116,7 +116,7 @@ defmodule JairojobsWeb.ModerationEmailFailureTest do
     assert has_element?(
              view,
              "#flash-info",
-             "Submitted. An admin will check it before it goes live."
+             "Submitted. An admin will check it before it is published."
            )
 
     refute has_element?(view, "#flash-error")

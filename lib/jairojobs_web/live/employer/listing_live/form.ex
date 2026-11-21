@@ -136,7 +136,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Form do
   end
 
   defp locked_reason(%Listing{status: :pending}), do: "waiting for approval"
-  defp locked_reason(%Listing{status: :published}), do: "live"
+  defp locked_reason(%Listing{status: :published}), do: "published"
   defp locked_reason(%Listing{status: :closed}), do: "closed"
   defp locked_reason(%Listing{status: :taken_down}), do: "taken down"
   defp locked_reason(%Listing{}), do: "locked"

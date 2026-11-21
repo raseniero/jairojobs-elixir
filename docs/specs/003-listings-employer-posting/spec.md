@@ -39,7 +39,7 @@ the public pages are spec 005.
 - Telling Admins that something is waiting, and emailing Employers each decision (approved,
   rejected with the reason, taken down) — spec 004. In this spec the Employer sees the
   outcome in "My listings".
-- Editing a listing while it is Pending or Published. To change a Live listing the Employer
+- Editing a listing while it is Pending or Published. To change a Published listing the Employer
   closes it and posts a new one.
 - Reopening a Closed listing, or copying an old listing into a new draft. Closed is final;
   to hire again the Employer posts a new listing.
@@ -77,12 +77,12 @@ the public pages are spec 005.
 **US-003-4**
 - As an Employer,
 - I want to submit a finished listing for approval,
-- so that it can go live once the site has checked it.
+- so that it can be published once the site has checked it.
 
 **US-003-5**
 - As an Employer,
 - I want to see all my listings with their current status,
-- so that I know what is live, what is waiting, and what needs my attention.
+- so that I know what is published, what is waiting, and what needs my attention.
 
 **US-003-6**
 - As an Employer,
@@ -96,7 +96,7 @@ the public pages are spec 005.
 
 **US-003-8**
 - As an Employer,
-- I want to close a live listing,
+- I want to close a published listing,
 - so that people stop applying once the job is filled.
 
 **US-003-9**
@@ -133,7 +133,7 @@ must agree with this diagram.
 |---|---|---|---|
 | Draft | Draft | the Employer | no |
 | Pending approval | Waiting for approval | the Employer, Admins | yes |
-| Published | Live | everyone | yes |
+| Published | Published | everyone | yes |
 | Rejected | Needs changes | the Employer, Admins | no |
 | Closed | Closed | the Employer, Admins | no |
 | Taken down | Taken down | the Employer, Admins | no |
@@ -151,7 +151,7 @@ must agree with this diagram.
 | US-003-5 see my listings | Drawer → My listings |
 | US-003-6 withdraw | My listings → Listing (Waiting for approval) → Withdraw → Listing (Draft) |
 | US-003-7 fix and resubmit | My listings → Listing (Needs changes) → Edit → Listing form → Listing → Resubmit |
-| US-003-8 close | My listings → Listing (Live) → Close listing → Listing (Closed) |
+| US-003-8 close | My listings → Listing (Published) → Close listing → Listing (Closed) |
 | US-003-9 delete | My listings → Listing (Draft / Needs changes) → Delete → My listings |
 | US-003-10 see it as a job seeker will | Listing form → Listing (owner view) |
 | US-003-11 limit | My listings shows "x of 3 open listings used"; Listing → Submit → message when the limit is reached |
@@ -261,10 +261,10 @@ Scenario: Later posts skip the question
   Then I go straight to the listing form
 
 Scenario: Change business details
-  Given I have saved business details and have a Live listing
+  Given I have saved business details and have a Published listing
   When I change my business name
   Then new listings I submit show the new name
-  And the Live listing still shows the name it was submitted with
+  And the Published listing still shows the name it was submitted with
 ```
 
 **Rules**
@@ -387,13 +387,13 @@ Scenario: Pending listing is locked
   Then there is no way to edit it
   And I am told I can withdraw it to make changes
 
-Scenario: Live listing is locked
-  Given I have a Live listing
+Scenario: Published listing is locked
+  Given I have a Published listing
   When I open it
   Then there is no way to edit it
 
 Scenario: Editing a locked listing is refused
-  Given I have a listing that is Waiting for approval, Live, Closed or Taken down
+  Given I have a listing that is Waiting for approval, Published, Closed or Taken down
   When I try to save changes to it anyway
   Then the changes are refused
   And the listing is unchanged
@@ -413,7 +413,7 @@ Scenario: Submit a complete draft
   Given I have a complete Draft listing and fewer than 3 open listings
   When I submit it for approval
   Then its status is Waiting for approval
-  And I am told an admin will check it before it goes live
+  And I am told an admin will check it before it is published
   And it is not visible to the public
 
 Scenario: Incomplete draft cannot be submitted
@@ -456,7 +456,7 @@ Scenario: Withdraw
   And I can edit it again
 
 Scenario: Only pending listings can be withdrawn
-  Given I have a Draft, Live, Rejected, Closed or Taken down listing
+  Given I have a Draft, Published, Rejected, Closed or Taken down listing
   When I try to withdraw it
   Then nothing changes
 ```
@@ -491,24 +491,24 @@ Scenario: Resubmit follows the same checks
 - A Rejected listing may be resubmitted without changes; the Admin decides again.
 - A resubmission emails the Admins like a first submission (REQ-004-10).
 
-### REQ-003-9: Close a live listing
+### REQ-003-9: Close a published listing
 
 **Serves:** US-003-8
 
 ```gherkin
 Scenario: Close
-  Given I have a Live listing
+  Given I have a Published listing
   When I close it and confirm
   Then its status is Closed
   And it is no longer visible to the public
   And it stays in My listings
 
 Scenario: Closing asks first
-  Given I have a Live listing
+  Given I have a Published listing
   When I choose "Close listing"
   Then I am asked to confirm, and told it cannot be reopened
 
-Scenario: Only live listings can be closed
+Scenario: Only published listings can be closed
   Given I have a Draft, Waiting for approval, Rejected, Closed or Taken down listing
   When I try to close it
   Then nothing changes
@@ -523,7 +523,7 @@ Scenario: Only live listings can be closed
 **Serves:** US-003-10, US-003-5
 
 Each of an Employer's listings has its own page: a status box on top, then the listing laid
-out the way visitors will see it once it is Live, without the trust line (approved badge
+out the way visitors will see it once it is Published, without the trust line (approved badge
 and posted date), which only exists after approval.
 
 ```gherkin
@@ -544,13 +544,13 @@ Scenario: Actions follow the status
   When I open each one
   Then Waiting for approval offers only Withdraw
   And Needs changes offers Edit, Resubmit and Delete
-  And Live offers only Close listing
+  And Published offers only Close listing
   And Closed and Taken down offer nothing
 ```
 
 **Rules**
 - The status box always says what happens next in one plain sentence, e.g. "An admin will
-  check it before it goes live."
+  check it before it is published."
 - A Taken down listing shows the reason the Admin gave, the same way a Rejected one shows
   its reason (REQ-004-7). It still offers no actions.
 
@@ -571,7 +571,7 @@ Scenario: Delete a rejected listing
   Then it is gone from My listings
 
 Scenario: Other listings cannot be deleted
-  Given I have a Waiting for approval, Live, Closed or Taken down listing
+  Given I have a Waiting for approval, Published, Closed or Taken down listing
   When I try to delete it
   Then it is refused
   And the listing still exists
@@ -607,7 +607,7 @@ Scenario: Drafts are not limited
 
 Scenario: Closing or withdrawing frees a place
   Given I have 3 open listings
-  When I close a Live one or withdraw a Pending one
+  When I close a Published one or withdraw a Pending one
   Then I can submit another listing
 
 Scenario: Admins are not limited
@@ -650,7 +650,7 @@ Scenario: No listings yet
 ```
 
 **Rules**
-- Status labels are those in the lifecycle table: Draft, Waiting for approval, Live, Needs
+- Status labels are those in the lifecycle table: Draft, Waiting for approval, Published, Needs
   changes, Closed, Taken down.
 - The list is expected to stay small (tens of rows per Employer); no search or filters.
 
@@ -698,7 +698,7 @@ Scenario: My listings shows only mine
 | # | Question | Decision |
 |---|---|---|
 | 1 | Free-tier limit | 3 open listings (Pending + Published) per Employer (REQ-003-12). Also settles the open question in spec 000 |
-| 2 | Editing a Live listing | Not possible; the Employer closes it and posts a new one (REQ-003-5) |
+| 2 | Editing a Published listing | Not possible; the Employer closes it and posts a new one (REQ-003-5) |
 | 3 | Business details in this spec | Yes — name plus optional "about" (REQ-003-2) |
 | 4 | Admins posting listings | Admins can, through the same screens and rules as an Employer, without the limit (REQ-003-1, REQ-003-12) |
 | 5 | Very wide salary ranges | No automatic rule; an Admin rejects them with a reason (spec 004) |
@@ -752,3 +752,4 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-16 | Changed by spec 004 (Admin edit, REQ-004-8): REQ-003-5's rule now speaks for the Employer only; REQ-003-2's rule gains the Admin-edit exception; the state diagram says "locked for the Employer" |
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall; the accent, "Waiting for approval" and "Live" colours are one step darker. No requirement changed. Not yet looked at in a browser: these screens have no phone-check pages file |
 | 2026-11-18 | After a look at 375 px: the salary in a My listings row is kept on one line; "Add your business details" is a 44 px tap target; the error icon under a narrow field no longer shrinks. No requirement changed |
+| 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". The label in the lifecycle table, the scenarios, REQ-003-9's title and the scenario names "Published listing is locked" and "Only published listings can be closed" say so, and "before it goes live" reads "before it is published". The screen flow, the wireframe and one activity diagram were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |

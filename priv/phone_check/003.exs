@@ -90,7 +90,7 @@ PhoneCheck.run(System.argv(), fn ->
           %{name: "06-draft-complete", path: view.(complete_draft)},
           %{name: "07-waiting", path: view.(waiting)},
           %{name: "08-needs-changes", path: view.(rejected)},
-          %{name: "09-live", path: view.(live)},
+          %{name: "09-published", path: view.(live)},
           %{name: "10-closed", path: view.(closed)},
           %{name: "11-edit-listing", path: view.(rejected) <> "/edit"}
         ]

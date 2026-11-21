@@ -30,7 +30,7 @@ defmodule Jairojobs.ListingsModerationTest do
   end
 
   # Everything before this point was setup. Creating accounts and getting a
-  # listing into a status send emails of their own (confirmation links, "live");
+  # listing into a status send emails of their own (confirmation links, "published");
   # the assertions that follow must only see what the step under test sends.
   defp setup_done, do: flush_emails()
 
@@ -76,7 +76,7 @@ defmodule Jairojobs.ListingsModerationTest do
       assert listing.decided_by_id == admin.user.id
       assert listing.region.id == pending.region_id
 
-      # The owner sees it as Live (REQ-003-13).
+      # The owner sees it as Published (REQ-003-13).
       assert [%Listing{status: :published}] = Listings.list_my_listings(employer)
     end
 
@@ -347,7 +347,7 @@ defmodule Jairojobs.ListingsModerationTest do
       assert %Listing{status: :published, takedown_reason: nil} = reload(live)
     end
 
-    test "REQ-004-7: only a live listing can be taken down",
+    test "REQ-004-7: only a published listing can be taken down",
          %{employer: employer, admin: admin} do
       waiting = pending_listing(employer)
 
@@ -508,7 +508,7 @@ defmodule Jairojobs.ListingsModerationTest do
       assert [one.id, two.id] == [first.id, second.id]
     end
 
-    test "REQ-004-8: fix a live listing", %{employer: employer, admin: admin} do
+    test "REQ-004-8: fix a published listing", %{employer: employer, admin: admin} do
       live = published_listing(employer, admin)
       text = "We are a neighbourhood café looking for a barista who enjoys regulars. Fixed."
       other_admin = admin_scope_fixture()
@@ -781,9 +781,9 @@ defmodule Jairojobs.ListingsModerationTest do
       email = sent_email()
       assert email.to == [{"", employer.user.email}]
       assert email.from == {"jairojobs", "hello@jairojobs.com"}
-      assert email.subject == "Your listing is live: Barista (full-time)"
+      assert email.subject == "Your listing is published: Barista (full-time)"
       assert email.text_body =~ "Barista (full-time)"
-      assert email.text_body =~ "is live"
+      assert email.text_body =~ "is published"
       assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
       assert email.html_body == nil
     end

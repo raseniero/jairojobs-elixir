@@ -49,9 +49,9 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, ~p"/admin/listings")
 
       # ...and is brought back to the page they asked for after logging in (REQ-001-1)
-      conn = get(conn, ~p"/admin/listings?status=live")
+      conn = get(conn, ~p"/admin/listings?status=published")
       assert redirected_to(conn) == ~p"/users/log-in"
-      assert get_session(conn, :user_return_to) == "/admin/listings?status=live"
+      assert get_session(conn, :user_return_to) == "/admin/listings?status=published"
     end
   end
 
@@ -67,7 +67,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert has_element?(view, "#admin-listings")
       # It opens on the approval queue.
       assert has_element?(view, "#filter-waiting[aria-current=page]")
-      refute has_element?(view, "#filter-live[aria-current=page]")
+      refute has_element?(view, "#filter-published[aria-current=page]")
     end
 
     test "REQ-004-2: longest-waiting first", %{conn: conn} do
@@ -163,7 +163,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert text(view, "#waiting-count") == "(2)"
       assert text(view, "#filter-waiting") == "Waiting for approval (2)"
 
-      {:ok, view, _html} = live(conn, ~p"/admin/listings?status=live")
+      {:ok, view, _html} = live(conn, ~p"/admin/listings?status=published")
       assert text(view, "#waiting-count") == "(2)"
     end
 
@@ -178,11 +178,11 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       {:ok, view, _html} = live(conn, ~p"/admin/listings")
       assert row_ids(view) == rows([waiting])
 
-      view |> element("#filter-live") |> render_click()
-      assert_patch(view, ~p"/admin/listings?status=live")
-      # Only the Live ones, the most recently changed first.
+      view |> element("#filter-published") |> render_click()
+      assert_patch(view, ~p"/admin/listings?status=published")
+      # Only the Published ones, the most recently changed first.
       assert row_ids(view) == rows([newer_live, older_live])
-      assert has_element?(view, "#filter-live[aria-current=page]")
+      assert has_element?(view, "#filter-published[aria-current=page]")
       assert text(view, "#listing-when-#{newer_live.id}") == "changed just now"
 
       for {slug, listing} <- [
@@ -212,7 +212,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       assert labels == [
                "Waiting for approval (0)",
-               "Live",
+               "Published",
                "Needs changes",
                "Taken down",
                "Closed"
@@ -226,7 +226,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
     test "REQ-004-3: nothing with that status", %{conn: conn} do
       for {slug, sentence} <- [
-            {"live", "No listings are live."},
+            {"published", "No listings are published."},
             {"needs-changes", "No listings need changes."},
             {"taken-down", "No listings have been taken down."},
             {"closed", "No listings are closed."}
@@ -253,7 +253,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       newest_first = Enum.reverse(live_listings)
 
-      {:ok, view, _html} = live(conn, ~p"/admin/listings?status=live")
+      {:ok, view, _html} = live(conn, ~p"/admin/listings?status=published")
 
       assert row_ids(view) == rows(Enum.take(newest_first, 50))
       assert has_element?(view, "#show-more")
@@ -444,7 +444,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       # Approve is still offered.
       assert has_element?(view, "#approve-listing")
 
-      # On a Live listing the pill is there, without the warning about approval.
+      # On a Published listing the pill is there, without the warning about approval.
       {:ok, view, _html} = live(conn, ~p"/admin/listings/#{live_listing.id}")
 
       flag = text(view, "#listing-region-hidden")
@@ -467,21 +467,21 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
     test "REQ-004-3: back returns to the same list", %{conn: conn} do
       listing = listing_in_status_fixture(employer_scope_fixture(), :published)
 
-      {:ok, list, _html} = live(conn, ~p"/admin/listings?status=live")
+      {:ok, list, _html} = live(conn, ~p"/admin/listings?status=published")
 
       {:ok, view, _html} =
         list
         |> element("#admin-listings-#{listing.id} a")
         |> render_click()
-        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=live")
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=published")
 
       {:ok, list, _html} =
         view
         |> element("#back-to-admin-listings")
         |> render_click()
-        |> follow_redirect(conn, ~p"/admin/listings?status=live")
+        |> follow_redirect(conn, ~p"/admin/listings?status=published")
 
-      assert has_element?(list, "#filter-live[aria-current=page]")
+      assert has_element?(list, "#filter-published[aria-current=page]")
       assert row_ids(list) == rows([listing])
     end
 
@@ -511,7 +511,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       employer = employer_scope_fixture()
       listing = listing_in_status_fixture(employer, :pending)
 
-      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=live")
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=published")
 
       # Two taps from the queue: open it, approve it. No confirm step.
       assert view
@@ -527,7 +527,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/admin/listings")
 
-      assert has_element?(queue, "#flash-info", "Approved. It is live.")
+      assert has_element?(queue, "#flash-info", "Approved. It is published.")
       assert row_ids(queue) == []
 
       approved = Listings.get_listing_for_moderation!(admin, listing.id)
@@ -535,11 +535,11 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert approved.decided_by_id == admin.user.id
       assert %DateTime{} = approved.published_at
 
-      # Its Employer sees it marked Live in My listings.
+      # Its Employer sees it marked Published in My listings.
       {:ok, mine, _html} =
         build_conn() |> log_in_user(employer.user) |> live(~p"/my/listings")
 
-      assert text(mine, "#listing-status-#{listing.id}") == "Live"
+      assert text(mine, "#listing-status-#{listing.id}") == "Published"
     end
 
     test "REQ-004-5: hidden region blocks approval", %{conn: conn, admin: admin} do
@@ -621,7 +621,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/admin/listings")
 
-      assert has_element?(queue, "#flash-info", "Approved. It is live.")
+      assert has_element?(queue, "#flash-info", "Approved. It is published.")
       assert Listings.get_listing_for_moderation!(admin, mine.id).status == :published
     end
 
@@ -771,18 +771,18 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       employer = employer_scope_fixture()
       listing = listing_in_status_fixture(employer, :published)
 
-      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=live")
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}?from=published")
 
       assert text(view, "#moderation-help") ==
                "Taking it down removes it from public view for good and emails the employer."
 
       view |> element("#take-down-listing") |> render_click()
-      assert_patch(view, ~p"/admin/listings/#{listing.id}/take-down?from=live")
+      assert_patch(view, ~p"/admin/listings/#{listing.id}/take-down?from=published")
 
       view |> form("#decision-form", decision: %{reason: @takedown_reason}) |> render_submit()
 
       # The Admin stays on the listing, which now shows as Taken down.
-      assert_patch(view, ~p"/admin/listings/#{listing.id}?from=live")
+      assert_patch(view, ~p"/admin/listings/#{listing.id}?from=published")
       assert has_element?(view, "#flash-info", "Taken down.")
       assert text(view, "#listing-status-#{listing.id}") == "Taken down"
       assert text(view, "#listing-decision") == "Taken down just now by #{admin.user.email}"
@@ -828,7 +828,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
     end
 
-    test "REQ-004-7: only a live listing can be taken down", %{conn: conn, admin: admin} do
+    test "REQ-004-7: only a published listing can be taken down", %{conn: conn, admin: admin} do
       for status <- [:pending, :rejected, :closed, :taken_down] do
         listing = listing_in_status_fixture(employer_scope_fixture(), status)
         show = ~p"/admin/listings/#{listing.id}"
@@ -836,7 +836,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
         assert {:error, {:live_redirect, %{to: ^show, flash: flash}}} =
                  live(conn, ~p"/admin/listings/#{listing.id}/take-down")
 
-        assert flash["error"] == "This listing is no longer live."
+        assert flash["error"] == "This listing is no longer published."
         assert Listings.get_listing_for_moderation!(admin, listing.id).status == status
       end
 
@@ -849,7 +849,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       view |> form("#decision-form", decision: %{reason: @takedown_reason}) |> render_submit()
       assert_patch(view, ~p"/admin/listings/#{closed.id}")
 
-      assert has_element?(view, "#flash-error", "This listing is no longer live.")
+      assert has_element?(view, "#flash-error", "This listing is no longer published.")
       assert text(view, "#listing-status-#{closed.id}") == "Closed"
     end
 
@@ -857,7 +857,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       employer = employer_scope_fixture()
       listing = listing_in_status_fixture(employer, :taken_down)
 
-      # Nothing on the Admin view makes it Live again.
+      # Nothing on the Admin view makes it Published again.
       {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
 
       for action <- ~w(approve-listing reject-listing take-down-listing admin-edit-listing) do
@@ -933,7 +933,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
                first.submitted_at
     end
 
-    test "REQ-004-8: fix a live listing", %{conn: conn, admin: admin} do
+    test "REQ-004-8: fix a published listing", %{conn: conn, admin: admin} do
       listing = listing_in_status_fixture(employer_scope_fixture(), :published)
       text = "We are a neighbourhood café looking for a barista who enjoys regulars. Fixed."
 
@@ -947,7 +947,7 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       assert has_element?(view, "#flash-info", "Changes saved.")
       assert text(view, "#listing-detail") =~ "Fixed."
-      assert text(view, "#listing-status-#{listing.id}") == "Live"
+      assert text(view, "#listing-status-#{listing.id}") == "Published"
       assert Listings.get_listing_for_moderation!(admin, listing.id).status == :published
     end
 
@@ -1062,13 +1062,13 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
     test "REQ-004-8: saving without changes does nothing", %{conn: conn, admin: admin} do
       listing = listing_in_status_fixture(employer_scope_fixture(), :published)
       before = Listings.get_listing_for_moderation!(admin, listing.id)
-      {:ok, form_view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit?from=live")
+      {:ok, form_view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/edit?from=published")
 
       {:ok, view, _html} =
         form_view
         |> form("#listing-form")
         |> render_submit()
-        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=live")
+        |> follow_redirect(conn, ~p"/admin/listings/#{listing.id}?from=published")
 
       assert has_element?(view, "#flash-info", "Nothing was changed.")
 

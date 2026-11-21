@@ -99,14 +99,14 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       assert row =~ "Barista (full-time)"
       assert row =~ "#{region.name} · ₱14,000–16,000/mo"
       assert text(view, "#listing-status-#{older.id}") == "Draft"
-      assert text(view, "#listing-status-#{newer.id}") == "Live"
+      assert text(view, "#listing-status-#{newer.id}") == "Published"
     end
 
     test "REQ-003-13: every status has its own label", %{conn: conn, scope: scope} do
       labels = %{
         draft: "Draft",
         pending: "Waiting for approval",
-        published: "Live",
+        published: "Published",
         rejected: "Needs changes",
         closed: "Closed",
         taken_down: "Taken down"
@@ -576,7 +576,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       end
     end
 
-    test "REQ-003-10: a draft shows my current business details, a live listing its own copy",
+    test "REQ-003-10: a draft shows my current business details, a published listing its own copy",
          %{conn: conn, scope: scope} do
       live_listing = listing_in_status_fixture(scope, :published)
       draft = listing_fixture(scope, complete_listing_attrs())
@@ -604,7 +604,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       assert text(view, "#listing-status-box") =~ "withdraw it"
     end
 
-    test "REQ-003-5: live listing is locked", %{conn: conn, scope: scope} do
+    test "REQ-003-5: published listing is locked", %{conn: conn, scope: scope} do
       listing = listing_in_status_fixture(scope, :published)
       {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
 
@@ -619,7 +619,7 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       view |> element("#submit-listing") |> render_click()
 
       assert text(view, "#listing-status-#{listing.id}") == "Waiting for approval"
-      assert text(view, "#listing-status-box") =~ "An admin will check it before it goes live"
+      assert text(view, "#listing-status-box") =~ "An admin will check it before it is published"
       assert action_ids(view) == ~w(withdraw-listing)
       assert Listings.get_my_listing!(scope, listing.id).status == :pending
     end

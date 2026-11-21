@@ -355,7 +355,7 @@ defmodule Jairojobs.Listings do
   (REQ-004-7). Taken down is final for everyone; the listing is kept.
 
   Returns `{:ok, listing, email}`, `{:error, changeset}` for a bad reason,
-  `{:error, :not_published}` when the listing is no longer live, or
+  `{:error, :not_published}` when the listing is no longer published, or
   `{:error, :not_found}` / `{:error, :unauthorized}`.
   """
   def take_down_listing(scope, %Listing{} = listing, attrs, owner_url)

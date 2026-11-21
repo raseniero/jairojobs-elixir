@@ -157,7 +157,7 @@ defmodule JairojobsWeb.ModerationJourneyTest do
     assert body =~ "Job title"
     refute body =~ "Barrista"
 
-    # 6. Approved: the Employer is emailed, and My listings shows it Live.
+    # 6. Approved: the Employer is emailed, and My listings shows it Published.
     {:ok, _queue, _html} =
       review
       |> element("#approve-listing")
@@ -165,20 +165,20 @@ defmodule JairojobsWeb.ModerationJourneyTest do
       |> follow_redirect(admin_conn, ~p"/admin/listings")
 
     {subject, _body} = emails() |> email_to(employer.user.email)
-    assert subject == "Your listing is live: Barista (full-time)"
+    assert subject == "Your listing is published: Barista (full-time)"
 
     {:ok, mine, _html} = live(employer_conn, ~p"/my/listings")
-    assert text(mine, status) == "Live"
+    assert text(mine, status) == "Published"
     assert text(mine, "#open-listings-count") == "1 of 3 open listings used"
 
-    # 7. Later the Admin finds it under Live and takes it down with a reason.
-    {:ok, live_list, _html} = live(admin_conn, ~p"/admin/listings?status=live")
+    # 7. Later the Admin finds it under Published and takes it down with a reason.
+    {:ok, live_list, _html} = live(admin_conn, ~p"/admin/listings?status=published")
 
     {:ok, review, _html} =
       live_list
       |> element("#admin-listings a", "Barista (full-time)")
       |> render_click()
-      |> follow_redirect(admin_conn, admin_path <> "?from=live")
+      |> follow_redirect(admin_conn, admin_path <> "?from=published")
 
     review |> element("#take-down-listing") |> render_click()
 
@@ -186,7 +186,7 @@ defmodule JairojobsWeb.ModerationJourneyTest do
     |> form("#decision-form", decision: %{reason: "The business asked us to remove it."})
     |> render_submit()
 
-    assert_patch(review, admin_path <> "?from=live")
+    assert_patch(review, admin_path <> "?from=published")
     assert text(review, status) == "Taken down"
     assert text(review, "#listing-decision") == "Taken down just now by #{admin.email}"
 
