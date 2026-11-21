@@ -39,7 +39,10 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
      above does that.
 
    A spec is set to `Approved` only on the owner's word, and only while that command
-   passes. A change after the review means reviewing the changed part again and naming the
+   passes. The test suite holds this: a test runs `mix jairojobs.spec_review --approved`,
+   so `mix precommit` refuses a commit that marks a spec approved without a current
+   review. After approval a spec may still be amended (see "Amending a requirement"); the
+   same test then keeps its tables, references and diagrams consistent. A change after the review means reviewing the changed part again and naming the
    new commit.
 2. **Plan** — once the spec is `Approved`, write `plan.md`: contexts, schemas, routes,
    LiveViews, migrations, test strategy.

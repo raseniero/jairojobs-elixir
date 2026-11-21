@@ -315,6 +315,97 @@ defmodule Mix.Tasks.Jairojobs.SpecReviewTest do
     assert_fails(ctx, "REQ-007-1 has two scenarios named")
   end
 
+  describe "--approved (the gate the test suite runs)" do
+    defp gate(ctx, extra \\ []),
+      do: SpecReview.run(["--specs-dir", ctx.specs, "--approved"] ++ extra)
+
+    test "ignores a spec that is still a Draft, whatever state it is in", ctx do
+      other_spec(ctx.specs)
+      write(ctx.specs, "007-applications/spec.md", spec(open: "- Still open?"))
+      commit(ctx.root, "draft")
+
+      assert gate(ctx) == :ok
+      assert_received {:mix_shell, :info, [msg]}
+      assert msg =~ "0 approved"
+    end
+
+    test "passes a spec being approved now, when its review is current", ctx do
+      sha = reviewed(ctx)
+      commit(ctx.root, "review recorded")
+      write(ctx.specs, "007-applications/spec.md", spec(review: review(sha), status: "Approved"))
+
+      assert gate(ctx) == :ok
+    end
+
+    test "refuses a spec being approved now, when it changed after its review", ctx do
+      sha = reviewed(ctx)
+      commit(ctx.root, "review recorded")
+
+      write(
+        ctx.specs,
+        "007-applications/spec.md",
+        spec(review: review(sha), status: "Approved", narrative: "Changed (REQ-005-1).")
+      )
+
+      assert_raise Mix.Error, fn -> gate(ctx) end
+      assert Enum.any?(problems(), &(&1 =~ "changed since"))
+    end
+
+    test "refuses a spec being approved now with no review", ctx do
+      other_spec(ctx.specs)
+      diagrams(ctx.specs)
+      write(ctx.specs, "007-applications/spec.md", spec())
+      commit(ctx.root, "draft")
+      write(ctx.specs, "007-applications/spec.md", spec(status: "Approved"))
+
+      assert_raise Mix.Error, fn -> gate(ctx) end
+      assert Enum.any?(problems(), &(&1 =~ "Review before approval"))
+    end
+
+    test "lets a spec approved earlier be amended without a new review", ctx do
+      sha = reviewed(ctx)
+      write(ctx.specs, "007-applications/spec.md", spec(review: review(sha), status: "Approved"))
+      commit(ctx.root, "approved")
+
+      write(
+        ctx.specs,
+        "007-applications/spec.md",
+        spec(review: review(sha), status: "In Progress", narrative: "Amended (REQ-005-1).")
+      )
+
+      assert gate(ctx) == :ok
+    end
+
+    test "still holds a spec approved earlier to the lasting checks", ctx do
+      sha = reviewed(ctx)
+
+      write(
+        ctx.specs,
+        "007-applications/spec.md",
+        spec(review: review(sha), status: "Done (2026-12-01)")
+      )
+
+      commit(ctx.root, "done")
+
+      write(
+        ctx.specs,
+        "007-applications/spec.md",
+        spec(review: review(sha), status: "Done (2026-12-01)", covers: "REQ-007-1")
+      )
+
+      assert_raise Mix.Error, fn -> gate(ctx) end
+      assert Enum.any?(problems(), &(&1 =~ "REQ-007-2 is in 0 rows"))
+    end
+
+    test "leaves out specs numbered below --from", ctx do
+      other_spec(ctx.specs)
+      write(ctx.specs, "007-applications/spec.md", spec(status: "Approved"))
+      commit(ctx.root, "approved without review")
+
+      assert gate(ctx, ["--from", "008"]) == :ok
+    end
+  end
+
   test "asks for a spec number", ctx do
     assert_raise Mix.Error, ~r/spec number/, fn ->
       SpecReview.run(["--specs-dir", ctx.specs])

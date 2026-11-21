@@ -31,12 +31,27 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
 
   Prints each problem and exits non-zero if there are any. Uses `git`.
 
-  Options: `--specs-dir` (default `docs/specs`).
+  ## The gate in the test suite
+
+      mix jairojobs.spec_review --approved
+
+  checks every spec, from `--from` (default 005, the first spec under this rule)
+  onwards, whose status is past `Draft`. It is what `mix precommit` runs, through
+  a test, so a spec cannot be committed as `Approved` without a current review:
+
+    * a spec whose status is past `Draft` in the working tree but not in the last
+      commit is **being approved now**, and gets every check above;
+    * a spec that was already approved in the last commit gets the lasting checks
+      only. It may be amended without a new review (`docs/README.md`, "Amending a
+      requirement"), so the comparison with the reviewed commit is left out; the
+      review section must still be there and filled in.
+
+  Options: `--specs-dir` (default `docs/specs`), `--approved`, `--from NNN`.
   """
 
   use Mix.Task
 
-  @switches [specs_dir: :string]
+  @switches [specs_dir: :string, approved: :boolean, from: :string]
   @review_heading "Review before approval"
 
   @impl Mix.Task
@@ -44,20 +59,54 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
     {opts, numbers} = OptionParser.parse!(args, strict: @switches)
     specs_dir = Keyword.get(opts, :specs_dir, "docs/specs")
 
-    if numbers == [] do
-      Mix.raise("Give a spec number, for example: mix jairojobs.spec_review 005")
+    cond do
+      opts[:approved] ->
+        gate(specs_dir, Keyword.get(opts, :from, "005"))
+
+      numbers == [] ->
+        Mix.raise("Give a spec number, for example: mix jairojobs.spec_review 005")
+
+      true ->
+        for number <- numbers, do: review(specs_dir, number, :full)
     end
 
-    for number <- numbers, do: review(specs_dir, number)
     :ok
   end
 
-  defp review(specs_dir, number) do
+  # Every spec from `from` onwards that is past Draft: in full if it is being
+  # approved now, otherwise only what must stay true after approval.
+  defp gate(specs_dir, from) do
+    checked =
+      for dir <- Path.wildcard(Path.join(specs_dir, "*")) |> Enum.sort(),
+          [number] <- [Regex.run(~r/^\d{3}/, Path.basename(dir))],
+          number >= from,
+          File.exists?(Path.join(dir, "spec.md")),
+          approved?(File.read!(Path.join(dir, "spec.md"))) do
+        approved_before? =
+          case git(dir, ["show", "HEAD:./spec.md"]) do
+            {:ok, committed} -> approved?(committed)
+            :error -> false
+          end
+
+        review(specs_dir, number, if(approved_before?, do: :lasting, else: :full))
+      end
+
+    Mix.shell().info("#{length(checked)} approved spec(s) from #{from} onwards checked.")
+  end
+
+  defp approved?(text) do
+    case Regex.run(~r/^\*\*Status:\*\*\s*(.*)$/m, text) do
+      [_, status] -> status =~ ~r/^(Approved|In Progress|Done)\b/
+      nil -> false
+    end
+  end
+
+  defp review(specs_dir, number, mode) do
     dir = spec_dir(specs_dir, number)
     text = File.read!(Path.join(dir, "spec.md"))
     reqs = requirements(text, number)
     stories = stories(text, number)
-    {reviewed, review_problems} = review_record(dir, text)
+    {reviewed, review_problems} = review_record(dir, text, mode)
 
     problems =
       flows(text, number, reqs) ++
@@ -331,7 +380,7 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
 
   ## The record of the review
 
-  defp review_record(dir, text) do
+  defp review_record(dir, text, mode) do
     case section(text, @review_heading) do
       nil ->
         {nil, ["there is no \"#{@review_heading}\" section (copy it from the spec template)"]}
@@ -348,6 +397,9 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
                ~r/^\*\*Reviewed:\*\*\s*(\d{4}-\d{2}-\d{2}) at commit `([0-9a-f]{7,40})`/m,
                body
              ) do
+          [_, _date, sha] when mode == :lasting ->
+            {sha, empty_rows}
+
           [_, _date, sha] ->
             {sha, empty_rows ++ changed_since(dir, text, sha)}
 
