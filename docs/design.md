@@ -1,7 +1,7 @@
 # Design Guide
 
 **Status:** Accepted
-**Last updated:** 2026-11-18 (see Changelog)
+**Last updated:** 2026-11-20 (see Changelog)
 **Brief:** "A clean, trustworthy, modern craigslist.org."
 
 The single reference for how jairojobs looks and feels. Agents and humans build every screen
@@ -46,7 +46,7 @@ Reference render (375 px, listing index + detail):
 | Muted text | `#62748e` | slate-500 | meta, hints, timestamps |
 | **Primary** | `#1447e6` | `text-primary` / blue-700 | listing titles, links, selected chips, secondary buttons |
 | **Accent (CTA)** | `#bb4d00` | `btn-accent` / amber-700 | the one primary action per screen |
-| Success | `#007a55` | emerald-700 | "✓ Approved" badge, "Live" pill |
+| Success | `#007a55` | emerald-700 | "✓ Approved" badge, "Published" pill |
 | Warning | `#bb4d00` | amber-700 | pending states |
 | Error | `#e7000b` | red-600 | validation, destructive |
 | Info | `#165dfc` | blue-600 | confirmation messages (flash) |
@@ -136,7 +136,7 @@ bottom CTA with one line of plain-language hint beneath it.
   every row, or once as the list's heading when the whole list is one region.
 - Employer name always shown; no anonymous postings.
 - Footer line on public lists: "Every listing shows salary and is checked by jairojobs before
-  it goes live."
+  it is published."
 
 ### Forms
 Stock `<.input>` / `<.form>` from `core_components.ex`. Labels above fields, one column,
@@ -156,7 +156,7 @@ only reinforces it (§6). One component renders them all:
 |---|---|---|
 | Draft | Draft | `badge-ghost` (neutral) |
 | Pending approval | Waiting for approval | `badge-warning` (amber) |
-| Published | Live | `badge-success` (emerald) |
+| Published | Published | `badge-success` (emerald) |
 | Rejected | Needs changes | `badge-error` (red) |
 | Closed | Closed | `badge-ghost` (neutral) |
 | Taken down | Taken down | `badge-ghost` (neutral) |
@@ -223,3 +223,4 @@ Entries before 2026-11-17 are in the commit history.
 | 2026-11-17 | Seven contradictions inside this guide resolved, each chosen by the owner. (1) Tap targets: principle 5 is the rule, every interactive element is at least 44 px, except a link inside a sentence; the tokens row says the same. (2) The theme's `--size-field` is `0.275rem`, so fields and buttons are 44 px by default (was `0.25rem`, 40 px). (3) Contrast: accent and warning are amber-700, success emerald-700, info blue-600 (were amber-600, emerald-600, blue-500, which failed 4.5:1 under white text); Info added to the tokens table. (4) Region is visible for every row, on the row or as the list's heading. (5) Principle 4 names status and destructive colours as exceptions. (6) "cards" → "boxes" in the Border row. (7) A 15 px section-heading token added; fine print is 12 px. Reference mock redrawn to match |
 | 2026-11-18 | Hex values in the tokens table and the theme comments now give what the theme renders (for example accent `#bb4d00`, was listed as `#b45309`). No colour changed in the app; the reference mock uses the same values |
 | 2026-11-18 | §6: lighter text made by lowering opacity must still reach 4.5:1 (60 % or more), icons 3:1. Measured in the app: 70 % and 60 % text and field labels pass; placeholders (50 %, 3.41) and the "×" on messages (40 %, about 2.0) did not, and were raised to 60 % and 80 % |
+| 2026-11-20 | One word for the Published status (owner's decision): the label an owner or Admin sees is "Published", no longer "Live", so the status and its label are the same word. The trust line on public lists reads "…before it is published." The other labels ("Waiting for approval", "Needs changes") are unchanged. Reference mock updated |
