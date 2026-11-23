@@ -295,6 +295,24 @@ Scenario: Lookup by slug works for hidden regions
 
 - None.
 
+## Review before approval
+
+Reviewed after the fact. This spec was approved and built before the review rule existed
+(constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
+What was found is listed here and has **not** been changed: each item waits for the owner.
+
+**Reviewed:** 2026-11-23 at commit `6c787ae`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | The 16 scenarios agree with the two activity diagrams and the state diagram. Two differences. (1) `screenflow-regions` and `wireframe-regions-admin` list the hidden region "Baguio" last; REQ-002-1 and the app list every region in alphabetical order, so Baguio comes first. (2) The non-functional requirement says "inline add/edit; no modal"; the screen flow, the wireframe and the app use separate New and Edit pages. The requirement's wording is the odd one out |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Regions context, the `:require_admin` session. One sentence has aged: REQ-002-1's rule calls Regions the admin area's "first page"; since spec 004 the first row there is Listings |
+| `architecture/data-model.md` and the ERD | Agrees: `regions` (name unique ignoring case, 1–80; slug unique, set once; active) |
+| C4 and use case diagrams | Agrees: "Manage regions" belongs to the Admin |
+| ADRs and the constitution | Agrees: ADR-0004 (ids), constitution §2.7 (the context refuses a non-Admin) |
+| Earlier specs this one changes ("Notes for the plan") | None listed in this spec. Later specs changed it three times (003, 004, the design guide); each has a changelog row. Spec 005 will change REQ-002-4's rule and `state-region`, as its own table says |
+| Not checked | One behaviour the spec does not state: the app refuses a name with no letter or digit ("needs at least one letter or number"), because it would leave an empty slug. Neither a scenario nor a diagram mentions it. The screens were read in the source, not opened in a browser |
+
 ## Traceability
 
 | Story | Requirements |
@@ -317,3 +335,4 @@ Scenario: Lookup by slug works for hidden regions
 | 2026-11-12 | Diagrams brought in line with the app: screen flow lists the Admin rows added by spec 003; wireframe shows the real duplicate-name error |
 | 2026-11-16 | Changed by spec 004: the screen flow's Admin screen gains "Listings" as its first row, with the waiting count |
 | 2026-11-17 | Design guide change (docs/design.md changelog): the breadcrumb links on the Regions pages are 44 px tall; fields and buttons are 44 px and the accent colour is one step darker. No requirement changed |
+| 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |

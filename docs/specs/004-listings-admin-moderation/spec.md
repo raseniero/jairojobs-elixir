@@ -796,6 +796,24 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 008 | Two Admins saving an edit to the same listing at the same time is not guarded: the later save wins (REQ-004-8). Revisit when there are several Admins. |
 | 010 | Emails in this spec are sent once, at the moment of the action, with no preferences. Spec 010 may add preferences, digests or delivery in the background. |
 
+## Review before approval
+
+Reviewed after the fact. This spec was approved and built before the review rule existed
+(constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
+What was found is listed here and has **not** been changed: each item waits for the owner.
+
+**Reviewed:** 2026-11-23 at commit `94a2e82`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | The 56 scenarios agree with the four activity diagrams, the state diagram, the screen flow and the two sequence diagrams. No difference found. The change of wording on 2026-11-20 is the same in the spec, the diagrams and the app ("Published", "Your listing is published", "This listing is no longer published.") |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: moderation in the Listings context, the `/admin/listings…` routes in `:require_admin`, emails sent after the change is saved |
+| `architecture/data-model.md` and the ERD | Agrees: `published_at`, `decided_at`, `decided_by_id`, `takedown_reason`, and the checks that tie them to the status |
+| C4 and use case diagrams | Agrees: Resend delivers the moderation emails; "Approve / reject / edit / take down listing" belongs to the Admin |
+| ADRs and the constitution | Agrees: ADR-0005 (sender), §2.7 and §4.3 (checked in the context), §3.7 (emails asserted), §4.12 (nothing private in logs) |
+| Earlier specs this one changes ("Notes for the plan") | The table in "Notes for the plan" was walked when the spec closed (2026-11-16). It was not walked again here |
+| Not checked | The scenarios were read in full on 2026-11-20, before the change of wording, and the diagrams on 2026-11-23; the comparison was not repeated line by line after the wording changed. Scenario text mixes a status name with screen labels in places ("Published offers Take down and Edit… Needs changes, Closed and Taken down offer nothing"), which follows the owner's decision to rename one label only. Two phone-check screenshots were looked at |
+
 ## Traceability
 
 | Story | Requirements |
@@ -836,3 +854,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-16 | Done. Implemented per tasks.md; "Deployed to Fly.io" deferred until a deployment exists |
 | 2026-11-17 | Design guide change (docs/design.md changelog), after Done: the breadcrumb link on the Admin Listings page is 44 px tall; fields and buttons are 44 px; the accent, status and confirmation colours are one step darker. No requirement changed; the 15 pages were re-checked at 375 px |
 | 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". Changed with it: the lifecycle table's label, REQ-004-7's title, the scenario names "Only a published listing can be taken down" and "Fix a published listing", the message "This listing is no longer published.", the email subject "Your listing is published: <title>" (REQ-004-9), and the address of the Admin list (`?status=published`). Six diagrams were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |
+| 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |

@@ -24,7 +24,7 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
 
 1. **Spec** — copy `specs/_template/` to `specs/NNN-kebab-name/`. Fill in `spec.md` only.
    No implementation detail here; user stories and acceptance criteria.
-   **Review before approval** (from spec 005 onwards). Before a spec is put forward:
+   **Review before approval.** Before a spec is put forward:
    - read every diagram against the requirements, scenario by scenario; and read the
      requirements against `architecture/overview.md`, `architecture/data-model.md` and the
      ERD, the C4 and use case diagrams, the ADRs and constitution rules they touch, and the
@@ -42,7 +42,9 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
    passes. The test suite holds this: a test runs `mix jairojobs.spec_review --approved`,
    so `mix precommit` refuses a commit that marks a spec approved without a current
    review. After approval a spec may still be amended (see "Amending a requirement"); the
-   same test then keeps its tables, references and diagrams consistent. A change after the review means reviewing the changed part again and naming the
+   same test then keeps its tables, references and diagrams consistent.
+   Specs 001 to 004 were approved before this rule. They were reviewed after the fact on
+   2026-11-23 and carry the same section, so the test covers every spec. A change after the review means reviewing the changed part again and naming the
    new commit.
 2. **Plan** — once the spec is `Approved`, write `plan.md`: contexts, schemas, routes,
    LiveViews, migrations, test strategy.

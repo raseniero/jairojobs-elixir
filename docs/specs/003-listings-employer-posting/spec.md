@@ -719,6 +719,24 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 005 | Public listing addresses use a slug only, never the UUID (constitution §4.8). Spec 005 designs the slug: unique within its region, and old links keep working when a title changes. |
 | 007 | Applications to a listing are emailed to the account that owns it, whatever its role; an Admin who posts a listing receives its applications like an Employer. |
 
+## Review before approval
+
+Reviewed after the fact. This spec was approved and built before the review rule existed
+(constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
+What was found is listed here and has **not** been changed: each item waits for the owner.
+
+**Reviewed:** 2026-11-23 at commit `94a2e82`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | The 50 scenarios agree with the four activity diagrams, the state diagram, the screen flow and the wireframe: nothing contradicts a requirement. Left out of the diagrams: (1) `screenflow-posting`'s Admin area box reads "Regions · My listings · Post a job"; since spec 004 it starts with "Listings" (the screen flows of 002 and 004 show it). (2) Steps no activity diagram draws: only active regions are offered on the form (REQ-003-3); the business details are copied at submit and a later change does not alter the listing (REQ-003-2); a resubmission clears the old reason (REQ-003-8); an unfinished draft shows what is missing (REQ-003-10); the maximum salary of ₱1,000,000 (REQ-003-4). (3) `state-listing`'s legend says "Closed is final"; Taken down is final too (REQ-003-9, spec 004). (4) The screen flow's submit arrow names "not complete or limit reached" but not a region hidden in the meantime (REQ-003-6) |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Listings depends on Accounts and Regions; the `:require_poster` session and its routes |
+| `architecture/data-model.md` and the ERD | Agrees: every field of REQ-003-4 is a column; the salary check is ₱1,000 to ₱1,000,000 in centavos; business name 2–80 and "about" up to 500 on `users`; only Draft and Rejected may be incomplete |
+| C4 and use case diagrams | Agrees: "Post listing" for the Employer and the Admin, including the admin approval it needs |
+| ADRs and the constitution | Agrees: §2.9 (nothing public without approval), §4.5 (money), §2.7 (ownership checked in the context) |
+| Earlier specs this one changes ("Notes for the plan") | Hand-offs to 004, 005 and 007 are in the spec. Later specs changed it (004, the design guide, the change of wording to "Published"); each has a changelog row |
+| Not checked | The owner view of a Published listing says "everyone can see this", which becomes true only when spec 005 is built. The wireframe was compared with the form's labels in the source and with two phone-check screenshots, not field by field in a browser |
+
 ## Traceability
 
 | Story | Requirements |
@@ -753,3 +771,4 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall; the accent, "Waiting for approval" and "Live" colours are one step darker. No requirement changed. Not yet looked at in a browser: these screens have no phone-check pages file |
 | 2026-11-18 | After a look at 375 px: the salary in a My listings row is kept on one line; "Add your business details" is a 44 px tap target; the error icon under a narrow field no longer shrinks. No requirement changed |
 | 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". The label in the lifecycle table, the scenarios, REQ-003-9's title and the scenario names "Published listing is locked" and "Only published listings can be closed" say so, and "before it goes live" reads "before it is published". The screen flow, the wireframe and one activity diagram were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |
+| 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |

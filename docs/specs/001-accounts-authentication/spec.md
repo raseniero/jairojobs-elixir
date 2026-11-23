@@ -543,6 +543,24 @@ Scenario: Admin navigation
 
 - None.
 
+## Review before approval
+
+Reviewed after the fact. This spec was approved and built before the review rule existed
+(constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
+What was found is listed here and has **not** been changed: each item waits for the owner.
+
+**Reviewed:** 2026-11-23 at commit `25c203c`
+
+| Checked against | Result |
+|---|---|
+| This spec's diagrams, scenario by scenario | The 39 scenarios agree with the five activity diagrams, the state diagram and the navigation wireframe. Four differences, all between a diagram and the built screens, none a contradiction of a requirement. (1) `screenflow-auth` shows labels the screens do not have: the sign-up button is "Create an account" (diagram: "Send me a sign-in link"); the choices are "Looking for work" and "Hiring"; log-in has "Log in with email", "Log in and stay logged in" and "Log in only this time" (diagram: "Email me a sign-in link", "Log in with password"); Settings shows two forms with "Change email" and "Save password", not "[Change]" links; the emails are plain text with the subjects "Log in instructions" and "Confirmation instructions". (2) It draws "Check your email" as a screen; in the app it is a message on the log-in page. (3) `activity-signup` and `sequence-magic-link-signup` quote "If your email is in our system…" after sign-up; the app says "An email was sent to <email>, please access it to confirm your account." (the quoted text is the log-in page's). (4) The link opens a page with a button ("Confirm and stay logged in" / "Confirm and log in only this time"); `activity-signup`, `activity-login` and the scenario "First link confirms and logs in" go from the click straight to logged in |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Accounts context, the `Scope`, the `:current_user` and `:require_authenticated_user` sessions, non-admins sent home |
+| `architecture/data-model.md` and the ERD | Agrees: `users` (role, previous_role, confirmed_at) and `users_tokens` (contexts, 15-minute and 7-day lifetimes are in the spec, not the ERD) |
+| C4 and use case diagrams | Agrees. The use case diagram gained its missing Admin arrow on 2026-11-20 |
+| ADRs and the constitution | Agrees: ADR-0004, ADR-0005; §4.12 is spelled out in the privacy requirement. The command is documented in the project README, as REQ-001-10 asks |
+| Earlier specs this one changes ("Notes for the plan") | None: this is the first feature spec. Later specs changed it four times (002, 003, 004, the design guide); each has a changelog row |
+| Not checked | The built screens were read in the source, not opened in a browser. `screenflow-auth`'s "Home" and "Listing detail" boxes show public pages that do not exist yet; spec 005 lists them. The two sequence diagrams were read against the scenarios, not against the code line by line |
+
 ## Traceability
 
 | Story | Requirements |
@@ -580,3 +598,4 @@ Scenario: Admin navigation
 | 2026-11-16 | Changed by spec 004: the navigation wireframe's note on what the Admin area holds now starts with Listings |
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall and the accent, success and info colours are one step darker, on every screen of this spec; the drawer's "Close menu" button is 44 px. No requirement changed |
 | 2026-11-18 | Settings brought in line with the design guide after a look at 375 px: a left-aligned "Settings" page title in place of the centred "Account Settings", and sentence-case buttons ("Change email", "Save password"). No requirement changed |
+| 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
