@@ -1,7 +1,8 @@
 # 005 — Public browse and search
 
-**Status:** Draft
+**Status:** Approved
 **Created:** 2026-11-20
+**Approved:** 2026-11-23
 **Owner:** Jairo
 **Related ADRs:** 0004 (UUID v7 keys; slugs for public listing addresses)
 **Depends on:** 000 (product overview), 001 (public pages need no account, navigation), 002 (regions and their slugs), 003 (what a listing contains, how it is displayed), 004 (approval, the "posted" time, hand-offs)
@@ -985,3 +986,4 @@ Not requirements; reminders for whoever writes `plan.md`.
 | 2026-11-20 | Checked again against its five diagrams, and against the architecture overview, the data model, the ERD, the C4 diagrams and the use case diagram. No contradiction found. The owner confirmed that no new ADR is needed (ADR-0004 has the address shape). The table of earlier documents names what the use case diagram and the C4 diagrams need; `activity-address-and-links` says the public link comes first in the email |
 | 2026-11-20 | The use case diagram's missing arrow (Admin to "Browse & search listings") was fixed in spec 000 at the owner's request, so its row left the table of earlier documents |
 | 2026-11-20 | "Review before approval" section added, under the new rule (constitution §6, README): what was checked, what was found, what was not, and the commit reviewed. `mix jairojobs.spec_review 005` passes |
+| 2026-11-23 | Approved by the owner, after a summary of every change since the first draft. `mix jairojobs.spec_review 005` passed on the approved text |
