@@ -11,7 +11,7 @@ defmodule Jairojobs.Docs.SpecReviewGateTest do
     on_exit(fn -> Mix.shell(Mix.Shell.IO) end)
   end
 
-  test "every approved spec from 005 onwards passes mix jairojobs.spec_review" do
+  test "every spec past Draft passes mix jairojobs.spec_review" do
     assert Mix.Tasks.Jairojobs.SpecReview.run(["--approved"]) == :ok
   rescue
     error in Mix.Error ->

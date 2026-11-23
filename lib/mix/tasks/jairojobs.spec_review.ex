@@ -35,8 +35,8 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
 
       mix jairojobs.spec_review --approved
 
-  checks every spec, from `--from` (default 005, the first spec under this rule)
-  onwards, whose status is past `Draft`. It is what `mix precommit` runs, through
+  checks every spec, from `--from` (default 001) onwards, whose status is past
+  `Draft`. It is what `mix precommit` runs, through
   a test, so a spec cannot be committed as `Approved` without a current review:
 
     * a spec whose status is past `Draft` in the working tree but not in the last
@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
 
     cond do
       opts[:approved] ->
-        gate(specs_dir, Keyword.get(opts, :from, "005"))
+        gate(specs_dir, Keyword.get(opts, :from, "001"))
 
       numbers == [] ->
         Mix.raise("Give a spec number, for example: mix jairojobs.spec_review 005")
@@ -308,23 +308,28 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
       |> Enum.uniq()
       |> Enum.sort()
 
-    Enum.flat_map(links, fn link ->
-      svg = Path.expand(link, dir)
-      name = Path.basename(svg)
+    {problems, _ages} =
+      Enum.flat_map_reduce(links, %{}, fn link, ages ->
+        svg = Path.expand(link, dir)
+        name = Path.basename(svg)
 
-      cond do
-        not File.exists?(svg) ->
-          ["#{name} is embedded but does not exist (#{link})"]
+        cond do
+          not File.exists?(svg) ->
+            {["#{name} is embedded but does not exist (#{link})"], ages}
 
-        source = source_of(svg) ->
-          if stale?(svg, source),
-            do: ["#{name} is older than its source; render it again"],
-            else: []
+          source = source_of(svg) ->
+            ages = ages |> remember(Path.dirname(svg)) |> remember(Path.dirname(source))
 
-        true ->
-          ["#{name} has no .puml source beside it or in ../src"]
-      end
-    end)
+            if age(ages, source) < age(ages, svg),
+              do: {["#{name} is older than its source; render it again"], ages},
+              else: {[], ages}
+
+          true ->
+            {["#{name} has no .puml source beside it or in ../src"], ages}
+        end
+      end)
+
+    problems
   end
 
   defp source_of(svg) do
@@ -339,32 +344,45 @@ defmodule Mix.Tasks.Jairojobs.SpecReview do
     )
   end
 
-  # The source was committed after the image, or is edited while the image is not.
-  defp stale?(svg, source) do
-    committed_after?(source, svg) or (dirty?(source) and not dirty?(svg))
+  # How recently each file in a folder last changed: -1 if it is edited or new in
+  # the working tree, otherwise how many commits back its last change is (0 is the
+  # newest). Asked of the history, not of the clock: two commits can share a
+  # second. One `git log` and one `git status` per folder.
+  defp remember(ages, folder) when is_map_key(ages, folder), do: ages
+
+  defp remember(ages, folder) do
+    committed =
+      case git(folder, ["log", "--format=@%h", "--name-only", "--relative", "--", "."]) do
+        {:ok, out} ->
+          out
+          |> String.split("\n", trim: true)
+          |> Enum.reduce({-1, %{}}, fn
+            "@" <> _commit, {n, seen} -> {n + 1, seen}
+            file, {n, seen} -> {n, Map.put_new(seen, Path.basename(file), n)}
+          end)
+          |> elem(1)
+
+        :error ->
+          %{}
+      end
+
+    edited =
+      case git(folder, ["status", "--porcelain", "--", "."]) do
+        {:ok, out} ->
+          for line <- String.split(out, "\n", trim: true),
+              into: %{},
+              do: {line |> String.slice(3..-1//1) |> Path.basename(), -1}
+
+        :error ->
+          %{}
+      end
+
+    Map.put(ages, folder, Map.merge(committed, edited))
   end
 
-  # True when the last commit to change `later` came after the last one to change
-  # `earlier`. Asked of the history, not of the clock: two commits can share a second.
-  defp committed_after?(later, earlier) do
-    with {:ok, a} when a != "" <- last_commit(later),
-         {:ok, b} when b != "" <- last_commit(earlier),
-         true <- a != b do
-      match?({:ok, _}, git(Path.dirname(later), ["merge-base", "--is-ancestor", b, a]))
-    else
-      _ -> false
-    end
-  end
-
-  defp last_commit(path) do
-    git(Path.dirname(path), ["log", "-1", "--format=%H", "--", Path.basename(path)])
-  end
-
-  defp dirty?(path) do
-    git(Path.dirname(path), ["status", "--porcelain", "--", Path.basename(path)]) not in [
-      {:ok, ""},
-      :error
-    ]
+  # A file git has never seen and that is not in the working tree changes counts as old.
+  defp age(ages, path) do
+    ages |> Map.fetch!(Path.dirname(path)) |> Map.get(Path.basename(path), :never)
   end
 
   defp open_questions(text) do
