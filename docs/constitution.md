@@ -1,7 +1,7 @@
 # Constitution
 
 **Status:** Accepted
-**Last updated:** 2026-11-20 (see Changelog)
+**Last updated:** 2026-11-23 (see Changelog)
 
 Non-negotiable principles for jairojobs. Every spec, plan, and PR is measured against this file.
 Change it deliberately (ADR-0006):
@@ -120,6 +120,9 @@ Change it deliberately (ADR-0006):
   version put forward (see `docs/README.md` → Feature lifecycle, step 1). Only the owner
   approves.
 - A spec must be `Approved` before a plan is written.
+- A plan is reviewed before it is approved: against every requirement of its spec and
+  against the architecture documents, with the outcome written in the plan (see
+  `docs/README.md` → Feature lifecycle, step 2). Only the owner approves.
 
 ## 7. Definition of Done
 
@@ -154,3 +157,4 @@ Entries before 2026-11-12 were reconstructed from the commit history.
 | 2026-11-13 | §7 Definition of Done: added "Diagrams in this spec and in earlier specs it changed match the built screens and code" (new rule; approved by the owner) | direct edit |
 | 2026-11-14 | §4.12 widened from "No PII in logs" to "No PII or secrets in logs": passwords and sign-in / email-change tokens added, including in request addresses (stricter rule; approved by the owner) | direct edit |
 | 2026-11-20 | §6: a spec is reviewed against its diagrams and the architecture before it is approved, the outcome is recorded in the spec, and `mix jairojobs.spec_review` must pass; only the owner approves (new rule; approved by the owner). Applies from spec 005 | direct edit |
+| 2026-11-23 | §6: a plan is reviewed against its spec and the architecture before it is approved, and the outcome is recorded in the plan; only the owner approves (new rule; approved by the owner). Applies from spec 005 | direct edit |
