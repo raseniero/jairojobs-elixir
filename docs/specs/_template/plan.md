@@ -79,6 +79,23 @@ erDiagram
 |---|---|---|---|
 | 1 | | | |
 
+## Review before approval
+
+<!-- Mandatory before the plan is put forward (README, Feature lifecycle, step 2). Fill it in
+     after the last change to the plan, naming the commit that was read. Say plainly what
+     was found and what was not checked. -->
+
+**Reviewed:** YYYY-MM-DD at commit `<sha>`
+
+| Checked against | Result |
+|---|---|
+| Every requirement and scenario of the spec has a place in this plan and a test | |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | |
+| `architecture/data-model.md` and the ERD | |
+| ADRs and the constitution (new deps, background jobs, conventions) | |
+| Earlier specs and documents this plan changes | |
+| Not checked | |
+
 ## Alternatives considered
 
 - 

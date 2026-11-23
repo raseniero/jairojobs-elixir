@@ -46,6 +46,12 @@ spec.md  ──►  plan.md  ──►  tasks.md  ──►  code + tests  ─�
    new commit.
 2. **Plan** — once the spec is `Approved`, write `plan.md`: contexts, schemas, routes,
    LiveViews, migrations, test strategy.
+   **Review before approval** (from spec 005 onwards). Before a plan is put forward, read
+   it against every requirement and scenario of its spec, `architecture/overview.md`,
+   `architecture/data-model.md` and the ERD, the ADRs and the constitution, and write the
+   outcome in the plan's "Review before approval" section: what was checked, what was
+   found, what was not checked, the date, and the commit that was reviewed. There is no
+   command for plans yet; the section is the record. Only the owner approves a plan.
 3. **Tasks** — break the plan into `tasks.md`: ordered, checkable, each small enough for one commit.
 4. **Implement** — work through tasks. Reference requirement IDs in test names and commit messages.
 5. **Close** — before setting status to `Done`:
