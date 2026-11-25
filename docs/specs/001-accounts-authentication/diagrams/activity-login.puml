@@ -41,6 +41,10 @@ else (magic link)
     stop
   else (yes)
   endif
+  :The link opens a page: "Welcome <email>".
+  Press a button to go on ("Keep me logged in
+  on this device" / "Log me in only this time",
+  or the two "Confirm…" buttons the first time);
   if (User unconfirmed?) then (yes)
     :Confirm now;
     :Revoke all tokens;

@@ -28,9 +28,9 @@ else (no)
   (expires 15 min);
   :Send magic-link email;
 endif
-:Show neutral message
-"If your email is in our system,
-you'll receive instructions";
+:Go to the log-in page with the same message
+either way: "An email was sent to <email>,
+please access it to confirm your account.";
 :Open email, click link;
 if (Token valid, unused,
 not expired?) then (no)
@@ -38,6 +38,14 @@ not expired?) then (no)
   stop
 else (yes)
 endif
+:The link opens a page: "Welcome <email>";
+:Press "Confirm and stay logged in" or
+"Confirm and log in only this time";
+note right
+  Nothing happens until a button is pressed,
+  so a mail program that opens links by
+  itself cannot use the link up.
+end note
 :Set confirmed_at = now;
 :Revoke ALL tokens for user;
 :Create session;

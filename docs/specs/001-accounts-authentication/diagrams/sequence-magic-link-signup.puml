@@ -32,12 +32,15 @@ else email already registered
   note right of ACC : no email sent, no duplicate
 end
 ACC --> W : {:ok, ...}
-W --> B : neutral message:\n"If your email is in our system,\nyou'll receive instructions"
+W --> B : log-in page with the same message either way:\n"An email was sent to <email>, please\naccess it to confirm your account."
 
 == Confirm + first login ==
 Visitor -> INBOX : open email
 INBOX -> B : click link /users/log-in/:token
 B -> W : GET with token
+W --> B : "Welcome <email>" with\n"Confirm and stay logged in" /\n"Confirm and log in only this time"
+Visitor -> B : press a button
+B -> W : POST with token
 W -> ACC : login_user_by_magic_link(token)
 ACC -> DB : lookup token (hash),\ncheck expiry
 alt valid, unused, user unconfirmed

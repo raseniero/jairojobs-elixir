@@ -35,42 +35,50 @@ Drawer : Employer: Browse · My listings · Post a job · Settings · Log out
 Drawer : Admin: Browse · Admin · Settings · Log out
 
 state "Sign up" as Signup
+Signup : "Register for an account"
+Signup : "Already registered? Log in to your account now."
 Signup : Email ______________
-Signup : (•) I'm looking for work
-Signup : ( ) I'm hiring
-Signup : [ Send me a sign-in link ]
-Signup : "Already have an account? Log in"
+Signup : (•) Looking for work
+Signup : ( ) Hiring
+Signup : [ Create an account ]
 
-state "Check your email" as CheckEmail
-CheckEmail : "If your email is in our system,\nyou'll receive a sign-in link."
-CheckEmail : "It expires in 15 minutes."
-
-state "Email: your sign-in link" as Email <<email>>
+state "Email: the link" as Email <<email>>
 Email : From: jairojobs <hello@jairojobs.com>
-Email : [ Sign in to jairojobs ]
-Email : expires in 15 min
+Email : Subject: "Confirmation instructions" (first time)
+Email : or "Log in instructions" (later)
+Email : plain text with one link
+Email : "This link expires in 15 minutes\nand can only be used once."
 
 state "Link landing" as Landing
-Landing : valid → confirm (first time) + log in
-Landing : invalid/expired → error + link to Log in
+Landing : "Welcome <email>"
+Landing : first time: [ Confirm and stay logged in ]
+Landing : [ Confirm and log in only this time ]
+Landing : later: [ Keep me logged in on this device ]
+Landing : [ Log me in only this time ]
+Landing : (nothing is confirmed and nobody is logged in\nuntil a button is pressed)
 
 state "Log in" as Login
+Login : "Don't have an account? Sign up for an account now."
 Login : Email ______________
-Login : [ Email me a sign-in link ]
+Login : [ Log in with email → ]
 Login : — or —
-Login : Password ___________
-Login : [ Log in with password ]
-Login : "New here? Sign up"
+Login : Email ______  Password ______
+Login : [ Log in and stay logged in → ]
+Login : [ Log in only this time ]
+Login : message after sign-up: "An email was sent to <email>,\nplease access it to confirm your account."
+Login : message after asking for a link: "If your email is in\nour system, you will receive instructions\nfor logging in shortly."
 
 state "Settings" as Settings
-Settings : Account type: Candidate (read-only)
-Settings : Email: you@…  [Change]
-Settings : Password: set / not set  [Set / Change]
+Settings : Account type: Candidate\n"Account type can't be changed here."
+Settings : Email ______________  [ Change email ]
+Settings : New password ______  Confirm new password ______
+Settings : [ Save password ]
 Settings : (opens within 10 min of log-in;\nsubmit within 20 min, else log in again)
 
 state "Email: confirm new address" as EmailChange <<email>>
-EmailChange : [ Confirm new email ]
-EmailChange : expires in 7 days
+EmailChange : Subject: "Update email instructions"
+EmailChange : plain text with one link
+EmailChange : (the link expires in 7 days)
 
 state "Operator terminal" as Terminal <<terminal>>
 Terminal : mix jairojobs.admin promote EMAIL
@@ -84,15 +92,15 @@ Drawer --> Signup : Sign up
 Drawer --> Login : Log in
 Home --> Login : [Log in]
 Detail --> Login : [Apply] while\nlogged out
-Signup --> CheckEmail : submit
+Signup --> Login : submit\n(message: an email was sent)
 Signup --> Login : "Log in" link
-Login --> CheckEmail : request link
+Login --> Login : ask for a link\n(message: if your email is in our system…)
 Login --> Home : password OK\n(logged in)
 Login --> Login : wrong password\n(generic error)
-CheckEmail --> Email : open inbox
+Login --> Email : open inbox
 Email --> Landing : tap link
-Landing --> Home : valid\n(logged in)
-Landing --> Login : invalid /\nexpired
+Landing --> Home : press a button\n(confirmed the first time,\nlogged in)
+Email --> Login : link invalid or expired →\n"Magic link is invalid or it has expired."
 Drawer --> Settings : Settings\n(logged in)
 Settings --> EmailChange : change email →\nlink sent to NEW address
 EmailChange --> Settings : tap link →\nemail updated

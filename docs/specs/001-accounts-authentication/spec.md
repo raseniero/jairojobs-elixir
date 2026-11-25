@@ -116,8 +116,8 @@ a path through it.
 | Story | Path through the screen flow |
 |---|---|
 | US-001-1 browse without account | start → Home ⇄ Listing detail |
-| US-001-2 sign up with email + role | Home/Drawer → Sign up → Check your email → Email → Link landing → Home (logged in) |
-| US-001-3 log in by magic link | Log in → Check your email → Email → Link landing → Home |
+| US-001-2 sign up with email + role | Home/Drawer → Sign up → Log in (message: an email was sent) → Email → Link landing → Home (logged in) |
+| US-001-3 log in by magic link | Log in → Log in (message) → Email → Link landing → Home |
 | US-001-4 set an optional password | Drawer → Settings → set password; later Log in (password) → Home |
 | US-001-5 change email / password | Drawer → Settings → Email: confirm new address → Settings; Settings → change password |
 | US-001-6 log out | Drawer → Log out → Home (logged out) |
@@ -230,7 +230,7 @@ Scenario: Unconfirmed account cannot log in
 
 Scenario: First link confirms and logs in
   Given I have a valid, unused link from the signup email
-  When I click it
+  When I open it and confirm
   Then my account is marked confirmed
   And I am logged in
 
@@ -240,6 +240,13 @@ Scenario: Expired or used link
   Then I see an error
   And I am not logged in
 ```
+
+**Rules**
+- The link opens a page that greets the person by email address and asks for one tap
+  ("Confirm and stay logged in" or "Confirm and log in only this time"; for a later log-in,
+  "Keep me logged in on this device" or "Log me in only this time"). Nothing is confirmed
+  and nobody is logged in until then, so a mail program or scanner that opens links by
+  itself cannot use the link up. The same page serves REQ-001-4.
 
 ### REQ-001-4: Log in via magic link
 
@@ -252,7 +259,7 @@ Scenario: Request and use a magic link
   Given I am a confirmed user
   When I enter my email on the log-in page and request a link
   Then I receive an email with a single-use link
-  And clicking it logs me in
+  And opening it and confirming logs me in
 
 Scenario: Unregistered email is not revealed
   Given an email that is not registered
@@ -599,3 +606,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall and the accent, success and info colours are one step darker, on every screen of this spec; the drawer's "Close menu" button is 44 px. No requirement changed |
 | 2026-11-18 | Settings brought in line with the design guide after a look at 375 px: a left-aligned "Settings" page title in place of the centred "Account Settings", and sentence-case buttons ("Change email", "Save password"). No requirement changed |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
+| 2026-11-23 | After the review, each item chosen by the owner. Diagrams brought in line with the app: `screenflow-auth` shows the built labels, has no "Check your email" screen (it is a message on the log-in page) and draws the buttons on the page the emailed link opens; `activity-signup` and `sequence-magic-link-signup` quote the message the app shows after sign-up; `activity-signup` and `activity-login` draw the confirm step. Amended: the scenarios "First link confirms and logs in" (REQ-001-3) and "Request and use a magic link" (REQ-001-4) say "open it and confirm" where they said "click it", and REQ-001-3 gains a rule on the page the link opens. No scenario was renamed and no code changed |
