@@ -191,6 +191,15 @@ defmodule JairojobsWeb.Admin.RegionLiveTest do
       assert Regions.list_regions() == []
     end
 
+    test "REQ-002-2: name with no letter or digit", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/regions/new")
+
+      assert view |> form("#region-form", region: %{name: "!!!"}) |> render_submit() =~
+               "needs at least one letter or number"
+
+      assert Regions.list_regions() == []
+    end
+
     test "REQ-002-2: slug collision", %{conn: conn} do
       region_fixture(name: "Cebu")
       {:ok, view, _html} = live(conn, ~p"/admin/regions/new")

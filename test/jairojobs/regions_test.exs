@@ -87,7 +87,7 @@ defmodule Jairojobs.RegionsTest do
       end
     end
 
-    test "REQ-002-2: a name with no letters or digits is rejected", %{admin: admin} do
+    test "REQ-002-2: name with no letter or digit", %{admin: admin} do
       assert {:error, changeset} = Regions.create_region(admin, %{name: "!!!"})
       assert "needs at least one letter or number" in errors_on(changeset).name
     end

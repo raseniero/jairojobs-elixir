@@ -25,10 +25,11 @@ Admin : (more sections arrive with 008)
 
 state "Regions" as Regions
 Regions : [ + Add region ]
+Regions : Baguio  (hidden)  [Edit] [Show]
 Regions : Cebu              [Edit] [Hide]
 Regions : Davao City        [Edit] [Hide]
 Regions : Metro Manila      [Edit] [Hide]
-Regions : Baguio  (hidden)  [Edit] [Show]
+Regions : (every region, hidden or not, in alphabetical order)
 Regions : "Hidden regions stay on existing\nlistings but can't be chosen."
 
 state "New region" as New

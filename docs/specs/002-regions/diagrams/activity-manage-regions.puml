@@ -24,6 +24,11 @@ case (add)
     :Validation error;
     stop
   endif
+  if (No letter or digit in the name?\n(it would have no slug)) then (yes)
+    :Validation error: "needs at least
+    one letter or number";
+    stop
+  endif
   if (Name taken (case-insensitive)\nor slug taken?) then (yes)
     :Validation error;
     stop

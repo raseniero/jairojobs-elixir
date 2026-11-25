@@ -14,6 +14,9 @@
       { Admin ▸ <b>Regions</b> }
       { <b>Regions</b> | . | [ + Add region ] }
       --
+      { Baguio  <i>· hidden</i> | . | [Edit] | [Show] }
+      { <i>/jobs/baguio</i> }
+      --
       { Cebu | . | [Edit] | [Hide] }
       { <i>/jobs/cebu</i> }
       --
@@ -22,9 +25,6 @@
       --
       { Metro Manila | . | [Edit] | [Hide] }
       { <i>/jobs/metro-manila</i> }
-      --
-      { Baguio  <i>· hidden</i> | . | [Edit] | [Show] }
-      { <i>/jobs/baguio</i> }
       --
       { <i>Hidden regions stay on existing</i> }
       { <i>listings but can't be chosen.</i> }
@@ -70,7 +70,7 @@
     ++ One accent CTA per screen: "Add region" / "Save"; Edit, Hide, Show are quiet row actions
     ++ Hide / Show toggle the row in place — no confirmation screen, no delete (REQ-002-4)
     ++ Hidden rows are muted and labelled "hidden"; the action flips to Show
-    ++ Errors appear inline under the Name field: blank, over 80 characters, duplicate name, slug collision (REQ-002-2, -3)
+    ++ Errors appear inline under the Name field: blank, over 80 characters, no letter or digit, duplicate name, slug collision (REQ-002-2, -3)
     ++ The web address is shown read-only on Edit; the slug is set once at creation (REQ-002-3)
     ++ Desktop: same content in a centred single column; rows keep the same order of elements
   }

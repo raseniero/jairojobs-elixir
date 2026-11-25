@@ -152,7 +152,7 @@ Scenario: Visitor is redirected to log in
 **Rules**
 - Uses the `require_admin` hook and `live_session :require_admin` from spec 001.
 - The "Admin" entry in the navigation (spec 001 placeholder) now links to the admin area,
-  whose first page is Regions.
+  which lists Regions among its pages.
 
 ### REQ-002-2: Add a region
 
@@ -182,11 +182,19 @@ Scenario: Slug collision
   Given a region "Cebu" (slug "cebu") exists
   When I add a region named "Cebu!" which would also produce slug "cebu"
   Then I see a validation error
+
+Scenario: Name with no letter or digit
+  Given I am an Admin on the Regions page
+  When I add a region named "!!!"
+  Then I see a validation error
+  And no region is created
 ```
 
 **Rules**
 - Names are trimmed; uniqueness is case-insensitive.
 - Slug: lowercase ASCII letters, digits and hyphens; derived from the name; unique.
+- A name must contain at least one letter or digit, so that it has a slug. The error reads
+  "needs at least one letter or number".
 - A new region is active by default.
 
 ### REQ-002-3: Rename a region
@@ -283,8 +291,8 @@ Scenario: Lookup by slug works for hidden regions
 
 ## Non-functional requirements
 
-- **Mobile-first:** the regions page is usable at 375 px — one column, rows ≥ 44 px, inline
-  add/edit; no modal.
+- **Mobile-first:** the regions page is usable at 375 px — one column, rows ≥ 44 px;
+  adding and editing happen on their own pages, not in a modal.
 - **Authorization:** all write operations require an Admin scope; the context refuses any
   other scope (constitution §2.7).
 - **Small data:** the list is expected to stay under ~200 rows; no pagination or search.
@@ -336,3 +344,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-16 | Changed by spec 004: the screen flow's Admin screen gains "Listings" as its first row, with the waiting count |
 | 2026-11-17 | Design guide change (docs/design.md changelog): the breadcrumb links on the Regions pages are 44 px tall; fields and buttons are 44 px and the accent colour is one step darker. No requirement changed |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
+| 2026-11-23 | After the review, each item chosen by the owner. Amended: REQ-002-2 gains the scenario "Name with no letter or digit" and its rule (the app already refused such a name; one test renamed to the scenario, one screen test added); REQ-002-1's rule says the admin area lists Regions among its pages, no longer that Regions is its first page; the mobile requirement says adding and editing happen on their own pages, where it said "inline". Diagrams: the screen flow and the wireframe list the hidden region in alphabetical order with the rest; the activity diagram and the wireframe's error list show the new case. No code changed |
