@@ -29,6 +29,10 @@ case (post a job)
   else (yes)
   endif
   :Fill in the listing form;
+  note right
+    The Region field offers active
+    regions only (REQ-003-3).
+  end note
   if (Title missing, or any filled-in
 field breaks its rule?) then (yes)
     :Validation error;

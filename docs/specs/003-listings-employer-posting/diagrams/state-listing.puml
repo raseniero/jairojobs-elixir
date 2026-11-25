@@ -42,7 +42,9 @@ Published : locked for the Employer (Admin edit: 004)
 Published --> Closed : employer closes
 Published -[dashed]-> TakenDown : Admin takes down (004)
 
+Closed : final for everyone
 Closed : no longer public; kept in My listings
+TakenDown : final for everyone — no restore (004)
 TakenDown : no longer public; kept in My listings
 
 legend right
@@ -50,6 +52,6 @@ legend right
   | solid arrow | Employer action (this spec) |
   | dashed arrow | Admin action (spec 004) |
   | green | publicly visible |
-  | grey | no Employer actions; Closed is final |
+  | grey | final: no actions for anyone |
 endlegend
 @enduml

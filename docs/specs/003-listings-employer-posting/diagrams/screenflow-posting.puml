@@ -18,7 +18,7 @@ Drawer : Employer: Browse · My listings ·
 Drawer : [ + Post a job ] · Settings · Log out
 
 state "Admin area (spec 002)" as AdminArea <<public>>
-AdminArea : Regions · My listings · Post a job
+AdminArea : Listings (spec 004) · Regions · My listings · Post a job
 
 state "My listings" as Mine
 Mine : [ + Post a job ]
@@ -69,7 +69,7 @@ Form --> Listing : save draft
 Form --> Form : validation error
 Mine --> Listing : tap a row
 Listing --> Form : Edit\n(Draft / Needs changes)
-Listing --> Listing : Submit / Resubmit → Waiting for approval\n(not complete or limit reached → message)\nWithdraw → Draft\nClose (confirm) → Closed
+Listing --> Listing : Submit / Resubmit → Waiting for approval\n(not complete, region hidden since,\nor limit reached → message)\nWithdraw → Draft\nClose (confirm) → Closed
 Listing --> Mine : Delete (confirm)\n(Draft / Needs changes)
 Listing --> Mine : back
 

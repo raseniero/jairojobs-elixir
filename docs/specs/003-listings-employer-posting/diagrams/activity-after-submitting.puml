@@ -22,7 +22,8 @@ case (Rejected)
     :Run the submit checks
     (complete, region, limit);
     if (Checks pass?) then (yes)
-      :Status → Pending approval;
+      :Status → Pending approval.
+      The old reason is cleared;
       :Admins are emailed (REQ-004-10);
     else (no)
       :Stays Rejected; say

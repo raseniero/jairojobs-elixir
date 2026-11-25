@@ -14,7 +14,8 @@ if (Complete?\nTitle, region, area, salary range,\ntype, "About the job" all val
   :Show what is missing;
   note right
     Salary: whole pesos per month,
-    minimum ≥ ₱1,000, maximum ≥ minimum.
+    minimum ≥ ₱1,000, maximum ≥ minimum,
+    maximum ≤ ₱1,000,000.
     Never "negotiable".
   end note
   stop
@@ -31,6 +32,13 @@ if (Employer with 3 open listings already?\n(Pending + Published; Admins have no
   stop
 else (no)
 endif
+:Copy the account's business name and "about"
+onto the listing (REQ-003-2);
+note right
+  The listing keeps this copy. Changing the
+  account's business details later does not
+  alter a Pending or Published listing.
+end note
 :Status → Pending approval;
 :Tell the employer: "An admin will
 check it before it is published.";
