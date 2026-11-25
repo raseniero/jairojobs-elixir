@@ -723,13 +723,14 @@ Sentences the following specs inherit from this one (settled 2026-11-11).
 
 Reviewed after the fact. This spec was approved and built before the review rule existed
 (constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
-What was found is listed here and has **not** been changed: each item waits for the owner.
+The owner then went through what was found, one item at a time; each item below says what
+was done about it.
 
-**Reviewed:** 2026-11-23 at commit `94a2e82`
+**Reviewed:** 2026-11-23 at commit `1ce7907`
 
 | Checked against | Result |
 |---|---|
-| This spec's diagrams, scenario by scenario | The 50 scenarios agree with the four activity diagrams, the state diagram, the screen flow and the wireframe: nothing contradicts a requirement. Left out of the diagrams: (1) `screenflow-posting`'s Admin area box reads "Regions · My listings · Post a job"; since spec 004 it starts with "Listings" (the screen flows of 002 and 004 show it). (2) Steps no activity diagram draws: only active regions are offered on the form (REQ-003-3); the business details are copied at submit and a later change does not alter the listing (REQ-003-2); a resubmission clears the old reason (REQ-003-8); an unfinished draft shows what is missing (REQ-003-10); the maximum salary of ₱1,000,000 (REQ-003-4). (3) `state-listing`'s legend says "Closed is final"; Taken down is final too (REQ-003-9, spec 004). (4) The screen flow's submit arrow names "not complete or limit reached" but not a region hidden in the meantime (REQ-003-6) |
+| This spec's diagrams, scenario by scenario | The 50 scenarios agree with the four activity diagrams, the state diagram, the screen flow and the wireframe. Nothing contradicted a requirement; four things were left out of diagrams and were added on 2026-11-23. (1) The screen flow's Admin area box starts with "Listings". (2) The activity diagrams draw five steps the requirements already had: active regions only on the form (REQ-003-3), the business details copied at submit (REQ-003-2), the old reason cleared on a resubmission (REQ-003-8), what an unfinished draft is missing (REQ-003-10), the ₱1,000,000 maximum (REQ-003-4). (3) `state-listing` says Closed and Taken down are final for everyone, in the boxes and the legend, as spec 004's diagram does. (4) The screen flow's submit arrow names a region hidden in the meantime (REQ-003-6) |
 | `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Listings depends on Accounts and Regions; the `:require_poster` session and its routes |
 | `architecture/data-model.md` and the ERD | Agrees: every field of REQ-003-4 is a column; the salary check is ₱1,000 to ₱1,000,000 in centavos; business name 2–80 and "about" up to 500 on `users`; only Draft and Rejected may be incomplete |
 | C4 and use case diagrams | Agrees: "Post listing" for the Employer and the Admin, including the admin approval it needs |
@@ -773,3 +774,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". The label in the lifecycle table, the scenarios, REQ-003-9's title and the scenario names "Published listing is locked" and "Only published listings can be closed" say so, and "before it goes live" reads "before it is published". The screen flow, the wireframe and one activity diagram were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-23 | After the review, each item chosen by the owner. Diagrams only, no requirement changed: the screen flow's Admin area starts with "Listings" and its submit arrow names a region hidden in the meantime; the activity diagrams draw five things the requirements already said (active regions only on the form, the business details copied at submit, the old reason cleared on a resubmission, what an unfinished draft is missing, the ₱1,000,000 maximum); the state diagram says Closed and Taken down are final for everyone, as spec 004's does |
+| 2026-11-23 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
