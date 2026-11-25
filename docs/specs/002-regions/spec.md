@@ -307,14 +307,14 @@ Scenario: Lookup by slug works for hidden regions
 
 Reviewed after the fact. This spec was approved and built before the review rule existed
 (constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
-The owner then went through what was found, one item at a time; each item below says what
-was done about it.
+The owner then went through what was found, one item at a time, on 2026-11-24; each item
+below says what was done about it.
 
-**Reviewed:** 2026-11-23 at commit `39ff666`
+**Reviewed:** 2026-11-24 at commit `39ff666`
 
 | Checked against | Result |
 |---|---|
-| This spec's diagrams, scenario by scenario | The 17 scenarios agree with the two activity diagrams, the state diagram, the screen flow and the wireframe. Found and fixed on 2026-11-23: (1) the screen flow and the wireframe listed the hidden region last; they now list every region in alphabetical order, as REQ-002-1 and the app do. (2) The mobile requirement said "inline add/edit"; it now says adding and editing happen on their own pages, as the screen flow, the wireframe and the app have it. (3) The app refused a name with no letter or digit and the spec did not say so; REQ-002-2 has the scenario "Name with no letter or digit" and a rule, with a test named after it at each level, and the activity diagram and the wireframe show the case |
+| This spec's diagrams, scenario by scenario | The 17 scenarios agree with the two activity diagrams, the state diagram, the screen flow and the wireframe. Found and fixed on 2026-11-24: (1) the screen flow and the wireframe listed the hidden region last; they now list every region in alphabetical order, as REQ-002-1 and the app do. (2) The mobile requirement said "inline add/edit"; it now says adding and editing happen on their own pages, as the screen flow, the wireframe and the app have it. (3) The app refused a name with no letter or digit and the spec did not say so; REQ-002-2 has the scenario "Name with no letter or digit" and a rule, with a test named after it at each level, and the activity diagram and the wireframe show the case |
 | `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Regions context, the `:require_admin` session. REQ-002-1's rule called Regions the admin area's "first page"; it now says the area lists Regions among its pages (the first row has been Listings since spec 004) |
 | `architecture/data-model.md` and the ERD | Agrees: `regions` (name unique ignoring case, 1–80; slug unique, set once; active) |
 | C4 and use case diagrams | Agrees: "Manage regions" belongs to the Admin |
@@ -345,5 +345,5 @@ was done about it.
 | 2026-11-16 | Changed by spec 004: the screen flow's Admin screen gains "Listings" as its first row, with the waiting count |
 | 2026-11-17 | Design guide change (docs/design.md changelog): the breadcrumb links on the Regions pages are 44 px tall; fields and buttons are 44 px and the accent colour is one step darker. No requirement changed |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
-| 2026-11-23 | After the review, each item chosen by the owner. Amended: REQ-002-2 gains the scenario "Name with no letter or digit" and its rule (the app already refused such a name; one test renamed to the scenario, one screen test added); REQ-002-1's rule says the admin area lists Regions among its pages, no longer that Regions is its first page; the mobile requirement says adding and editing happen on their own pages, where it said "inline". Diagrams: the screen flow and the wireframe list the hidden region in alphabetical order with the rest; the activity diagram and the wireframe's error list show the new case. No code changed |
-| 2026-11-23 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
+| 2026-11-24 | After the review, each item chosen by the owner. Amended: REQ-002-2 gains the scenario "Name with no letter or digit" and its rule (the app already refused such a name; one test renamed to the scenario, one screen test added); REQ-002-1's rule says the admin area lists Regions among its pages, no longer that Regions is its first page; the mobile requirement says adding and editing happen on their own pages, where it said "inline". Diagrams: the screen flow and the wireframe list the hidden region in alphabetical order with the rest; the activity diagram and the wireframe's error list show the new case. No code changed |
+| 2026-11-24 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |

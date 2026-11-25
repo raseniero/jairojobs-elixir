@@ -554,14 +554,14 @@ Scenario: Admin navigation
 
 Reviewed after the fact. This spec was approved and built before the review rule existed
 (constitution §6, 2026-11-20); the owner asked for it to be reviewed as it stands today.
-The owner then went through what was found, one item at a time; each item below says what
-was done about it.
+The owner then went through what was found, one item at a time, on 2026-11-24; each item
+below says what was done about it.
 
-**Reviewed:** 2026-11-23 at commit `9c16139`
+**Reviewed:** 2026-11-24 at commit `9c16139`
 
 | Checked against | Result |
 |---|---|
-| This spec's diagrams, scenario by scenario | The 39 scenarios agree with the five activity diagrams, the state diagram, the screen flow and the navigation wireframe. Four differences were found and fixed on 2026-11-23. (1) `screenflow-auth` showed labels the screens do not have; it now shows the built ones. (2) It drew "Check your email" as a screen; it is a message on the log-in page, and the diagram and the story table say so. (3) `activity-signup` and `sequence-magic-link-signup` quoted the log-in page's message after sign-up; they now quote "An email was sent to <email>, please access it to confirm your account." (4) The emailed link opens a page with a confirm button; the diagrams draw it, two scenarios say "open it and confirm", and REQ-001-3 has a rule saying why |
+| This spec's diagrams, scenario by scenario | The 39 scenarios agree with the five activity diagrams, the state diagram, the screen flow and the navigation wireframe. Four differences were found and fixed on 2026-11-24. (1) `screenflow-auth` showed labels the screens do not have; it now shows the built ones. (2) It drew "Check your email" as a screen; it is a message on the log-in page, and the diagram and the story table say so. (3) `activity-signup` and `sequence-magic-link-signup` quoted the log-in page's message after sign-up; they now quote "An email was sent to <email>, please access it to confirm your account." (4) The emailed link opens a page with a confirm button; the diagrams draw it, two scenarios say "open it and confirm", and REQ-001-3 has a rule saying why |
 | `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees: Accounts context, the `Scope`, the `:current_user` and `:require_authenticated_user` sessions, non-admins sent home |
 | `architecture/data-model.md` and the ERD | Agrees: `users` (role, previous_role, confirmed_at) and `users_tokens` (contexts; the 15-minute and 7-day lifetimes are in the spec, not the ERD) |
 | C4 and use case diagrams | Agrees. The use case diagram gained its missing Admin arrow on 2026-11-20 |
@@ -607,5 +607,5 @@ was done about it.
 | 2026-11-17 | Design guide change (docs/design.md changelog): fields and buttons are 44 px tall and the accent, success and info colours are one step darker, on every screen of this spec; the drawer's "Close menu" button is 44 px. No requirement changed |
 | 2026-11-18 | Settings brought in line with the design guide after a look at 375 px: a left-aligned "Settings" page title in place of the centred "Account Settings", and sentence-case buttons ("Change email", "Save password"). No requirement changed |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
-| 2026-11-23 | After the review, each item chosen by the owner. Diagrams brought in line with the app: `screenflow-auth` shows the built labels, has no "Check your email" screen (it is a message on the log-in page) and draws the buttons on the page the emailed link opens; `activity-signup` and `sequence-magic-link-signup` quote the message the app shows after sign-up; `activity-signup` and `activity-login` draw the confirm step. Amended: the scenarios "First link confirms and logs in" (REQ-001-3) and "Request and use a magic link" (REQ-001-4) say "open it and confirm" where they said "click it", and REQ-001-3 gains a rule on the page the link opens. No scenario was renamed and no code changed |
-| 2026-11-23 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
+| 2026-11-24 | After the review, each item chosen by the owner. Diagrams brought in line with the app: `screenflow-auth` shows the built labels, has no "Check your email" screen (it is a message on the log-in page) and draws the buttons on the page the emailed link opens; `activity-signup` and `sequence-magic-link-signup` quote the message the app shows after sign-up; `activity-signup` and `activity-login` draw the confirm step. Amended: the scenarios "First link confirms and logs in" (REQ-001-3) and "Request and use a magic link" (REQ-001-4) say "open it and confirm" where they said "click it", and REQ-001-3 gains a rule on the page the link opens. No scenario was renamed and no code changed |
+| 2026-11-24 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
