@@ -164,7 +164,9 @@ Gherkin scenarios of the requirements it covers.
 **Serves:** US-001-1
 
 Unauthenticated visitors can reach all public pages (home, listing index, listing detail, and
-the sign-up / log-in pages). Only protected pages redirect to log-in.
+the sign-up / log-in pages). Only protected pages redirect to log-in. Since spec 005 the home
+page is the listing index: the list of jobs (REQ-005-2). Spec 005 says what the public pages
+show.
 
 ```gherkin
 Scenario: Public pages render without login
@@ -609,3 +611,4 @@ below says what was done about it.
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-24 | After the review, each item chosen by the owner. Diagrams brought in line with the app: `screenflow-auth` shows the built labels, has no "Check your email" screen (it is a message on the log-in page) and draws the buttons on the page the emailed link opens; `activity-signup` and `sequence-magic-link-signup` quote the message the app shows after sign-up; `activity-signup` and `activity-login` draw the confirm step. Amended: the scenarios "First link confirms and logs in" (REQ-001-3) and "Request and use a magic link" (REQ-001-4) say "open it and confirm" where they said "click it", and REQ-001-3 gains a rule on the page the link opens. No scenario was renamed and no code changed |
 | 2026-11-24 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
+| 2026-11-26 | Changed by spec 005, after Done: the home page is now the list of jobs (REQ-005-2), no longer the text "Listings are coming soon". REQ-001-1 says so; `screenflow-auth` draws the home page's rows as built. The five tests of the home page kept their names and moved to the new page's test file. No scenario changed |

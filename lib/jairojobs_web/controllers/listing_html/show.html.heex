@@ -1,0 +1,9 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <%!-- spec 005 — REQ-005-5. A first, bare page so a row on a list leads somewhere;
+       the trust line, the way back and the rest arrive with tasks T12 to T17. --%>
+  <.listing_detail
+    listing={@listing}
+    business_name={@listing.business_name}
+    business_about={@listing.business_about}
+  />
+</Layouts.app>

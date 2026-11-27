@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-16 (Listings moderation and the `/admin/listings` screens implemented by spec 004)
+**Last updated:** 2026-11-26 (the home page is the public list of jobs; a listing has a public address; spec 005, in progress)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -86,13 +86,19 @@ flowchart TD
 
   | `live_session` | Who gets in | Routes | Since |
   |---|---|---|---|
-  | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in | 001 |
+  | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in; the public list of jobs, `/` (005) | 001 |
   | `:require_authenticated_user` | any logged-in account | `/users/settings` | 001 |
   | `:require_admin` | Admins | `/admin`, `/admin/regions…`, `/admin/listings…` (004) | 001 (first used by 002) |
   | `:require_poster` | Employers and Admins | `/my/listings…`, `/my/business` | 003 |
 
   A visitor is sent to log in and returned afterwards; a signed-in account without the
   right role is sent home with a message.
+
+  Not every public page is a LiveView. A listing's public page,
+  `/jobs/<region>/<listing>` (spec 005), is a controller route in the same scope and
+  `:browser` pipeline, outside any `live_session`: it must be able to answer "gone",
+  "moved" and "not found", and nothing on it needs a live connection. The pipeline puts
+  `current_scope` on the connection, as for every page.
 - **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
 - **Email:** Swoosh; local adapter in dev (`/dev/mailbox`); Resend in production from
   `hello@jairojobs.com` (ADR-0005). Sent by a notifier module beside the context that owns

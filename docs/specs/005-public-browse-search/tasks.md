@@ -160,7 +160,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase C — The lists
 
-- [ ] **T8** — The home page is the list (REQ-005-1, REQ-005-2)
+- [x] **T8** — The home page is the list (REQ-005-1, REQ-005-2) — done 2026-11-26
   - Router: `live "/", ListingLive.Index, :all` inside the existing
     `live_session :current_user`; `get "/jobs/:region/:listing", ListingController, :show`
     in the same scope, outside the block. `get "/", PageController, :home` goes, with
@@ -481,3 +481,21 @@ document changed, and every changed `.puml` is rendered on its own
 - T7: `:moved` is answered for an earlier address whatever the listing's status, so the
   old address of a listing that was moved and then closed forwards to the address that
   says "no longer listed", as `activity-open-a-listing` draws it.
+- T8: 22 tests in the new file, 5 of them the home-page tests of spec 001, moved with
+  their names. The suite went from 644 to 661.
+- T8: a row's DOM id is `job-<region slug>--<listing slug>`, with a double hyphen between
+  the two slugs, not the single one in the plan's table. With one hyphen, the region
+  "davao" with the slug "city-barista" and the region "davao-city" with the slug "barista"
+  would make the same id. No slug contains a double hyphen, so now none can clash.
+- T8: an address that is not the current address of a Published listing answers 404 with
+  the usual "Not Found" page, through the router's own "no such address" error. T13 gives
+  an earlier address and a closed listing their own answers.
+- T8: looked at the home page and the bare listing page at 375 px in a headless browser,
+  with the dev database's one Published listing: no sideways scrolling, nothing in the
+  page under 44 px, titles as specified. "✓ Approved" is green text in a thin green
+  outline on white, not a filled pill: the design guide's colours are checked for
+  contrast on white.
+- T8: the stream of rows is left out of the page when the list is empty, so an empty
+  list shows no stray divider lines.
+- T8: `screenflow-auth` (spec 001) still says "region chips" on the home page, which T9
+  builds. The image was re-rendered; I looked at it.

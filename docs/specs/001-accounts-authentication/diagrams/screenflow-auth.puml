@@ -19,7 +19,10 @@ state "Public pages" as Public <<public>> {
   state "Home / Browse jobs" as Home
   Home : ☰  jairojobs  [Log in]
   Home : region chips
-  Home : listing rows (salary · date · ✓)
+  Home : "3 jobs · newest first"
+  Home : rows: title · business, area, region ·
+  Home : salary · date · ✓ Approved (spec 005)
+  Home : "Every listing shows salary and is checked…"
   state "Listing detail" as Detail
   Detail : facts box, sections
   Detail : [Apply for this job]

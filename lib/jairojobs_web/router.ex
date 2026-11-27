@@ -17,12 +17,6 @@ defmodule JairojobsWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", JairojobsWeb do
-    pipe_through :browser
-
-    get "/", PageController, :home
-  end
-
   # Other scopes may use custom stacks.
   # scope "/api", JairojobsWeb do
   #   pipe_through :api
@@ -101,10 +95,20 @@ defmodule JairojobsWeb.Router do
 
     live_session :current_user,
       on_mount: [{JairojobsWeb.UserAuth, :mount_current_scope}] do
+      # spec 005 — the public lists of jobs. Anyone gets in (REQ-005-1); the scope is
+      # mounted when someone is logged in, so the menu still follows their role.
+      live "/", ListingLive.Index, :all
+
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
     end
+
+    # spec 005 — a listing's public page. A plain page, not a LiveView: it must be able
+    # to answer "gone", "moved" and "not found" (REQ-005-6, REQ-005-7), and nothing on it
+    # needs a live connection (plan decision 1). The `:browser` pipeline has already put
+    # `current_scope` on the connection. It needs no account, so it sits in no guarded scope.
+    get "/jobs/:region/:listing", ListingController, :show
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
