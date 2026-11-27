@@ -306,7 +306,7 @@ document changed, and every changed `.puml` is rendered on its own
     changes the plan lists), `screenflow-moderation`
   - Commit: `feat(listings): the approval email carries the public link (REQ-005-10, REQ-004-9)`
 
-- [ ] **T16** — Share, and the preview (REQ-005-8)
+- [x] **T16** — Share, and the preview (REQ-005-8) — done 2026-11-27
   - "Share" (`#share-listing`, a plain button, `data-share-title`, `data-share-url`),
     `#share-status` (`aria-live="polite"`), the colocated hook `.Share`: share sheet, else
     copy and "Link copied", else write the address out
@@ -638,3 +638,33 @@ document changed, and every changed `.puml` is rendered on its own
   listing", since T4's move takes the same step). I looked at the re-rendered sequence
   diagram and at `activity-emails`; not at `screenflow-moderation`, where one line
   changed in a diagram looked at in T14.
+- T16: 6 tests. All three scenarios of REQ-005-8 are covered now ("A shared link opens
+  without an account" since T12).
+- T16: the share sheet is given the listing's title ("Barista (full-time)") and its
+  address. The preview's title is longer, "Barista (full-time) — Kape Isla", as the spec
+  writes it.
+- T16: `JairojobsWeb.Seo` builds what goes in the head and `Layouts.seo/1` writes it, in
+  the root layout. A page that assigns nothing gets no tags: the "no longer listed" page
+  has no preview of the listing, and a test says so.
+- T16, what a tap does, in a real browser (headless Chromium, the dev server, the dev
+  database's listing). The spec asks for this by hand on a phone; this is the nearest I
+  can get, and a tap on a real phone is still to be done (T19):
+  - no share sheet, which is what a desktop browser has: the address was copied, read
+    back from the clipboard as `http://localhost:4010/jobs/davao-city/software-engineer`,
+    and the page said "Link copied";
+  - a share sheet (a stand-in that records what it is given): it was given the title and
+    that address, and the page said nothing;
+  - the sheet closed again: nothing said, nothing copied;
+  - the sheet failing for another reason: the address was copied, "Link copied";
+  - neither possible: the address was written out beside the button, and the page did
+    not become wider than the phone;
+  - scripts switched off: the button does nothing and nothing breaks.
+- T16: the plan's claim that a hook runs on a page with no LiveView, and that no live
+  connection is opened for it, was read in LiveView's source before. Now seen: the hook
+  ran on the listing page, and the browser opened no live connection there.
+- T16: this is the project's first hand-written JavaScript: 25 lines, colocated with the
+  component that needs it (`ListingHTML.share/1`). The fallback when a share
+  sheet fails for a reason other than being closed (copy the address) is not in the
+  plan; the plan has share, else copy, else write out.
+- T16: `screenflow-auth` (spec 001) gained "[ Share ]". Not looked at again: one line in
+  a diagram looked at in T12.

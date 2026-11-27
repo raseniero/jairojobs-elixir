@@ -12,6 +12,28 @@ defmodule JairojobsWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
+  The tags a public page puts in its `<head>` for chat apps and search engines
+  (spec 005 — REQ-005-8, REQ-005-9), from the map `JairojobsWeb.Seo` builds.
+  Used by the root layout only. A page with no `:seo` assign gets nothing.
+
+  Every value is escaped like any other attribute, so a listing's text cannot
+  break out of its tag.
+  """
+  attr :seo, :map, default: nil
+
+  def seo(assigns) do
+    ~H"""
+    <%= if @seo do %>
+      <meta
+        :for={{name, content} <- Map.get(@seo, :og, [])}
+        property={"og:#{name}"}
+        content={content}
+      />
+    <% end %>
+    """
+  end
+
+  @doc """
   Renders your app layout.
 
   This function is typically invoked from every template,

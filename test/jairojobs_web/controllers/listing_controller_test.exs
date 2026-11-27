@@ -260,6 +260,131 @@ defmodule JairojobsWeb.ListingControllerTest do
     end
   end
 
+  describe "share a listing (REQ-005-8)" do
+    setup %{owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista (full-time)", davao,
+        area: "Matina",
+        salary_min: 14_000,
+        salary_max: 16_000
+      )
+
+      %{
+        path: "/jobs/davao-city/barista-full-time",
+        address: JairojobsWeb.Endpoint.url() <> "/jobs/davao-city/barista-full-time"
+      }
+    end
+
+    defp meta(doc, property),
+      do: doc |> LazyHTML.query(~s(meta[property="#{property}"])) |> LazyHTML.attribute("content")
+
+    test "REQ-005-8: The page offers Share", %{conn: conn, path: path, address: address} do
+      doc = page(conn, path)
+
+      assert text(doc, "button#share-listing") == "Share"
+
+      # It carries what the share sheet is given: the listing's title and its full
+      # public address.
+      button = LazyHTML.query(doc, "#share-listing")
+      assert LazyHTML.attribute(button, "data-share-title") == ["Barista (full-time)"]
+      assert LazyHTML.attribute(button, "data-share-url") == [address]
+      assert String.starts_with?(address, "http")
+
+      # The script that opens the share sheet, or copies the address, is attached to it,
+      # and the line that will say "Link copied" is announced to screen readers.
+      assert [hook] = LazyHTML.attribute(button, "phx-hook")
+      assert String.ends_with?(hook, ".Share")
+      assert LazyHTML.attribute(LazyHTML.query(doc, "#share-status"), "aria-live") == ["polite"]
+      assert text(doc, "#share-status") == ""
+    end
+
+    test "Share comes before the \"coming soon\" line, and is not an accent button",
+         %{conn: conn, path: path} do
+      doc = page(conn, path)
+
+      ids =
+        doc
+        |> LazyHTML.query("#listing-detail, #share-listing, #apply-coming-soon")
+        |> LazyHTML.attribute("id")
+
+      assert ids == ["listing-detail", "share-listing", "apply-coming-soon"]
+      refute has?(doc, "#share-listing.btn-accent")
+      refute has?(doc, "main .btn-accent")
+    end
+
+    test "nothing is added to the address to track who shared it, and no network has a button",
+         %{conn: conn, path: path, address: address} do
+      html = conn |> get(path) |> html_response(200)
+      doc = LazyHTML.from_fragment(html)
+
+      [shared] = LazyHTML.attribute(LazyHTML.query(doc, "#share-listing"), "data-share-url")
+      assert shared == address
+      refute shared =~ "?"
+      refute shared =~ "utm"
+
+      for network <- ~w(facebook messenger whatsapp twitter viber telegram linkedin) do
+        refute String.downcase(html) =~ network
+      end
+
+      # One button, and it is the only thing on the page that shares.
+      assert doc |> LazyHTML.query("[data-share-url]") |> Enum.count() == 1
+    end
+
+    test "REQ-005-8: A shared link has a preview", %{conn: conn, path: path, address: address} do
+      # A chat app reads the page as first delivered and builds its preview from these.
+      doc = page(conn, path)
+
+      assert meta(doc, "og:title") == ["Barista (full-time) — Kape Isla"]
+      assert meta(doc, "og:description") == ["₱14,000–16,000 / month · Matina, Davao City"]
+      assert meta(doc, "og:url") == [address]
+      assert meta(doc, "og:site_name") == ["jairojobs"]
+      assert meta(doc, "og:type") == ["website"]
+
+      # Text only: the site has no images.
+      assert meta(doc, "og:image") == []
+      refute has?(doc, ~s(meta[name="twitter:image"]))
+    end
+
+    test "the preview is of the listing as it is now, and its text cannot break out of the tag",
+         %{conn: conn, owner: owner, admin: admin, cebu: cebu} do
+      listing = published(owner, admin, ~s(Cook "nights" <b>), cebu, area: ~s(Lahug "IT Park"))
+
+      {:ok, _edited, _email} =
+        Listings.update_listing_as_admin(
+          admin,
+          listing,
+          %{business_name: ~s(Kape "Isla" & Sons), salary_min: 15_000, salary_max: 15_000},
+          owner_url()
+        )
+
+      html = conn |> get("/jobs/cebu/#{listing.slug}") |> html_response(200)
+      doc = LazyHTML.from_fragment(html)
+
+      assert meta(doc, "og:title") == [~s(Cook "nights" <b> — Kape "Isla" & Sons)]
+      assert meta(doc, "og:description") == [~s(₱15,000 / month · Lahug "IT Park", Cebu)]
+      refute html =~ ~s(content="Cook "nights")
+      refute html =~ "<b> —"
+    end
+
+    test "a page that is not a listing's has no listing preview", %{
+      conn: conn,
+      owner: owner,
+      path: path
+    } do
+      {:ok, _closed} =
+        Listings.close_listing(
+          owner,
+          elem(Listings.resolve_public_address("davao-city", "barista-full-time"), 1)
+        )
+
+      doc = conn |> get(path) |> html_response(410) |> LazyHTML.from_fragment()
+
+      # Nothing of a listing that is no longer listed, in the preview either.
+      assert meta(doc, "og:title") == []
+      assert meta(doc, "og:description") == []
+      refute has?(doc, "#share-listing")
+    end
+  end
+
   describe "who can open it (REQ-005-1, REQ-005-8)" do
     setup %{owner: owner, admin: admin, davao: davao} do
       %{listing: published(owner, admin, "Barista (full-time)", davao)}

@@ -29,6 +29,7 @@ state "Public pages" as Public <<public>> {
   Detail : title, business
   Detail : ✓ Approved · Posted 2 h ago · region
   Detail : facts box, sections
+  Detail : [ Share ]
   Detail : "Applying through jairojobs is coming soon."
   Detail : (spec 005; no Apply button until spec 007)
   Home --> Detail : tap a listing

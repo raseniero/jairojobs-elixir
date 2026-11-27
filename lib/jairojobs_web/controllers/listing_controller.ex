@@ -22,12 +22,14 @@ defmodule JairojobsWeb.ListingController do
   alias Jairojobs.Accounts.Scope
   alias Jairojobs.Listings
   alias JairojobsWeb.PublicAddress
+  alias JairojobsWeb.Seo
 
   def show(conn, %{"region" => region_slug, "listing" => listing_slug}) do
     case Listings.resolve_public_address(region_slug, listing_slug) do
       {:ok, listing} ->
         conn
         |> assign(:page_title, page_title(listing))
+        |> assign(:seo, Seo.listing(listing))
         |> render(:show, listing: listing, manage: manage(conn, listing.id, listing.user_id))
 
       # Forwarded first, whatever the listing's status is now; its current address
