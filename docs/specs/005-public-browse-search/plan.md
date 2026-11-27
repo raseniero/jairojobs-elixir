@@ -244,7 +244,8 @@ then closed forwards to the address that says "no longer listed".
 - **Count and heading.** A region's list has the heading "Jobs in Davao City". The home
   page has no visible headline (spec decision 7); it has a heading for screen readers
   only. Under it: "3 jobs · newest first", "2 jobs in Davao City · newest first", "1 job".
-  The count is of everything that matched.
+  The count is of everything that matched. An empty list has no count line, only its
+  message, as `activity-browse-and-search` draws it.
 - **Rows.** A LiveView stream of links. Title; "Kape Isla · Matina, Davao City" on the
   home page and "Kape Isla · Matina" on a region's list; then the salary
   (`Format.salary_range/3`, `:short`), `Format.time_ago/2` of `published_at`, and
@@ -279,7 +280,10 @@ The spec leaves this to the plan (spec decisions 9 and 20).
 Top to bottom: "← Jobs in Davao City" (always the listing's region); `listing_detail` with
 the trust line in its new slot ("✓ Approved · Posted 2 h ago · Davao City"); "Share", a
 plain button; "Applying through jairojobs is coming soon."; and last, for the owner and
-for Admins only, a small box with their links. That is the order of the spec's diagrams.
+for Admins only, a small box with their links. The way back is at the top, where the
+screen flow draws it; the box is last, where both the screen flow and
+`activity-open-a-listing` put those links. (That activity diagram names the way back near
+its end; it lists what the page offers, not where.)
 
 - The business name and "about" are the listing's own copy. `listing_detail` already
   leaves out an empty schedule, Requirements, Benefits and "About …", and shows no status.
@@ -390,8 +394,10 @@ carries. The tap is checked by hand on a phone at close and written in `tasks.md
   in the parameter lines of requests, of `handle_params` and of the search event. The
   request line itself ("GET /jobs/davao-city") has no query string. The parameter is not
   named `q` because the filter matches any name that *contains* the entry.
-- `test/jairojobs_web/endpoint_log_test.exs` gets a case proving searched words are not in
-  the log (constitution §4.12).
+- Two tests prove it (constitution §4.12). `test/jairojobs_web/endpoint_log_test.exs`
+  gets a case that makes a real search request with the log captured at its most detailed
+  level and finds the words nowhere in it. A second, beside the other filtered-parameter
+  tests, checks that `search` is filtered.
 - Nothing is stored about a search or a view.
 
 ## Background jobs / emails / external services
@@ -522,7 +528,7 @@ Other tests, not named for a scenario:
 | The old address of a listing that was moved and then closed forwards to the page that says "no longer listed" | P |
 | The two unique indexes, the two CHECKs and the foreign key: one test each that tries to break it with a direct write | C |
 | `approve_listing` as an Employer or Candidate still writes no address (spec 004's "Only an Admin can decide" stays green) | M |
-| Searched words are not logged | `test/jairojobs_web/endpoint_log_test.exs` |
+| Searched words are not logged: a real search request with the log captured, and the parameter filter | `test/jairojobs_web/endpoint_log_test.exs`; **L**, beside the other filtered-parameter tests |
 | `shown`: 40 in the address gives 40 rows; a value over 200, or not a number, is handled | L |
 | The job-details block is valid JSON and an employer's `</script>` in a text does not end it | P |
 | `/jobs` forwards to `/` | P |
@@ -690,6 +696,12 @@ Since that commit three things changed, and nothing else: this section was writt
 and its column "Proposed" became "Choice"; and the same day he approved the plan and the
 note for the design guide, so the status, the note's heading and row 19 of the documents
 table say so. No answer changed, so nothing the review read is different.
+
+Amended after approval, 2026-11-26, with the owner's word, after a comparison of the spec,
+its diagrams, this plan and `tasks.md`: the sentence on the order of the listing page no
+longer claims to follow both diagrams; the test that searched words are not logged became
+two tests, one of them on a real request; an empty list is said to have no count line.
+Nothing that is built changed.
 
 | Checked against | Result |
 |---|---|
