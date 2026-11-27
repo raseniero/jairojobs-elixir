@@ -17,9 +17,20 @@ defmodule JairojobsWeb.PublicAddress do
   @doc """
   The path of a list of jobs: a region's, or the home page for `nil`, which
   is the list of every region.
+
+  `narrowed` is what narrows the list and is part of its address
+  (REQ-005-4): `:search`, the words, and `:type`, as it is written in an
+  address ("part-time"). Whatever is `nil` is left out, so a list that is not
+  narrowed has a plain address.
   """
-  def list_path(nil), do: ~p"/"
-  def list_path(%Region{slug: slug}), do: ~p"/jobs/#{slug}"
+  def list_path(region, narrowed \\ [])
+
+  def list_path(nil, narrowed), do: ~p"/?#{query(narrowed)}"
+  def list_path(%Region{slug: slug}, narrowed), do: ~p"/jobs/#{slug}?#{query(narrowed)}"
+
+  defp query(narrowed) do
+    for name <- [:search, :type], value = narrowed[name], do: {name, value}
+  end
 
   @doc """
   The path of a listing's public page. The listing must have its slug, which

@@ -5,9 +5,11 @@ defmodule JairojobsWeb.ListingLive.Index do
   at `/jobs/<region slug>` (REQ-005-3). One LiveView, so choosing a region
   changes the list without loading a new page.
 
-  The address is the state. Everything the page shows is read from it in
+  The address is the state: the region, the words searched and the type of
+  work (REQ-005-4). Everything the page shows is read from it in
   `handle_params/3`, so an address opened again, or reached with the browser's
-  back button, gives the same list.
+  back button, gives the same list. Searching, choosing a type and choosing a
+  region only ever change the address.
 
   What may be listed is not decided here: `Jairojobs.Listings.list_public_listings/1`
   returns Published listings and nothing else (REQ-005-1). The page is the same
@@ -16,9 +18,17 @@ defmodule JairojobsWeb.ListingLive.Index do
   use JairojobsWeb, :live_view
 
   alias Jairojobs.Listings
+  alias Jairojobs.Listings.Listing
   alias Jairojobs.Regions
   alias JairojobsWeb.Format
+  alias JairojobsWeb.ListingComponents
   alias JairojobsWeb.PublicAddress
+
+  # A type of work as an address writes it ("part-time"), its value and its label.
+  @types for type <- Listing.employment_types(),
+             do:
+               {type |> Atom.to_string() |> String.replace("_", "-"), type,
+                ListingComponents.employment_type_label(type)}
 
   @impl true
   def render(assigns) do
@@ -35,7 +45,7 @@ defmodule JairojobsWeb.ListingLive.Index do
             <li>
               <.region_choice
                 id="region-choice-all"
-                path={PublicAddress.list_path(nil)}
+                path={PublicAddress.list_path(nil, @narrowed)}
                 chosen={@region == nil}
                 label="All regions"
               />
@@ -43,7 +53,7 @@ defmodule JairojobsWeb.ListingLive.Index do
             <li :for={choice <- @regions}>
               <.region_choice
                 id={"region-choice-#{choice.slug}"}
-                path={PublicAddress.list_path(choice)}
+                path={PublicAddress.list_path(choice, @narrowed)}
                 chosen={@region != nil and @region.id == choice.id}
                 label={choice.name}
               />
@@ -59,9 +69,50 @@ defmodule JairojobsWeb.ListingLive.Index do
         </h1>
         <h1 :if={!@region} id="jobs-heading" class="sr-only">Jobs in the Philippines</h1>
 
-        <p :if={@total > 0} id="jobs-count" class="text-xs text-base-content/70">
-          {count(@total, @region)} · newest first
-        </p>
+        <%!-- An ordinary GET form that asks for this same list, so it works before the live
+             connection is up; once it is, the LiveView changes the address itself. Typing
+             does not search: "Search" does, and so does choosing a type (REQ-005-4). --%>
+        <.form
+          for={@form}
+          id="search-form"
+          method="get"
+          action={PublicAddress.list_path(@region)}
+          phx-submit="search"
+          phx-change="filter"
+          class="space-y-2"
+        >
+          <div class="flex items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <.input
+                field={@form[:search]}
+                id="search-words"
+                type="search"
+                aria-label="Search jobs"
+                maxlength="100"
+                autocomplete="off"
+                enterkeyhint="search"
+              />
+            </div>
+            <%!-- Primary, not accent: no public screen in spec 005 has an accent action. --%>
+            <.button id="search-submit" variant="primary" class="btn btn-primary mt-1 min-h-11">
+              Search
+            </.button>
+          </div>
+          <.input
+            field={@form[:type]}
+            id="search-type"
+            type="select"
+            aria-label="Type of work"
+            options={type_options()}
+          />
+        </.form>
+
+        <div :if={@total > 0} class="flex flex-wrap items-center justify-between gap-x-4">
+          <p id="jobs-count" class="text-xs text-base-content/70">
+            {count(@total, @region)} · newest first
+          </p>
+          <.clear_search :if={@narrowed?} region={@region} />
+        </div>
 
         <div
           :if={@total > 0}
@@ -92,14 +143,11 @@ defmodule JairojobsWeb.ListingLive.Index do
         </div>
 
         <div :if={@total == 0} class="py-3">
-          <p id="no-jobs" class="text-base-content/70">
-            {if @region,
-              do: "No jobs are listed in #{@region.name} yet.",
-              else: "No jobs are listed yet."}
-          </p>
-          <%!-- A link of its own, not one inside a sentence, so it is 44 px tall. --%>
+          <p id="no-jobs" class="text-base-content/70">{nothing(@region, @narrowed?)}</p>
+          <%!-- Links of their own, not inside the sentence, so each is 44 px tall. --%>
+          <.clear_search :if={@narrowed?} region={@region} />
           <.link
-            :if={@region}
+            :if={@region && !@narrowed?}
             patch={PublicAddress.list_path(nil)}
             id="see-all-regions"
             class="inline-flex min-h-11 items-center text-primary hover:underline"
@@ -113,6 +161,21 @@ defmodule JairojobsWeb.ListingLive.Index do
         </p>
       </section>
     </Layouts.app>
+    """
+  end
+
+  attr :region, :any, required: true
+
+  # Leads to the same list with no words and no type. Shown whenever either is set.
+  defp clear_search(assigns) do
+    ~H"""
+    <.link
+      patch={PublicAddress.list_path(@region)}
+      id="clear-search"
+      class="inline-flex min-h-11 items-center text-primary hover:underline"
+    >
+      Clear search
+    </.link>
     """
   end
 
@@ -155,15 +218,58 @@ defmodule JairojobsWeb.ListingLive.Index do
   @impl true
   def handle_params(params, _uri, socket) do
     region = region(socket.assigns.live_action, params)
-    {listings, total} = Listings.list_public_listings(region: region)
+    search = Listings.search_words(params["search"])
+    {type_param, type} = type(params["type"])
+
+    {listings, total} = Listings.list_public_listings(region: region, search: search, type: type)
 
     {:noreply,
      socket
      |> assign(:page_title, page_title(region))
      |> assign(:region, region)
+     # What narrows the list, as the address carries it; the region choices keep it.
+     |> assign(:narrowed, search: search, type: type_param)
+     |> assign(:narrowed?, search != nil or type != nil)
+     |> assign(:form, to_form(%{"search" => search, "type" => type_param}))
      |> assign(:total, total)
      |> stream(:listings, listings, reset: true)}
   end
+
+  # "Search", or Enter in the field.
+  @impl true
+  def handle_event("search", params, socket), do: {:noreply, narrow(socket, params)}
+
+  # The form changed. Only a chosen type applies at once; typing waits for "Search".
+  def handle_event("filter", %{"_target" => ["type"]} = params, socket),
+    do: {:noreply, narrow(socket, params)}
+
+  def handle_event("filter", _typing, socket), do: {:noreply, socket}
+
+  # Everything a search does is to change the address; `handle_params/3` does the rest.
+  # The words and the type are cleaned here as they are there, so what cannot be
+  # searched for never reaches the address.
+  defp narrow(socket, params) do
+    {type_param, _type} = type(params["type"])
+
+    push_patch(socket,
+      to:
+        PublicAddress.list_path(socket.assigns.region,
+          search: Listings.search_words(params["search"]),
+          type: type_param
+        )
+    )
+  end
+
+  # A type as the address writes it, and its value. Anything else is no type at all.
+  defp type(param) do
+    case List.keyfind(@types, param, 0) do
+      {param, type, _label} -> {param, type}
+      nil -> {nil, nil}
+    end
+  end
+
+  defp type_options,
+    do: [{"Any type", ""} | for({param, _type, label} <- @types, do: {label, param})]
 
   # The home page is every region. A region's list is found by its slug, hidden or
   # not; an unknown slug raises, which is "not found" (REQ-005-3).
@@ -172,6 +278,10 @@ defmodule JairojobsWeb.ListingLive.Index do
 
   defp page_title(nil), do: "Jobs in the Philippines, with the salary shown"
   defp page_title(region), do: "Jobs in #{region.name}"
+
+  defp nothing(_region, true), do: "No jobs match your search."
+  defp nothing(nil, false), do: "No jobs are listed yet."
+  defp nothing(region, false), do: "No jobs are listed in #{region.name} yet."
 
   defp count(total, nil), do: jobs(total)
   defp count(total, region), do: "#{jobs(total)} in #{region.name}"

@@ -506,6 +506,338 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
     end
   end
 
+  describe "search and filter by type (REQ-005-4)" do
+    # The fixtures' usual "About the job" mentions a barista; these listings name nothing
+    # a test searches for.
+    @plain "A steady job with a friendly team in a busy neighbourhood shop."
+
+    defp plain(scope, admin, title, region, attrs \\ %{}),
+      do:
+        published(scope, admin, title, region, Map.merge(%{description: @plain}, Map.new(attrs)))
+
+    defp search_for(view, words),
+      do: view |> form("#search-form", %{search: words}) |> render_submit()
+
+    # Choosing a type applies at once, as a browser sends it: with the field that changed.
+    defp choose_type(view, type, more \\ %{}) do
+      view
+      |> form("#search-form", Map.merge(%{type: type}, more))
+      |> render_change(%{"_target" => ["type"]})
+    end
+
+    # What the search form holds: `{words, type}`.
+    defp form_values(html) do
+      doc = LazyHTML.from_fragment(html)
+
+      {doc |> LazyHTML.query("#search-words") |> LazyHTML.attribute("value") |> List.first(),
+       doc
+       |> LazyHTML.query("#search-type option[selected]")
+       |> LazyHTML.attribute("value")
+       |> List.first()}
+    end
+
+    test "REQ-005-4: Search by a word in the title",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista (full-time)", davao)
+      plain(owner, admin, "Cashier", davao)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+      html = search_for(view, "barista")
+
+      assert_patch(view, "/?search=barista")
+      assert row_titles(html) == ["Barista (full-time)"]
+      refute html =~ "Cashier"
+      assert text_of(html, "#jobs-count") == "1 job · newest first"
+      assert {"barista", _any} = form_values(html)
+    end
+
+    test "REQ-005-4: Filter by type", %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "A full-time job", davao, employment_type: :full_time)
+      plain(owner, admin, "A part-time job", davao, employment_type: :part_time)
+
+      {:ok, view, html} = live(conn, ~p"/")
+
+      # The types of REQ-003-4, after "Any type".
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query("#search-type option")
+             |> Enum.map(&{LazyHTML.attribute(&1, "value"), String.trim(LazyHTML.text(&1))}) == [
+               {[""], "Any type"},
+               {["full-time"], "Full-time"},
+               {["part-time"], "Part-time"},
+               {["contract"], "Contract"},
+               {["temporary"], "Temporary"},
+               {["internship"], "Internship"}
+             ]
+
+      html = choose_type(view, "part-time")
+
+      assert_patch(view, "/?type=part-time")
+      assert row_titles(html) == ["A part-time job"]
+      assert {_no_words, "part-time"} = form_values(html)
+
+      # Back to any type.
+      html = choose_type(view, "")
+      assert_patch(view, "/")
+      assert length(row_titles(html)) == 2
+    end
+
+    test "REQ-005-4: Search and type together, inside a region",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      plain(owner, admin, "Barista (weekends)", davao, employment_type: :part_time)
+      plain(owner, admin, "Barista (full-time)", davao, employment_type: :full_time)
+      plain(owner, admin, "Cashier (weekends)", davao, employment_type: :part_time)
+      plain(owner, admin, "Barista (evenings)", cebu, employment_type: :part_time)
+
+      {:ok, view, _html} = live(conn, ~p"/jobs/davao-city")
+
+      search_for(view, "barista")
+      assert_patch(view, "/jobs/davao-city?search=barista")
+
+      html = choose_type(view, "part-time", %{search: "barista"})
+      assert_patch(view, "/jobs/davao-city?search=barista&type=part-time")
+
+      assert row_titles(html) == ["Barista (weekends)"]
+      assert text_of(html, "#jobs-count") == "1 job in Davao City · newest first"
+      assert text_of(html, "h1#jobs-heading") == "Jobs in Davao City"
+    end
+
+    test "REQ-005-4: Nothing matches", %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista (full-time)", davao)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+      html = search_for(view, "astronaut")
+
+      assert text_of(html, "#no-jobs") == "No jobs match your search."
+      assert row_titles(html) == []
+      refute has_element?(view, "#jobs-count")
+      assert text_of(html, "#trust-line") == @trust_line
+
+      # And a way to clear the search.
+      assert text_of(html, "#clear-search") == "Clear search"
+      html = view |> element("#clear-search") |> render_click()
+
+      assert_patch(view, "/")
+      assert row_titles(html) == ["Barista (full-time)"]
+    end
+
+    test "a searched region with nothing found says so, not that the region is empty",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista (full-time)", davao)
+
+      {:ok, view, html} = live(conn, ~p"/jobs/davao-city?search=astronaut")
+
+      assert text_of(html, "#no-jobs") == "No jobs match your search."
+      refute has_element?(view, "#see-all-regions")
+      assert has_element?(view, "#clear-search")
+
+      # The same when it is a type that nothing has, and in a region with no jobs at all.
+      {:ok, _view, html} = live(conn, ~p"/jobs/davao-city?type=internship")
+      assert text_of(html, "#no-jobs") == "No jobs match your search."
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/cebu?search=barista")
+      assert text_of(html, "#no-jobs") == "No jobs match your search."
+    end
+
+    test "REQ-005-4: Clear the search", %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista (weekends)", davao, employment_type: :part_time)
+      plain(owner, admin, "Barista (full-time)", davao, employment_type: :full_time)
+      plain(owner, admin, "Cashier", davao)
+
+      {:ok, view, html} = live(conn, ~p"/jobs/davao-city?search=barista&type=part-time")
+      assert row_titles(html) == ["Barista (weekends)"]
+
+      html = view |> element("#clear-search") |> render_click()
+
+      # The whole list again, in the same region, with the form empty.
+      assert_patch(view, "/jobs/davao-city")
+      assert length(row_titles(html)) == 3
+      assert form_values(html) == {nil, nil}
+      refute has_element?(view, "#clear-search")
+    end
+
+    test "there is nothing to clear when nothing is searched", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+      refute has_element?(view, "#clear-search")
+
+      # A type alone can be cleared too.
+      {:ok, view, _html} = live(conn, ~p"/?type=part-time")
+      assert has_element?(view, "#clear-search")
+    end
+
+    test "REQ-005-4: A search can be opened again by its address",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      plain(owner, admin, "Barista (weekends)", davao, employment_type: :part_time)
+      plain(owner, admin, "Barista (full-time)", davao, employment_type: :full_time)
+      plain(owner, admin, "Barista (evenings)", cebu, employment_type: :part_time)
+
+      # As a link opens it: one plain request, no live connection.
+      html = conn |> get("/jobs/davao-city?search=barista&type=part-time") |> html_response(200)
+
+      assert row_titles(html) == ["Barista (weekends)"]
+      assert form_values(html) == {"barista", "part-time"}
+      assert text_of(html, "#jobs-count") == "1 job in Davao City · newest first"
+
+      # The form is an ordinary one that asks for the same address, so it works before
+      # the live connection is up.
+      form = html |> LazyHTML.from_fragment() |> LazyHTML.query("#search-form")
+      assert LazyHTML.attribute(form, "method") == ["get"]
+      assert LazyHTML.attribute(form, "action") == ["/jobs/davao-city"]
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query("#search-words")
+             |> LazyHTML.attribute("name") == ["search"]
+
+      assert html
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query("#search-type")
+             |> LazyHTML.attribute("name") == ["type"]
+    end
+
+    test "REQ-005-4: Choosing a region keeps the search",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      plain(owner, admin, "Barista (full-time)", davao)
+      plain(owner, admin, "Barista (evenings)", cebu, employment_type: :part_time)
+      plain(owner, admin, "Cashier", cebu, employment_type: :part_time)
+
+      {:ok, view, _html} = live(conn, ~p"/?search=barista&type=part-time")
+      html = view |> element("#region-choice-cebu") |> render_click()
+
+      assert_patch(view, "/jobs/cebu?search=barista&type=part-time")
+      assert row_titles(html) == ["Barista (evenings)"]
+      assert form_values(html) == {"barista", "part-time"}
+
+      # And back to every region, still searched.
+      view |> element("#region-choice-all") |> render_click()
+      assert_patch(view, "/?search=barista&type=part-time")
+    end
+
+    test "REQ-005-4: An empty search is no search",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      for title <- ["Barista", "Cashier", "Line cook"], do: plain(owner, admin, title, davao)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      for nothing <- ["", "   "] do
+        html = search_for(view, nothing)
+
+        # No words in the address, and the whole list.
+        assert_patch(view, "/")
+        assert length(row_titles(html)) == 3
+        refute has_element?(view, "#clear-search")
+      end
+
+      # The same for an address that carries only spaces.
+      {:ok, view, html} = live(conn, "/?search=%20%20")
+      assert length(row_titles(html)) == 3
+      refute has_element?(view, "#clear-search")
+    end
+
+    test "the count follows the search", %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      for n <- 1..3, do: plain(owner, admin, "Barista number #{n}", davao)
+      plain(owner, admin, "Cashier", davao)
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/davao-city?search=barista")
+
+      assert text_of(html, "#jobs-count") == "3 jobs in Davao City · newest first"
+    end
+
+    test "typing does not search; only Search, or choosing a type, does",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista", davao)
+      plain(owner, admin, "Cashier", davao)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      html =
+        view
+        |> form("#search-form", %{search: "bar"})
+        |> render_change(%{"_target" => ["search"]})
+
+      assert length(row_titles(html)) == 2
+      refute_patched(view, "/?search=bar")
+    end
+
+    test "words are trimmed and cut at 100 characters, in the address and in the field",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      html = search_for(view, "  barista  ")
+      assert_patch(view, "/?search=barista")
+      assert {"barista", _} = form_values(html)
+
+      long = String.duplicate("a", 150)
+      html = search_for(view, long)
+
+      assert_patch(view, "/?search=#{String.duplicate("a", 100)}")
+      assert {words, _} = form_values(html)
+      assert String.length(words) == 100
+      assert has_element?(view, ~s(#search-words[maxlength="100"]))
+    end
+
+    test "an unknown type, or anything that is not text, is ignored",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      plain(owner, admin, "Barista", davao)
+
+      for address <- [
+            "/?type=astronaut",
+            "/?type=full_time",
+            "/?type[]=part-time",
+            "/?search[a]=b",
+            "/?type=&search=",
+            "/?unknown=1"
+          ] do
+        {:ok, view, html} = live(conn, address)
+
+        assert row_titles(html) == ["Barista"]
+        assert form_values(html) == {nil, nil}
+        refute has_element?(view, "#clear-search")
+      end
+
+      # A forged type from the form is ignored too.
+      {:ok, view, _html} = live(conn, ~p"/")
+      html = render_hook(view, "filter", %{"_target" => ["type"], "type" => "astronaut"})
+      assert row_titles(html) == ["Barista"]
+    end
+
+    test "search works on a hidden region's list too",
+         %{conn: conn, owner: owner, admin: admin} do
+      baguio = region_fixture(name: "Baguio")
+      plain(owner, admin, "Barista", baguio)
+      plain(owner, admin, "Cashier", baguio)
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, baguio)
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/baguio?search=cashier")
+
+      assert row_titles(html) == ["Cashier"]
+    end
+
+    test "no public screen has an accent button: Search is a primary one", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/")
+
+      assert text_of(html, "button#search-submit.btn-primary") == "Search"
+      refute html =~ "btn-accent"
+    end
+
+    test "the search field is named for screen readers", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, ~s(input#search-words[type="search"][aria-label="Search jobs"]))
+      assert has_element?(view, ~s(select#search-type[aria-label="Type of work"]))
+    end
+
+    test "searched words are filtered out of logged parameters (constitution §4.12)" do
+      params = %{"search" => "barista matina", "type" => "part-time", "region" => "davao-city"}
+
+      assert Phoenix.Logger.filter_values(params) == %{
+               "search" => "[FILTERED]",
+               "type" => "part-time",
+               "region" => "davao-city"
+             }
+    end
+  end
+
   # These five were the tests of the home page when it was a controller (spec 001). The
   # home page is this LiveView now; what they prove has not changed.
   test "REQ-001-1: public pages render without login (home page)", %{conn: conn} do

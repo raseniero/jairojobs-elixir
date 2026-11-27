@@ -203,7 +203,7 @@ document changed, and every changed `.puml` is rendered on its own
     `activity-seed-and-consume`; `architecture/overview.md` (`/jobs/:region`)
   - Commit: `feat(browse): jobs in one region (REQ-005-3)`
 
-- [ ] **T10** — Search, type and clear (REQ-005-4)
+- [x] **T10** — Search, type and clear (REQ-005-4) — done 2026-11-26
   - The form (`#search-form`): a real GET form the LiveView also handles; `search` and
     `type` in the address; choosing a type applies at once; region choices keep both;
     "Clear search"; "No jobs match your search."; unknown values ignored
@@ -521,3 +521,30 @@ document changed, and every changed `.puml` is rendered on its own
   code was changed a moment before the tests, not after: the old tests failed against the
   new order, which at least shows they watch it.
   The design guide's mock still draws "All regions" last; its note does not mention it.
+- T10: 19 tests: 18 for the screen and one that follows a real search through the log.
+- T10, found by that test: with the log at its most detailed level, the searched words
+  were in it. Not in the parameter lines, which the filter covers, but in the database's
+  query lines: at that level Ecto writes every query with the values given to it. The two
+  queries of a search are now not logged at all (`log: false`), only when words are
+  searched. With "search" taken out of the filter on purpose, both log tests failed;
+  restored.
+- T10, for the owner to know: the same is true of every other query. At the most
+  detailed level, which the dev server uses, Ecto's query lines carry whatever the query
+  was given: an email address at log-in, a listing's text when it is saved. Production
+  logs at `info`, where those lines are not written, and the existing tests of the log
+  run at `info`. Nothing was changed about that; it is older than this spec.
+- T10, in a real browser (headless Chromium, the dev server): with scripts switched off,
+  Search, the type, "No jobs match your search." and "Clear search" all work as plain
+  page loads, which the plan had only reasoned. With scripts on: searching and choosing a
+  type change the address without a reload, Back steps to the previous search with its
+  rows and its field, and the page title follows the region. The dev server's own log,
+  at its most detailed level, did not contain the searched word.
+- T10: on a region's list the heading sits between the region choices and the search
+  form. The form is two lines (field and Search; type), so on a phone the first row of
+  jobs starts about half-way down the first screen. Not changed; to look at in T19's
+  phone check, against "about six rows to a phone screen".
+- T10: a region's choice that is far along the row can start off the screen on its own
+  list, as "All regions" did on the home page. With four regions the fourth is half
+  visible. Nothing scrolls the row to the chosen one; that would need a script.
+- T10: when no type is chosen the select shows "Any type" because it is the first
+  option; no option is marked selected.

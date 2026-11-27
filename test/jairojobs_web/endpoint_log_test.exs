@@ -60,5 +60,44 @@ defmodule JairojobsWeb.EndpointLogTest do
       assert log =~ "GET /users/log-in"
       assert log =~ "Sent 200"
     end
+
+    # spec 005 — "Search words are not stored and are not written to logs." The words
+    # are part of the page's address, so this follows a real search all the way: the
+    # request for the address, the live connection, a search typed into the form, and a
+    # type chosen. The log is captured at its most detailed level, where the parameter
+    # lines are written; the file's usual level would not show them at all.
+    test "REQ-005-4: searched words never appear in the log", %{conn: conn} do
+      import Phoenix.LiveViewTest
+
+      region = Jairojobs.RegionsFixtures.region_fixture(name: "Davao City")
+      Logger.configure(level: :debug)
+
+      log =
+        capture_log(fn ->
+          get(conn, "/jobs/#{region.slug}?search=zanzibarista&type=part-time")
+          get(conn, "/?search=zanzibarista")
+
+          {:ok, view, _html} = live(conn, "/jobs/#{region.slug}?search=zanzibarista")
+
+          view |> form("#search-form", %{search: "quetzalcoatl"}) |> render_submit()
+
+          view
+          |> form("#search-form", %{search: "xylophonist", type: "part-time"})
+          |> render_change(%{"_target" => ["type"]})
+
+          view |> element("#region-choice-all") |> render_click()
+        end)
+
+      # The requests and the live events were logged, parameters and all…
+      assert log =~ "GET /jobs/davao-city"
+      assert log =~ "Parameters:"
+      assert log =~ "[FILTERED]"
+      assert log =~ "part-time"
+
+      # …and none of the words is anywhere in it.
+      for word <- ["zanzibarista", "quetzalcoatl", "xylophonist"] do
+        refute log =~ word
+      end
+    end
   end
 end

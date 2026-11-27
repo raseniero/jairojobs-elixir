@@ -95,13 +95,16 @@ config :phoenix, :json_library, Jason
 #   password, email, token — accounts (spec 001); "token" also covers "_csrf_token"
 #   listing, business      — listing text and business details (spec 003)
 #   decision               — an Admin's reason for a rejection or take-down (spec 004)
+#   search                 — the words a visitor searches for (spec 005). The parameter is
+#                            not called "q": every name with a "q" in it would be hidden
 config :phoenix, :filter_parameters, [
   "password",
   "email",
   "token",
   "listing",
   "business",
-  "decision"
+  "decision",
+  "search"
 ]
 
 # Import environment specific config. This must remain at the bottom

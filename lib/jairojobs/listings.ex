@@ -270,16 +270,23 @@ defmodule Jairojobs.Listings do
   def list_public_listings(opts \\ []) do
     query = Enum.reduce(opts, published(), &narrow/2)
 
+    # Searched words are never written to a log (spec 005, privacy). At its most
+    # detailed level Ecto logs every query with the values given to it, and the words
+    # are such a value, so the two queries of a search are not logged at all.
+    quietly = if search_words(opts[:search]), do: [log: false], else: []
+
     listings =
       Repo.all(
-        from l in query,
+        from(l in query,
           order_by: [desc: l.published_at, desc: l.id],
           limit: ^Keyword.get(opts, :limit, @public_page_size),
           offset: ^Keyword.get(opts, :offset, 0),
           preload: [:region]
+        ),
+        quietly
       )
 
-    {listings, Repo.aggregate(query, :count)}
+    {listings, Repo.aggregate(query, :count, quietly)}
   end
 
   @max_search_length 100

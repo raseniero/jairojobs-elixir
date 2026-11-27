@@ -18,7 +18,8 @@ title Spec 001 — screen flow (375 px)
 state "Public pages" as Public <<public>> {
   state "Home / Browse jobs" as Home
   Home : ☰  jairojobs  [Log in]
-  Home : region chips
+  Home : region choices: All regions · Cebu · …
+  Home : search field  [Search] · type: Any type ▾
   Home : "3 jobs · newest first"
   Home : rows: title · business, area, region ·
   Home : salary · date · ✓ Approved (spec 005)
