@@ -1,6 +1,6 @@
 # 005 — Public browse and search — Tasks
 
-**Status:** In Progress
+**Status:** Done (2026-11-27)
 **Plan:** [plan.md](./plan.md) (Approved 2026-11-26)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
@@ -367,8 +367,8 @@ document changed, and every changed `.puml` is rendered on its own
   - Walk the Definition of Done below and say how each item was met
   - Commit: `test(browse): journey from posting to "no longer listed"; spec 005 closing checks`
 
-- [ ] **T20** — Push (on the owner's word); CI green on `main`; spec, plan and tasks →
-  `Done`; spec 000 feature map → Done
+- [x] **T20** — Push (on the owner's word); CI green on `main`; spec, plan and tasks →
+  `Done`; spec 000 feature map → Done — done 2026-11-27
 
 ## Definition of Done (constitution §7)
 
@@ -382,8 +382,8 @@ Walked on 2026-11-27, at the end of T19.
   status is on no list, in no search, in no sitemap and has no page (context, lists,
   listing page, sitemap); the owner's and the Admin's links are shown to nobody else; a
   listing's id opens nothing public.
-- [ ] `mix precommit` green locally **and** CI green on `main` — green locally. CI has not
-  run: nothing is pushed. This is T20.
+- [x] `mix precommit` green locally **and** CI green on `main` — green locally (782
+  tests). CI: run 46064859189 on commit `3c7de0f`, success, 2026-11-27.
 - [x] Works at 375 px width (phone) before desktop — `scripts/phone-check.sh 005`: 21
   pages, 0 failed; I looked at four of the screenshots. `003` (13 pages) and `004` (15
   pages) were run in T15, after the last change to their screens: 0 failed. One point is
@@ -394,7 +394,9 @@ Walked on 2026-11-27, at the end of T19.
 - [x] Diagrams in this spec and in earlier specs it changed match the built screens and
   code — all five of this spec's diagrams were read again against the screens; four
   changed (Notes, T19). The 21 rows of earlier documents are walked below.
-- [ ] `tasks.md` checked off; spec status set to `Done` — T20, after CI.
+- [x] `tasks.md` checked off; spec status set to `Done` — 2026-11-27, after CI passed.
+  One check is outstanding by the owner's decision: "Share" on a real phone, after
+  deployment (`TODO.md`).
 - [ ] Deployed to Fly.io (once deployment exists) and smoke-checked — no deployment
   exists yet (parked).
 
@@ -812,3 +814,10 @@ Walked on 2026-11-27, at the end of T19.
   3. The design guide's note: a fifth sentence, on "All regions" being first. Done in its
      own commit, with a changelog row.
   4. Push, wait for CI, mark Done (T20).
+- T20: pushed on the owner's word, 38 commits, `af7b95c..3c7de0f`. CI ran `mix precommit`
+  on a clean machine: success (run 46064859189). Then the spec, the plan, this file and
+  the 005 row of spec 000's feature map were set to Done and pushed; that push changes
+  documents only, so CI skips it (constitution §3.10).
+- At Done, what is still open, all of it in `TODO.md`: the tap on "Share" on a real
+  phone and the job details in a search engine's checker, both after deployment; and the
+  idea of showing more jobs on the first phone screen. Deployment itself stays parked.

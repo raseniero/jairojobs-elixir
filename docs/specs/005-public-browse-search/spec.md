@@ -1,6 +1,6 @@
 # 005 — Public browse and search
 
-**Status:** In Progress
+**Status:** Done (2026-11-27)
 **Created:** 2026-11-20
 **Approved:** 2026-11-23
 **Owner:** Jairo
@@ -1025,3 +1025,4 @@ changed part was read again:
 | 2026-11-26 | Amended after approval, on the owner's decision (decision 26): "All regions" is the first of the region choices, not the last. Seen once the lists were built: with four regions the row of choices is wider than a phone, and on the home page the chosen choice was off the screen. REQ-005-3's rule and its scenario "The choices are the active regions" changed; `screenflow-browse` and `activity-browse-and-search` changed with them. The design guide's mock still draws "All regions" last |
 | 2026-11-27 | At the close, after every diagram was read again against the built screens. Three things the plan decided and the app does are now written in the requirements, each as a rule, with no scenario changed: how far a list is opened is part of its address, up to 200 rows (REQ-005-4; plan decision 9); `/jobs` alone forwards to the home page (REQ-005-3; plan decision 15); where "Share" can neither open a share sheet nor copy, it writes the address out (REQ-005-8; plan decision 19). Diagrams brought in line with the screens: `activity-share-and-be-found` (the third outcome of Share), `activity-browse-and-search` (the address keeps how far the list is opened), `activity-open-a-listing` (the way back is first on the page, as built), `screenflow-browse` (a region's heading, "Clear search" whenever words or a type are set, the third outcome of Share, `/jobs`). `activity-address-and-links` agreed and did not change |
 | 2026-11-27 | Amended at the close, on the owner's decision (decision 27): the non-functional requirement "Mobile-first" no longer asks for about six rows to a phone screen on the lists. It says what is built (about five on a large phone, under four on a small one) and why. No requirement, scenario or diagram changed. The idea of showing more rows is in `TODO.md` |
+| 2026-11-27 | Done. Implemented per tasks.md, 20 tasks; CI green on `main`. One check is outstanding by the owner's decision: "Share" tapped on a real phone, which needs the deployed site (REQ-005-8; listed in `TODO.md`). "Deployed to Fly.io" is deferred until a deployment exists |
