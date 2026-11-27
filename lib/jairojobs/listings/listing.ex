@@ -41,6 +41,9 @@ defmodule Jairojobs.Listings.Listing do
     # are the latest Admin decision; what it was follows from the status.
     field :published_at, :utc_datetime_usec
     field :decided_at, :utc_datetime_usec
+    # spec 005: the listing's part of its public address, /jobs/<region slug>/<slug>.
+    # Set on approval; changes only when an Admin moves the listing to another region.
+    field :slug, :string
 
     belongs_to :user, User
     belongs_to :region, Region
@@ -55,7 +58,8 @@ defmodule Jairojobs.Listings.Listing do
   @doc """
   Changeset for saving or editing a draft (REQ-003-3, REQ-003-5). Only the
   title is required; any other field that is filled in must be valid. Status,
-  owner, business details, rejection reason and timestamps are never cast.
+  owner, business details, rejection reason, timestamps and the public slug
+  are never cast.
   """
   def draft_changeset(listing, attrs) do
     listing
@@ -172,11 +176,14 @@ defmodule Jairojobs.Listings.Listing do
 
   @doc """
   Changeset that publishes a Pending listing (REQ-004-5). Nothing the Employer
-  wrote is changed; only the status and the record of the decision.
+  wrote is changed; only the status, the record of the decision, and `slug`:
+  the listing's part of its public address (REQ-005-6), which the context has
+  already recorded as taken.
   """
-  def approve_changeset(%__MODULE__{} = listing, %User{} = admin, %DateTime{} = now) do
+  def approve_changeset(%__MODULE__{} = listing, %User{} = admin, slug, %DateTime{} = now)
+      when is_binary(slug) do
     listing
-    |> change(status: :published, published_at: now)
+    |> change(status: :published, published_at: now, slug: slug)
     |> decided(admin, now)
   end
 

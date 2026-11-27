@@ -436,6 +436,8 @@ Scenario: Admin approves their own listing
 - Approval does not look at the free-tier limit: a waiting listing already counts as open
   (REQ-003-12).
 - The approval time is the listing's "posted" date for spec 005.
+- Approving also gives the listing its public address, made from its title as it is at
+  that moment (spec 005, REQ-005-6). The Admin does nothing for it and cannot choose it.
 
 ### REQ-004-6: Reject a listing with a reason
 
@@ -855,3 +857,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-17 | Design guide change (docs/design.md changelog), after Done: the breadcrumb link on the Admin Listings page is 44 px tall; fields and buttons are 44 px; the accent, status and confirmation colours are one step darker. No requirement changed; the 15 pages were re-checked at 375 px |
 | 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". Changed with it: the lifecycle table's label, REQ-004-7's title, the scenario names "Only a published listing can be taken down" and "Fix a published listing", the message "This listing is no longer published.", the email subject "Your listing is published: <title>" (REQ-004-9), and the address of the Admin list (`?status=published`). Six diagrams were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
+| 2026-11-26 | Changed by spec 005, after Done: approving also gives the listing its public address (REQ-005-6). A rule added to REQ-004-5; `activity-approve-or-reject` gains the step; `state-listing` says a Published listing gets its public address on approval. No scenario changed |

@@ -6,7 +6,7 @@
 ' Legend:  PK  primary key (UUID v7, ADR-0004)   FK foreign key   UK unique
 '          *   not null
 
-title jairojobs — Entity-Relationship (after spec 004)
+title jairojobs — Entity-Relationship (after spec 004; public addresses from spec 005)
 
 skinparam linetype ortho
 hide circle
@@ -49,6 +49,17 @@ entity "listings" as listings {
     published_at : utc_datetime_usec  {set once, on approval; spec 004}
     decided_at : utc_datetime_usec  {latest Admin decision; spec 004}
     decided_by_id : uuid <<FK>>  {the Admin who made it; on_delete: nilify}
+    slug : string  {public address; set on approval; spec 005}
+  * inserted_at : utc_datetime_usec
+  * updated_at : utc_datetime_usec
+}
+
+entity "listing_addresses" as listing_addresses {
+  * id : uuid <<PK>>
+  --
+  * listing_id : uuid <<FK>>  {on_delete: refused}
+  * region_id : uuid <<FK>>  {on_delete: restrict}
+  * slug : string  {at most 60}
   * inserted_at : utc_datetime_usec
   * updated_at : utc_datetime_usec
 }
@@ -78,6 +89,8 @@ users ||--o{ users_tokens : "has"
 users ||--o{ listings : "owns"
 users |o--o{ listings : "decided (latest)"
 regions |o--o{ listings : "located in"
+listings ||--o{ listing_addresses : "has or had"
+regions ||--o{ listing_addresses : "is in"
 
 note bottom of users
   Spec 001. Indexes: unique(email), index(role).
@@ -110,10 +123,23 @@ note bottom of listings
   CHECK published / closed / taken_down have published_at.
   CHECK rejected has rejection_reason.
   CHECK taken_down has takedown_reason.
+  Spec 005 (public address). slug is the listing's part of
+  /jobs/<region slug>/<slug>: empty until approval, then
+  changed only by a move to another region.
+end note
+
+note bottom of listing_addresses
+  Spec 005. Every address a listing has or ever had, the
+  current one included. Rows are only inserted.
+  Indexes: unique(region_id, slug) — an address is never
+  given to another listing; unique(listing_id, region_id) —
+  a listing moved back finds the address it had.
+  CHECK slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$', at most 60.
+  The current address is the row in the listing's own region;
+  any other row is an earlier address, which forwards.
 end note
 
 ' --- Planned (not yet designed; added by their specs) ---
-' 005 listings: public slug (published_at arrived with 004: the approval time is the posted date)
 ' 006 profiles  (-> users [candidate]), cv files
 ' 007 applications (-> listings, -> users/profiles)
 ' 011 subscriptions (-> users)

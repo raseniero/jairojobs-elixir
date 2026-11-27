@@ -47,7 +47,7 @@ document changed, and every changed `.puml` is rendered on its own
     `In Progress`
   - Commit: `feat(listings): the slug rule for public addresses (REQ-005-6)`
 
-- [ ] **T2** — Approval gives a listing its address (REQ-005-6)
+- [x] **T2** — Approval gives a listing its address (REQ-005-6) — done 2026-11-26
   - `mix ecto.gen.migration add_public_addresses`: `listings.slug` (nullable); table
     `listing_addresses` (`listing_id`, `region_id`, `slug`, timestamps; both foreign keys
     refuse a delete); `unique(region_id, slug)`; `unique(listing_id, region_id)`; CHECK
@@ -404,3 +404,21 @@ document changed, and every changed `.puml` is rendered on its own
 - T1: 16 unit tests. `Slug.free/2` takes any list or set of taken slugs. The cut works on
   the slug, not the title, so "at a word" means "at a hyphen". Spec 000's changelog does
   not list feature-map status changes, so the 005 row changed without a changelog row.
+- T2: the region's row is locked with `FOR NO KEY UPDATE`, not the plan's `FOR UPDATE`. Both
+  make approvals in one region take turns and hold off a hide or a rename. `FOR UPDATE`
+  would also make an Employer who is saving a listing in that region wait, because the
+  database checks the listing's region with a lock that `FOR UPDATE` blocks; the weaker
+  lock does not.
+- T2: `listing_addresses.listing_id` refuses a delete with `on_delete: :nothing`, not
+  `:restrict`. Both refuse; `:nothing` checks at the end of the statement, which T3's
+  foreign key in the other direction will need for a clean-up to be possible at all.
+- T2: the concurrency test runs 25 rounds of two approvals. With the lock taken out it
+  failed (the second approval crashed on the unique index); with it, it passes. Its
+  clean-up, and the phone check's (`priv/phone_check/support.exs`), now remove a listing's
+  addresses before the listing. The phone check's change was not run; T15 runs it.
+- T2: 18 new tests: 16 in the new context file, 1 in the moderation file, 1 concurrency
+  test. Three of them try to break the database's rules with a direct write, and a fourth
+  shows a listing with an address cannot be deleted.
+- T2: looked at all three re-rendered diagrams (the ERD, `activity-approve-or-reject`,
+  spec 004's `state-listing`). `data-model.md` and the ERD say "through spec 005's first
+  migration"; T3 adds the checks.

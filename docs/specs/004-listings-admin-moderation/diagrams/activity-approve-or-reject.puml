@@ -22,6 +22,8 @@ if (Decision?) then (approve)
   endif
   :Status → Published;
   :Record the time and the Admin;
+  :Give the listing its public address,
+  made from its title (spec 005, REQ-005-6);
   note right
     The listing's content is not changed.
     An Admin may approve their own listing.

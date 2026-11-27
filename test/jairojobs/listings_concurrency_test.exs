@@ -11,6 +11,7 @@ defmodule Jairojobs.ListingsConcurrencyTest do
   alias Jairojobs.Accounts.User
   alias Jairojobs.Listings
   alias Jairojobs.Listings.Listing
+  alias Jairojobs.Listings.ListingAddress
   alias Jairojobs.ListingsFixtures
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
@@ -22,6 +23,11 @@ defmodule Jairojobs.ListingsConcurrencyTest do
     on_exit(fn ->
       unboxed(fn ->
         new_users = from u in User, where: u.id not in ^users_before, select: u.id
+        new_listings = from l in Listing, where: l.user_id in subquery(new_users), select: l.id
+
+        # A listing's addresses go first: the database refuses to delete a listing that
+        # has one (spec 005).
+        Repo.delete_all(from a in ListingAddress, where: a.listing_id in subquery(new_listings))
         Repo.delete_all(from l in Listing, where: l.user_id in subquery(new_users))
         Repo.delete_all(from r in Region, where: r.id not in ^regions_before)
         Repo.delete_all(from u in User, where: u.id not in ^users_before)
@@ -114,6 +120,51 @@ defmodule Jairojobs.ListingsConcurrencyTest do
               "published_at #{inspect(stored.published_at)}"
           )
       end
+    end
+  end
+
+  # spec 005, plan decision 4. Two Admins approve two listings with the same title in
+  # the same region at the same instant. Both read which addresses are taken; without
+  # the lock on the region's row both would pick the same one, and the second would
+  # crash on the unique index. They must take turns, and each get an address of its own.
+  test "REQ-005-6: two approvals of the same title at the same moment get different addresses" do
+    rounds = 25
+
+    {admins, pairs} =
+      unboxed(fn ->
+        owner = ListingsFixtures.admin_poster_scope_fixture()
+        admins = for _ <- 1..2, do: Jairojobs.AccountsFixtures.admin_scope_fixture()
+        region_id = Jairojobs.RegionsFixtures.region_fixture().id
+
+        pairs =
+          for round <- 1..rounds do
+            for _ <- 1..2 do
+              ListingsFixtures.listing_in_status_fixture(owner, :pending,
+                region_id: region_id,
+                title: "Racing barista #{round}"
+              )
+            end
+          end
+
+        {admins, pairs}
+      end)
+
+    url = &"https://jairojobs.test/my/listings/#{&1.id}"
+
+    for {pair, round} <- Enum.with_index(pairs, 1) do
+      results =
+        [pair, admins]
+        |> Enum.zip()
+        |> Enum.map(fn {listing, admin} ->
+          Task.async(fn -> unboxed(fn -> Listings.approve_listing(admin, listing, url) end) end)
+        end)
+        |> Task.await_many(15_000)
+
+      slugs =
+        for {:ok, %Listing{status: :published, slug: slug}, _email} <- results, do: slug
+
+      assert Enum.sort(slugs) == ["racing-barista-#{round}", "racing-barista-#{round}-2"],
+             "round #{round}: #{inspect(results)}"
     end
   end
 

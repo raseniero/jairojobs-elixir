@@ -41,6 +41,7 @@ Rejected -[dashed]-> Pending : resubmit (003)\n(complete, within the limit)\nAdm
 Rejected -[dashed]-> [*] : delete (003)
 
 Published : visible to everyone (005)
+Published : gets its public address on approval (005)
 Published : Admin can take down or edit
 Published -[dashed]-> Closed : employer closes (003)
 Published --> TakenDown : Admin takes down with a reason\nemployer is emailed the reason

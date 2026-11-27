@@ -453,6 +453,18 @@ defmodule Jairojobs.ListingsModerationTest do
       assert %Listing{status: :published, takedown_reason: nil} = reload(live)
       assert reload(live).decided_by_id == admin.user.id
     end
+
+    # spec 005 — REQ-005-6: only an approval gives a listing its public address.
+    test "an approval that is refused writes no public address", %{employer: employer} do
+      waiting = pending_listing(employer)
+
+      for scope <- non_admin_scopes(employer) do
+        assert {:error, :unauthorized} = Listings.approve_listing(scope, waiting, owner_url())
+      end
+
+      assert reload(waiting).slug == nil
+      assert Repo.aggregate(Jairojobs.Listings.ListingAddress, :count) == 0
+    end
   end
 
   describe "change_reason/1" do

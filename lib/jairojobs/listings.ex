@@ -22,7 +22,9 @@ defmodule Jairojobs.Listings do
   alias Jairojobs.Accounts.Scope
   alias Jairojobs.Accounts.User
   alias Jairojobs.Listings.Listing
+  alias Jairojobs.Listings.ListingAddress
   alias Jairojobs.Listings.ListingNotifier
+  alias Jairojobs.Listings.Slug
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
 
@@ -310,6 +312,10 @@ defmodule Jairojobs.Listings do
   are recorded (REQ-004-5). Nothing the Employer wrote is changed. Any Admin
   may approve any waiting listing, their own included.
 
+  Approval also gives the listing its public address (REQ-005-6): a slug made
+  from the title as it is now, unique within its region, numbered if another
+  listing has or ever had the same one. The slug is on the listing returned.
+
   `owner_url` turns the listing into the address of its page in My listings,
   for the email to its owner (REQ-004-9). Returns:
 
@@ -323,8 +329,9 @@ defmodule Jairojobs.Listings do
     scope
     |> moderate(listing, fn admin, listing ->
       with :ok <- in_status(listing, [:pending], :not_pending),
-           :ok <- region_active(listing) do
-        listing |> Listing.approve_changeset(admin, DateTime.utc_now()) |> decide()
+           {:ok, region} <- lock_active_region(listing.region_id) do
+        slug = take_address(listing, region, Slug.from_title(listing.title))
+        listing |> Listing.approve_changeset(admin, slug, DateTime.utc_now()) |> decide()
       end
     end)
     |> notify_owner(scope, owner_url)
@@ -404,6 +411,34 @@ defmodule Jairojobs.Listings do
       end
     end)
     |> notify_owner(scope, owner_url)
+  end
+
+  # The region's row, locked, if the region is active. Whoever is about to give
+  # out an address in a region holds this lock until they commit, so two
+  # approvals in one region take turns and never pick the same slug
+  # (spec 005, plan decision 4). The lock also means an Admin cannot hide the
+  # region between this check and the write.
+  #
+  # `FOR NO KEY UPDATE`, not `FOR UPDATE`: it holds off other address-givers and
+  # a hide or a rename, but not an Employer saving a listing in the region, whose
+  # foreign-key check only needs the region's key to stay put.
+  defp lock_active_region(region_id) do
+    case Repo.one(from r in Region, where: r.id == ^region_id, lock: "FOR NO KEY UPDATE") do
+      %Region{active: true} = region -> {:ok, region}
+      _hidden -> {:error, :region_hidden}
+    end
+  end
+
+  # Records an address for `listing` in `region` and answers its slug: `wanted`,
+  # or `wanted` with the next free number when a listing has or ever had that
+  # address there (REQ-005-6). Must be called inside a transaction that holds
+  # the region's row lock.
+  defp take_address(%Listing{id: listing_id}, %Region{id: region_id}, wanted) do
+    taken = Repo.all(from a in ListingAddress, where: a.region_id == ^region_id, select: a.slug)
+    slug = Slug.free(wanted, taken)
+
+    Repo.insert!(%ListingAddress{listing_id: listing_id, region_id: region_id, slug: slug})
+    slug
   end
 
   # A changed region must be one that is offered: an active one. Keeping the
