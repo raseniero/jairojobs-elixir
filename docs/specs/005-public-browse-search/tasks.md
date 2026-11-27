@@ -800,3 +800,15 @@ Walked on 2026-11-27, at the end of T19.
 - T19, not done or not checked, in one place: CI (nothing is pushed); the tap on a real
   phone; the job-details block in a search engine's own checker; the screenshots of the
   phone check beyond the ones named in each task.
+- 2026-11-27, the owner went through the four open items one at a time:
+  1. Rows on the first screen: left as built. Spec decision 27; the non-functional
+     requirement says what is built. Kept as a product idea in `TODO.md`, written up in
+     `scratchpad/product_ideas/` (not in git).
+  2. "Share" on a real phone: after the site is deployed. Phones allow the share sheet
+     and copying only on a secure address, which the dev machine does not have, so a
+     phone today would show only the last fallback. **Open check**, listed in `TODO.md`:
+     once deployed, open a listing on a phone, tap "Share", and see the share sheet with
+     the title and the address. The spec is marked Done with this one check outstanding.
+  3. The design guide's note: a fifth sentence, on "All regions" being first. Done in its
+     own commit, with a changelog row.
+  4. Push, wait for CI, mark Done (T20).
