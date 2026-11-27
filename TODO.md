@@ -3,23 +3,6 @@
 Things to come back to. Not a plan: nothing here is approved work. Feature work still
 starts with a spec (`docs/README.md`).
 
-## To fix
-
-- **Spec 005's tests use fixed region names in tests that run at the same time.** Found on
-  2026-11-27, after spec 005 was marked Done. Five new test files
-  (`listings_public_test.exs`, `listing_live/index_test.exs`,
-  `listing_controller_test.exs`, `sitemap_controller_test.exs`,
-  `browse_journey_test.exs`) are `async: true` and create regions named "Davao City",
-  "Cebu", "Baguio" and so on, because the addresses they check depend on the region's
-  slug. Four tests added to older async files do the same
-  (`listings_moderation_test.exs`, `employer/listing_live_test.exs`,
-  `admin/listing_live_test.exs`). Region names are unique in the database, so such tests
-  wait for each other, and can deadlock or time out on a busy machine. Spec 002's tests
-  avoid this by being `async: false` with a comment; every other async test uses unique
-  names ("Davao 1234"). The suite has passed every run so far, CI included, so this is a
-  risk of an occasional false failure, not a wrong result. Fix: make the five files
-  `async: false` with the same comment, and give the four added tests unique region names.
-
 ## Checks still to do
 
 - **"Share" on a real phone, once the site is deployed** (spec 005, REQ-005-8). Open a

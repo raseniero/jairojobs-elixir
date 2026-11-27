@@ -12,8 +12,11 @@ see them fail, then implement. Mark a finished task `[x]` with `— done YYYY-MM
 Run `mix precommit` with `set -o pipefail` (or read its output) before each commit: piping
 it through `tail` hides a failing exit status. Run `date +%F` before writing any date.
 
-New test files are `async: true`. Each test makes its own regions, so fixed titles such as
-"Barista (full-time)" do not clash between tests.
+The five test files written for this spec are `async: false`, each with a comment saying
+why: they create regions with fixed names ("Davao City", "Cebu"), because the addresses
+they check are made from the region's slug, and region names are unique in the database.
+(As first written this paragraph said they were `async: true`; that was wrong, and was
+corrected on 2026-11-27, after Done. See the last note.)
 
 Test files, by the letters the plan uses:
 **C** `test/jairojobs/listings_public_test.exs` ·
@@ -821,3 +824,22 @@ Walked on 2026-11-27, at the end of T19.
 - At Done, what is still open, all of it in `TODO.md`: the tap on "Share" on a real
   phone and the job details in a search engine's checker, both after deployment; and the
   idea of showing more jobs on the first phone screen. Deployment itself stays parked.
+- 2026-11-27, after Done: a fault in this spec's tests, found while writing the handoff
+  note, and fixed the same day on the owner's word. The five new test files ran at the
+  same time as other tests and created regions with fixed names. Region names are unique,
+  so tests doing this wait for each other and can deadlock or time out on a busy machine:
+  a known pitfall, written in an older handoff note that this session did not read, and
+  the reason spec 002's tests are `async: false`. No run ever failed: before the fix the
+  whole suite was run 26 times in a row to try to make it fail, and it passed each time.
+  It was a risk of a false failure, not a wrong result.
+  The fix, tests only: the five files (`listings_public_test.exs`,
+  `listing_live/index_test.exs`, `listing_controller_test.exs`,
+  `sitemap_controller_test.exs`, `browse_journey_test.exs`) are `async: false`, with the
+  comment spec 002's tests carry; and the four tests this spec added to files that still
+  run at the same time (one in `listings_moderation_test.exs`, one in
+  `employer/listing_live_test.exs`, two in `admin/listing_live_test.exs`) use a region
+  name no other test has and read the address from the region. A search of every test
+  file that still runs at the same time finds no fixed region name. After the fix the
+  suite was run 12 times in a row: 782 passed each time. It takes about 11.6 seconds,
+  from about 9.5. `plan.md` still says the new files are `async: true`; it was left as
+  the record of what was planned.

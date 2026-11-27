@@ -790,7 +790,10 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
     setup :log_in_employer
 
     test "REQ-005-10: The owner view links to the public page", %{conn: conn, scope: scope} do
-      region = region_fixture(name: "Davao City")
+      # A name no other test has: this file runs alongside others, and region names are
+      # unique. The address is read from the region.
+      region = region_fixture(name: "Davao #{System.unique_integer([:positive])}")
+      public_path = "/jobs/#{region.slug}/barista-full-time"
 
       listing =
         listing_in_status_fixture(scope, :published,
@@ -804,11 +807,11 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
 
       assert has_element?(
                view,
-               ~s(#listing-status-box a#see-public-page[href="/jobs/davao-city/barista-full-time"])
+               ~s(#listing-status-box a#see-public-page[href="#{public_path}"])
              )
 
       # It leads to the page the public sees.
-      assert {:error, {:redirect, %{to: "/jobs/davao-city/barista-full-time" = path}}} =
+      assert {:error, {:redirect, %{to: ^public_path = path}}} =
                view |> element("#see-public-page") |> render_click()
 
       assert conn |> get(path) |> html_response(200) =~ "Barista (full-time)"

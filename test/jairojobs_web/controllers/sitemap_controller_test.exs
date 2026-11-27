@@ -3,7 +3,11 @@ defmodule JairojobsWeb.SitemapControllerTest do
   The sitemap (spec 005 — REQ-005-9): the list of public pages a search engine
   is given. Each test is one request, as a search engine makes it.
   """
-  use JairojobsWeb.ConnCase, async: true
+  # Not async (constitution §3.5): region names and slugs are unique, and these tests use
+  # fixed region names ("Davao City", "Cebu") because the public addresses they check are
+  # made from the region's slug. Concurrent sandbox transactions inserting the same names
+  # wait on each other's unique-index entries and can deadlock.
+  use JairojobsWeb.ConnCase, async: false
 
   import Jairojobs.AccountsFixtures
   import Jairojobs.ListingsFixtures
