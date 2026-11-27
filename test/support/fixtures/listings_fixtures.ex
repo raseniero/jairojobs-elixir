@@ -147,6 +147,28 @@ defmodule Jairojobs.ListingsFixtures do
   end
 
   @doc """
+  Moves the time a Published listing was approved back by `amount` of `unit`,
+  so a test can have a listing "approved 2 hours ago" (spec 005, plan decision
+  20). The context stamps the real time and offers no way to choose it.
+
+  It writes `published_at` and nothing else: the status is still reached
+  through the real functions, as it is for a token's time in
+  `AccountsFixtures.offset_user_token/3`.
+  """
+  def approved_ago(%Listings.Listing{id: id, published_at: %DateTime{}} = listing, amount, unit) do
+    import Ecto.Query, only: [from: 2]
+
+    at = DateTime.add(DateTime.utc_now(), -amount, unit)
+
+    {1, nil} =
+      Jairojobs.Repo.update_all(from(l in Listings.Listing, where: l.id == ^id),
+        set: [published_at: at]
+      )
+
+    %{listing | published_at: at}
+  end
+
+  @doc """
   A complete listing owned by `scope`, taken to `status` the way a real
   listing gets there: its owner submits it, an Admin approves, rejects or
   takes it down, its owner closes it.

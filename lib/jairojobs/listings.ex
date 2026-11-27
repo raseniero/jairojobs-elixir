@@ -1,7 +1,7 @@
 defmodule Jairojobs.Listings do
   @moduledoc """
-  Listings as their owner sees and manages them (spec 003), and as Admins
-  moderate them (spec 004).
+  Listings as their owner sees and manages them (spec 003), as Admins
+  moderate them (spec 004), and as the public reads them (spec 005).
 
   Every function that touches stored listings takes the current scope first.
   Only an Employer or Admin may post, and an account only ever reads or
@@ -12,6 +12,9 @@ defmodule Jairojobs.Listings do
   and only for an Admin. Each one checks the role itself, re-reads it from the
   database, and locks the listing row before it looks at the status
   (REQ-004-1).
+
+  The public reads take no scope at all: they return Published listings and
+  nothing else, the same for everyone (REQ-005-1).
   """
 
   import Ecto.Query, warn: false
@@ -226,6 +229,56 @@ defmodule Jairojobs.Listings do
   def close_listing(scope, %Listing{} = listing) do
     transition(scope, listing, :published, status: :closed, closed_at: DateTime.utc_now())
   end
+
+  ## The public side (spec 005)
+
+  @public_page_size 20
+
+  # The one way to ask for public listings (REQ-005-1): only the status decides.
+  # Every public read is built on this query and on nothing else, so a listing
+  # that is not Published cannot reach a public page whatever a screen asks for.
+  # Not the region (a hidden one hides nothing), not the owner's role, and not
+  # who is looking: these functions take no scope because the answer is the
+  # same for everyone.
+  defp published, do: from(l in Listing, where: l.status == :published)
+
+  @doc """
+  One page of the Published listings, newest approval first, with their
+  region preloaded (REQ-005-1, REQ-005-2). Nothing else is ever returned:
+  no Draft, Pending, Rejected, Closed or Taken down listing.
+
+  Options:
+
+    * `:region` — a `Region`: only its listings (REQ-005-3). A hidden region's
+      listings are returned like any other's
+    * `:limit` (default `20`) and `:offset` (default `0`)
+
+  Returns `{listings, total}`. `total` counts every listing that matched, not
+  only this page.
+
+  The order never changes: an Admin's edit does not move a listing, because it
+  does not touch the time of approval.
+  """
+  def list_public_listings(opts \\ []) do
+    query = Enum.reduce(opts, published(), &narrow/2)
+
+    listings =
+      Repo.all(
+        from l in query,
+          order_by: [desc: l.published_at, desc: l.id],
+          limit: ^Keyword.get(opts, :limit, @public_page_size),
+          offset: ^Keyword.get(opts, :offset, 0),
+          preload: [:region]
+      )
+
+    {listings, Repo.aggregate(query, :count)}
+  end
+
+  defp narrow({:region, %Region{id: region_id}}, query),
+    do: from(l in query, where: l.region_id == ^region_id)
+
+  defp narrow({:region, nil}, query), do: query
+  defp narrow({option, _value}, query) when option in [:limit, :offset], do: query
 
   ## Moderation (spec 004)
 

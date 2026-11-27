@@ -114,7 +114,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase B — The public reads
 
-- [ ] **T5** — Published listings, newest first (REQ-005-1, REQ-005-2)
+- [x] **T5** — Published listings, newest first (REQ-005-1, REQ-005-2) — done 2026-11-26
   - `Listings.list_public_listings/1` on the one private `published/0` query: `:region`,
     `:limit` (20), `:offset`; `{listings, total}`; `published_at` then `id`, descending;
     region preloaded
@@ -455,3 +455,8 @@ document changed, and every changed `.puml` is rendered on its own
   left unrun has now been run. I did not look at its screenshots; no screen changed.
 - T3: the migration that gives the addresses has no automated test. It was checked by
   the two runs above.
+- T5: 10 tests. With the rule weakened on purpose to "was ever approved", the test for
+  the other statuses failed (it found the Closed and the Taken down listing); restored.
+  The test helper that sets a listing's approval time back is
+  `ListingsFixtures.approved_ago/3` (plan decision 20). Two listings approved at the same
+  instant are ordered by id, later first, so the order is always the same.

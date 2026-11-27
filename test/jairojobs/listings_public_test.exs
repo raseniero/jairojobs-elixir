@@ -10,6 +10,7 @@ defmodule Jairojobs.ListingsPublicTest do
   import Jairojobs.ListingsFixtures
   import Jairojobs.RegionsFixtures
 
+  alias Jairojobs.Accounts.Scope
   alias Jairojobs.Listings
   alias Jairojobs.Listings.Listing
   alias Jairojobs.Listings.ListingAddress
@@ -56,6 +57,159 @@ defmodule Jairojobs.ListingsPublicTest do
       davao: region_fixture(name: "Davao City"),
       cebu: region_fixture(name: "Cebu")
     }
+  end
+
+  describe "list_public_listings/1 (REQ-005-1, REQ-005-2)" do
+    defp titles({listings, _total}), do: Enum.map(listings, & &1.title)
+
+    test "REQ-005-1: Other statuses are on no public list",
+         %{owner: owner, admin: admin, davao: davao} do
+      _draft =
+        listing_fixture(owner, complete_listing_attrs(title: "A draft", region_id: davao.id))
+
+      _waiting = pending(owner, "A pending one", davao)
+
+      {:ok, _rejected, _email} =
+        Listings.reject_listing(
+          admin,
+          pending(owner, "A rejected one", davao),
+          %{reason: @reason},
+          owner_url()
+        )
+
+      {:ok, _closed} =
+        Listings.close_listing(owner, published(owner, admin, "A closed one", davao))
+
+      {:ok, _taken_down, _email} =
+        Listings.take_down_listing(
+          admin,
+          published(owner, admin, "A taken down one", davao),
+          %{reason: @reason},
+          owner_url()
+        )
+
+      _published = published(owner, admin, "The published one", davao)
+
+      # On the list of every region, and on their own region's list.
+      assert {[%Listing{title: "The published one", status: :published}], 1} =
+               Listings.list_public_listings()
+
+      assert {[%Listing{title: "The published one"}], 1} =
+               Listings.list_public_listings(region: davao)
+    end
+
+    test "nothing is listed when nothing is Published", %{owner: owner, davao: davao} do
+      _waiting = pending(owner, "A pending one", davao)
+
+      assert Listings.list_public_listings() == {[], 0}
+      assert Listings.list_public_listings(region: davao) == {[], 0}
+    end
+
+    test "REQ-005-1: A hidden region does not hide a listing",
+         %{owner: owner, admin: admin} do
+      baguio = region_fixture(name: "Baguio")
+      listing = published(owner, admin, "Barista (full-time)", baguio)
+      {:ok, hidden} = Regions.hide_region(admin, baguio)
+
+      assert {[%Listing{id: id, region: %{name: "Baguio", active: false}}], 1} =
+               Listings.list_public_listings()
+
+      assert id == listing.id
+
+      # Its own list still holds it too (REQ-005-3).
+      assert {[%Listing{id: ^id}], 1} = Listings.list_public_listings(region: hidden)
+    end
+
+    test "REQ-005-1: The owner's role does not matter", %{admin: admin, davao: davao} do
+      owner = admin_poster_scope_fixture()
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      {:ok, demoted} = Jairojobs.Accounts.demote_admin(Scope.system(), owner.user)
+      assert demoted.role == :candidate
+
+      assert {[%Listing{id: id}], 1} = Listings.list_public_listings()
+      assert id == listing.id
+    end
+
+    test "REQ-005-2: Newest first", %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      # Made in one order, approved in another: only the time of approval counts.
+      barista = published(owner, admin, "Barista", davao)
+      cashier = published(owner, admin, "Cashier", cebu)
+      cook = published(owner, admin, "Line cook", davao)
+
+      approved_ago(cashier, 3, :hour)
+      approved_ago(barista, 20, :minute)
+      approved_ago(cook, 2, :day)
+
+      assert titles(Listings.list_public_listings()) == ["Barista", "Cashier", "Line cook"]
+      assert titles(Listings.list_public_listings(region: davao)) == ["Barista", "Line cook"]
+    end
+
+    test "two listings approved at the same instant keep one order",
+         %{owner: owner, admin: admin, davao: davao} do
+      first = published(owner, admin, "Barista", davao)
+      second = published(owner, admin, "Cashier", davao)
+      at = ~U[2026-11-20 08:00:00.000000Z]
+
+      Repo.update_all(from(l in Listing, where: l.id in ^[first.id, second.id]),
+        set: [published_at: at]
+      )
+
+      # The later id first: ids are time-ordered (ADR-0004).
+      assert titles(Listings.list_public_listings()) == ["Cashier", "Barista"]
+    end
+
+    test "REQ-005-2: A long list is shown in parts", %{owner: owner, admin: admin, davao: davao} do
+      for n <- 1..25 do
+        owner
+        |> published(admin, "Job number #{n}", davao)
+        |> approved_ago(n, :hour)
+      end
+
+      assert {first, 25} = Listings.list_public_listings()
+      assert Enum.map(first, & &1.title) == Enum.map(1..20, &"Job number #{&1}")
+
+      assert {rest, 25} = Listings.list_public_listings(offset: 20)
+      assert Enum.map(rest, & &1.title) == Enum.map(21..25, &"Job number #{&1}")
+
+      assert {[], 25} = Listings.list_public_listings(offset: 40)
+
+      assert {ten, 25} = Listings.list_public_listings(limit: 10, offset: 5)
+      assert Enum.map(ten, & &1.title) == Enum.map(6..15, &"Job number #{&1}")
+    end
+
+    test "REQ-005-2: An edit does not move a listing",
+         %{owner: owner, admin: admin, davao: davao} do
+      cashier = owner |> published(admin, "Cashier", davao) |> approved_ago(3, :hour)
+      _barista = owner |> published(admin, "Barista", davao) |> approved_ago(20, :minute)
+
+      {:ok, edited, _email} =
+        Listings.update_listing_as_admin(admin, cashier, %{area: "Lanang"}, owner_url())
+
+      assert edited.published_at == cashier.published_at
+      assert titles(Listings.list_public_listings()) == ["Barista", "Cashier"]
+    end
+
+    test "a region's list holds that region's listings only, and the count follows",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      published(owner, admin, "Barista", davao)
+      published(owner, admin, "Cashier", davao)
+      published(owner, admin, "Line cook", cebu)
+
+      assert {[_, _], 2} = Listings.list_public_listings(region: davao)
+      assert {[%Listing{title: "Line cook"}], 1} = Listings.list_public_listings(region: cebu)
+      assert {[_, _, _], 3} = Listings.list_public_listings()
+
+      assert {[], 0} = Listings.list_public_listings(region: region_fixture())
+    end
+
+    test "each listing comes with its region and its slug, ready for its address",
+         %{owner: owner, admin: admin, cebu: cebu} do
+      published(owner, admin, "Barista (full-time)", cebu)
+
+      assert {[%Listing{slug: "barista-full-time", region: %{slug: "cebu", name: "Cebu"}}], 1} =
+               Listings.list_public_listings()
+    end
   end
 
   describe "a listing's public address (REQ-005-6)" do
