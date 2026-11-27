@@ -80,6 +80,21 @@ document changed, and every changed `.puml` is rendered on its own
     spec 004 `state-listing` ("Published" gets its public address on approval)
   - Commit: `feat(listings): a listing gets its public address at approval (REQ-005-6)`
 
+- [x] **T4** — A move to another region takes the address along (REQ-005-6) — done 2026-11-26, before T3 (see Notes)
+  - `update_listing_as_admin/4`: when the region of a Published listing changes, lock the
+    new region's row; take the address the listing already has there, or `Slug.free/2`
+    with the slug it has now and insert the row; write `region_id` and `slug` in the same
+    update. A Pending listing's move, and an edit that keeps the region, touch no address
+  - Tests (**C**): `REQ-005-6: Moving to another region forwards the old address` (the new
+    slug, the old row kept, both rows the listing's),
+    `…: An earlier address is not given to another listing either`;
+    a listing moved back returns to the slug it had there and no row is added; a move into
+    a region where its slug is taken gets a number; a move across three regions keeps
+    three rows; moving a Pending listing writes nothing
+  - Docs: spec 004 REQ-004-8 and `activity-take-down-and-edit` (a move changes the public
+    address and the old one forwards; the address is not something an edit can set)
+  - Commit: `feat(listings): a moved listing's address follows it (REQ-005-6)`
+
 - [ ] **T3** — Addresses for listings already approved; the database checks (REQ-005-6)
   - `mix ecto.gen.migration give_addresses_to_approved_listings`: data only. Every listing
     with `published_at` and no slug gets one, oldest approval first. The rule is copied
@@ -96,21 +111,6 @@ document changed, and every changed `.puml` is rendered on its own
     result under Notes
   - Docs: ERD and `data-model.md` (the checks and the foreign key)
   - Commit: `feat(listings): addresses for listings approved earlier, and database checks (REQ-005-6)`
-
-- [ ] **T4** — A move to another region takes the address along (REQ-005-6)
-  - `update_listing_as_admin/4`: when the region of a Published listing changes, lock the
-    new region's row; take the address the listing already has there, or `Slug.free/2`
-    with the slug it has now and insert the row; write `region_id` and `slug` in the same
-    update. A Pending listing's move, and an edit that keeps the region, touch no address
-  - Tests (**C**): `REQ-005-6: Moving to another region forwards the old address` (the new
-    slug, the old row kept, both rows the listing's),
-    `…: An earlier address is not given to another listing either`;
-    a listing moved back returns to the slug it had there and no row is added; a move into
-    a region where its slug is taken gets a number; a move across three regions keeps
-    three rows; moving a Pending listing writes nothing
-  - Docs: spec 004 REQ-004-8 and `activity-take-down-and-edit` (a move changes the public
-    address and the old one forwards; the address is not something an edit can set)
-  - Commit: `feat(listings): a moved listing's address follows it (REQ-005-6)`
 
 ## Phase B — The public reads
 
@@ -422,3 +422,13 @@ document changed, and every changed `.puml` is rendered on its own
 - T2: looked at all three re-rendered diagrams (the ERD, `activity-approve-or-reject`,
   spec 004's `state-listing`). `data-model.md` and the ERD say "through spec 005's first
   migration"; T3 adds the checks.
+- T4 was done before T3, and they are listed in that order now. T3's foreign key says a
+  listing's current address must be one of its own recorded addresses. Spec 004's tests
+  already move a Published listing to another region, and until the address moved with it
+  (T4) the foreign key refused those saves: two of spec 004's tests failed. The plan had
+  the checks first (step 2) and the move after (step 3); that order cannot be built. The
+  plan's review missed it. Nothing else about either task changed.
+- T4: 10 tests. A move locks the new region's row, as an approval does, so two moves, or
+  a move and an approval, cannot pick the same slug. A move into a hidden region was
+  already refused; it now also writes no address. The "edited" email still names "Region"
+  and says nothing of the address.

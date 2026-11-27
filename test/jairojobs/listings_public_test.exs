@@ -240,6 +240,193 @@ defmodule Jairojobs.ListingsPublicTest do
     end
   end
 
+  describe "an Admin moves a Published listing to another region (REQ-005-6)" do
+    defp move(admin, listing, region, more \\ %{}) do
+      {:ok, moved, _email} =
+        Listings.update_listing_as_admin(
+          admin,
+          listing,
+          Map.merge(%{region_id: region.id}, more),
+          owner_url()
+        )
+
+      moved
+    end
+
+    test "REQ-005-6: Moving to another region forwards the old address",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      moved = move(admin, listing, cebu)
+
+      # The address follows the listing: the same slug, in the new region.
+      assert moved.region.slug == "cebu"
+      assert moved.slug == "barista-full-time"
+      assert %Listing{slug: "barista-full-time", region_id: region_id} = reload(listing)
+      assert region_id == cebu.id
+
+      # The earlier address stays the listing's own, which is what makes it forward.
+      assert addresses(listing) == [
+               {"davao-city", "barista-full-time"},
+               {"cebu", "barista-full-time"}
+             ]
+    end
+
+    test "REQ-005-6: An earlier address is not given to another listing either",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      moved =
+        owner |> published(admin, "Barista (full-time)", davao) |> then(&move(admin, &1, cebu))
+
+      newcomer = published(owner, admin, "Barista (full-time)", davao)
+
+      assert newcomer.slug == "barista-full-time-2"
+      assert addresses(newcomer) == [{"davao-city", "barista-full-time-2"}]
+      assert {"davao-city", "barista-full-time"} in addresses(moved)
+    end
+
+    test "a listing moved back returns to the address it had there",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      # Meanwhile nobody can take its Davao address, however many are approved there.
+      away = move(admin, listing, cebu)
+      _newcomer = published(owner, admin, "Barista (full-time)", davao)
+
+      back = move(admin, away, davao)
+
+      assert back.slug == "barista-full-time"
+      assert back.region.slug == "davao-city"
+
+      # No third address: one per region, for good.
+      assert addresses(listing) == [
+               {"davao-city", "barista-full-time"},
+               {"cebu", "barista-full-time"}
+             ]
+
+      # And away again: the Cebu address is still its own.
+      assert move(admin, back, cebu).slug == "barista-full-time"
+      assert length(addresses(listing)) == 2
+    end
+
+    test "a move into a region where its slug is taken gets the next free number there",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      _in_cebu = published(owner, admin, "Barista (full-time)", cebu)
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      moved = move(admin, listing, cebu)
+
+      assert moved.slug == "barista-full-time-2"
+
+      # Moved back, it has its unnumbered Davao address again.
+      assert move(admin, moved, davao).slug == "barista-full-time"
+
+      assert addresses(listing) == [
+               {"davao-city", "barista-full-time"},
+               {"cebu", "barista-full-time-2"}
+             ]
+    end
+
+    test "a listing moved across three regions keeps all three addresses",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      manila = region_fixture(name: "Metro Manila")
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      moved = listing |> then(&move(admin, &1, cebu)) |> then(&move(admin, &1, manila))
+
+      assert moved.region.slug == "metro-manila"
+
+      assert addresses(listing) == [
+               {"davao-city", "barista-full-time"},
+               {"cebu", "barista-full-time"},
+               {"metro-manila", "barista-full-time"}
+             ]
+    end
+
+    test "the slug comes from the address it has, not from a title changed in the same edit",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      moved = move(admin, listing, cebu, %{title: "Head barista"})
+
+      assert moved.title == "Head barista"
+      assert moved.slug == "barista-full-time"
+    end
+
+    test "moving a Pending listing writes no address",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      waiting = pending(owner, "Barista (full-time)", davao)
+
+      moved = move(admin, waiting, cebu)
+
+      assert moved.slug == nil
+      assert addresses(waiting) == []
+
+      # Its address is made where it is when it is approved.
+      approved = approve(admin, moved)
+      assert addresses(approved) == [{"cebu", "barista-full-time"}]
+    end
+
+    test "an edit that keeps the region writes no address",
+         %{owner: owner, admin: admin, davao: davao} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      {:ok, edited, _email} =
+        Listings.update_listing_as_admin(admin, listing, %{area: "Lanang"}, owner_url())
+
+      assert edited.slug == "barista-full-time"
+      assert addresses(listing) == [{"davao-city", "barista-full-time"}]
+    end
+
+    test "a move that is refused writes no address",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+      {:ok, _hidden} = Regions.hide_region(admin, cebu)
+
+      # A hidden region, and a field that is not valid alongside a good region.
+      assert {:error, %Ecto.Changeset{}} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 listing,
+                 %{region_id: cebu.id},
+                 owner_url()
+               )
+
+      manila = region_fixture(name: "Metro Manila")
+
+      assert {:error, %Ecto.Changeset{}} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 listing,
+                 %{region_id: manila.id, area: ""},
+                 owner_url()
+               )
+
+      assert %Listing{slug: "barista-full-time", region_id: region_id} = reload(listing)
+      assert region_id == davao.id
+      assert addresses(listing) == [{"davao-city", "barista-full-time"}]
+    end
+
+    test "the email about the edit names the region, not the address",
+         %{admin: admin, davao: davao, cebu: cebu} do
+      employer = employer_scope_fixture()
+      listing = published(employer, admin, "Barista (full-time)", davao)
+      flush_emails()
+
+      assert {:ok, _moved, :sent} =
+               Listings.update_listing_as_admin(
+                 admin,
+                 listing,
+                 %{region_id: cebu.id},
+                 owner_url()
+               )
+
+      assert_received {:email, email}
+      assert email.text_body =~ "  - Region\n"
+      refute email.text_body =~ "slug"
+      refute email.text_body =~ "ddress"
+    end
+  end
+
   describe "the database guards the addresses (REQ-005-6)" do
     setup %{owner: owner, admin: admin, davao: davao} do
       %{listing: published(owner, admin, "Barista (full-time)", davao)}

@@ -44,8 +44,8 @@ else (edit)
   note right
     Regions offered: the active ones,
     plus the one the listing is already in.
-    Status, owner and submission time
-    cannot be changed.
+    Status, owner, submission time and
+    the public address cannot be changed.
     The form says "The employer will be
     told what you changed."
   end note
@@ -68,6 +68,12 @@ else (edit)
   endif
   :Save. Status and place in the queue stay the same.
   No second approval is needed;
+  if (Published, and the region changed?) then (yes)
+    :Its public address follows it to the new
+    region. The old address forwards
+    (spec 005, REQ-005-6);
+  else (no)
+  endif
   :The account's business details are untouched;
   :Email the employer which parts changed (REQ-004-9);
   :Back on the listing's Admin view

@@ -592,7 +592,11 @@ Scenario: The listing changed while I was editing
 - Editable: every field in REQ-003-4's table, plus this listing's business name and
   "about the business". The field rules are those of REQ-003-4 and REQ-003-2, and all
   required fields must stay filled in.
-- Not editable: status, owner, time of submission.
+- Not editable: status, owner, time of submission, and the listing's public address
+  (spec 005, REQ-005-6).
+- Moving a Published listing to another region changes its public address: the address
+  follows the listing to the new region, and the old one forwards to it (REQ-005-6). The
+  Admin does not set the address; it follows from the region.
 - An Admin edit never changes the account's business details and never needs a second
   approval; the Admin who saves it is the approver.
 - The form tells the Admin: "The employer will be told what you changed."
@@ -858,3 +862,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-20 | Wording only, after Done (owner's decision, docs/design.md changelog): the Published status is called "Published" everywhere, no longer "Live". Changed with it: the lifecycle table's label, REQ-004-7's title, the scenario names "Only a published listing can be taken down" and "Fix a published listing", the message "This listing is no longer published.", the email subject "Your listing is published: <title>" (REQ-004-9), and the address of the Admin list (`?status=published`). Six diagrams were changed to match, and the tests renamed. No requirement changed meaning. Earlier changelog rows, plan.md and tasks.md keep the old word |
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-26 | Changed by spec 005, after Done: approving also gives the listing its public address (REQ-005-6). A rule added to REQ-004-5; `activity-approve-or-reject` gains the step; `state-listing` says a Published listing gets its public address on approval. No scenario changed |
+| 2026-11-26 | Changed by spec 005, after Done: an Admin edit that moves a Published listing to another region moves its public address, and the old address forwards; the public address joins what an edit cannot set (REQ-005-6). Two rules in REQ-004-8; `activity-take-down-and-edit` gains a note and a step. No scenario changed |

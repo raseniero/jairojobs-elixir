@@ -394,6 +394,12 @@ defmodule Jairojobs.Listings do
   or move to an active region. When two Admins save the same listing, the
   later save replaces the earlier one.
 
+  Moving a Published listing to another region moves its public address with
+  it (REQ-005-6): the same slug there, or the next free number, or the address
+  it had there if it was in that region before. Its earlier addresses stay
+  recorded as its own, so they can forward. Nothing else in an edit touches
+  the address, and the address cannot be set through `attrs`.
+
   Returns:
 
     * `{:ok, listing, email}` — saved; `email` as for `approve_listing/3`
@@ -407,7 +413,11 @@ defmodule Jairojobs.Listings do
     scope
     |> moderate(listing, fn _admin, listing ->
       with :ok <- in_status(listing, [:pending, :published], :not_editable) do
-        listing |> Listing.admin_changeset(attrs) |> region_offered() |> save_edit(listing)
+        listing
+        |> Listing.admin_changeset(attrs)
+        |> region_offered()
+        |> move_address(listing)
+        |> save_edit(listing)
       end
     end)
     |> notify_owner(scope, owner_url)
@@ -453,13 +463,50 @@ defmodule Jairojobs.Listings do
     end
   end
 
+  # A Published listing whose region changes takes its public address along
+  # (REQ-005-6). Only a valid edit gets this far, so no address is recorded for
+  # a save that is then refused; and if the write itself fails, the transaction
+  # rolls the address back with it.
+  defp move_address(
+         %Ecto.Changeset{valid?: true} = changeset,
+         %Listing{status: :published} = listing
+       ) do
+    with {:ok, region_id} <- Ecto.Changeset.fetch_change(changeset, :region_id),
+         {:ok, region} <- lock_active_region(region_id) do
+      Ecto.Changeset.put_change(changeset, :slug, address_in(listing, region))
+    else
+      :error ->
+        changeset
+
+      {:error, :region_hidden} ->
+        Ecto.Changeset.add_error(changeset, :region_id, "is not available")
+    end
+  end
+
+  defp move_address(changeset, _pending_or_invalid), do: changeset
+
+  # The slug of `listing`'s address in `region`: the one it had there if it was
+  # in that region before, otherwise a new one, made from the slug it has now.
+  defp address_in(%Listing{} = listing, %Region{} = region) do
+    earlier =
+      Repo.one(
+        from a in ListingAddress,
+          where: a.listing_id == ^listing.id and a.region_id == ^region.id,
+          select: a.slug
+      )
+
+    earlier || take_address(listing, region, listing.slug)
+  end
+
   defp save_edit(%Ecto.Changeset{valid?: true, changes: changes}, listing)
        when map_size(changes) == 0,
        do: {:ok, listing, :unchanged}
 
   defp save_edit(changeset, _listing) do
     with {:ok, listing} <- Repo.update(changeset) do
-      {:ok, listing, {:edited, Map.keys(changeset.changes)}}
+      # The slug is not a part of the listing the Employer wrote; the email names
+      # the region that changed, which is why the address did.
+      {:ok, listing, {:edited, Map.keys(changeset.changes) -- [:slug]}}
     end
   end
 
