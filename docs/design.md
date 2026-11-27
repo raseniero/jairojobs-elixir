@@ -1,7 +1,7 @@
 # Design Guide
 
 **Status:** Accepted
-**Last updated:** 2026-11-26 (see Changelog)
+**Last updated:** 2026-11-27 (see Changelog)
 **Brief:** "A clean, trustworthy, modern craigslist.org."
 
 The single reference for how jairojobs looks and feels. Agents and humans build every screen
@@ -15,11 +15,12 @@ Reference render (375 px, listing index + detail):
 *Source: `design/mock-listing-375.html` (static HTML, same tokens). Open in a browser to inspect.*
 
 *The mock was drawn before the public pages were specified (spec 005) and differs from
-the site in four places. The listing page has no "Apply for this job" button until spec
+the site in five places. The listing page has no "Apply for this job" button until spec
 007; it has a "Share" button and the line "Applying through jairojobs is coming soon."
 "Member since" is not shown. Dates read "1 d ago", never "Yesterday". The list also has
-a search field and a type choice, which the mock does not draw. Where the mock and a
-spec disagree, the spec is right.*
+a search field and a type choice, which the mock does not draw. "All regions" is the first
+of the region choices, not the last. Where the mock and a spec disagree, the spec is
+right.*
 
 ## 1. Principles
 
@@ -232,3 +233,4 @@ Entries before 2026-11-17 are in the commit history.
 | 2026-11-18 | §6: lighter text made by lowering opacity must still reach 4.5:1 (60 % or more), icons 3:1. Measured in the app: 70 % and 60 % text and field labels pass; placeholders (50 %, 3.41) and the "×" on messages (40 %, about 2.0) did not, and were raised to 60 % and 80 % |
 | 2026-11-20 | One word for the Published status (owner's decision): the label an owner or Admin sees is "Published", no longer "Live", so the status and its label are the same word. The trust line on public lists reads "…before it is published." The other labels ("Waiting for approval", "Needs changes") are unchanged. Reference mock updated |
 | 2026-11-26 | A note beside the reference mock names the four places where it differs from the site as spec 005 specifies it: no "Apply for this job" button until spec 007, no "Member since", "1 d ago" not "Yesterday", and a search field and type choice the mock does not draw. The mock itself is not redrawn. No rule changed (approved by the owner) |
+| 2026-11-27 | The note beside the reference mock names a fifth difference: "All regions" is the first of the region choices on the site (spec 005, decision 26), where the mock draws it last. The mock itself is not redrawn. No rule changed (approved by the owner) |
