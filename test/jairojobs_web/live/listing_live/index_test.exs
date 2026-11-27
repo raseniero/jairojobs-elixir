@@ -251,10 +251,17 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
         owner |> published(admin, "Job number #{n}", davao) |> approved_ago(n, :hour)
       end
 
-      {:ok, _view, html} = live(conn, ~p"/")
+      {:ok, view, html} = live(conn, ~p"/")
 
       assert row_titles(html) == Enum.map(1..20, &"Job number #{&1}")
       assert text_of(html, "#jobs-count") == "25 jobs · newest first"
+
+      # And I can ask for more.
+      assert text_of(html, "#show-more") == "Show more"
+      html = view |> element("#show-more") |> render_click()
+
+      assert row_titles(html) == Enum.map(1..25, &"Job number #{&1}")
+      refute has_element?(view, "#show-more")
     end
 
     test "REQ-005-2: The trust line is shown", %{
@@ -835,6 +842,171 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
                "type" => "part-time",
                "region" => "davao-city"
              }
+    end
+  end
+
+  describe "\"Show more\", and what the address keeps (REQ-005-2, plan decision 9)" do
+    # `count` Published listings in `region`, "Job number 1" the newest.
+    defp jobs(owner, admin, region, count, title \\ "Job number") do
+      for n <- 1..count do
+        owner
+        |> published(admin, "#{title} #{n}", region,
+          description: "A steady job with a good team in a busy neighbourhood shop."
+        )
+        |> approved_ago(n, :minute)
+      end
+    end
+
+    defp numbered(range, title \\ "Job number"), do: Enum.map(range, &"#{title} #{&1}")
+
+    test "20 rows, then 20 more each time, until there are no more",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      jobs(owner, admin, davao, 45)
+
+      {:ok, view, html} = live(conn, ~p"/")
+      assert row_titles(html) == numbered(1..20)
+
+      html = view |> element("#show-more") |> render_click()
+      assert_patch(view, "/?shown=40")
+      # Added under the rows already there, in order, none twice.
+      assert row_titles(html) == numbered(1..40)
+      assert has_element?(view, "#show-more")
+
+      html = view |> element("#show-more") |> render_click()
+      assert_patch(view, "/?shown=60")
+      assert row_titles(html) == numbered(1..45)
+      refute has_element?(view, "#show-more")
+
+      # The count never changes: it is of everything listed, not of what is shown.
+      assert text_of(html, "#jobs-count") == "45 jobs · newest first"
+    end
+
+    test "there is no \"Show more\" when everything is shown",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      {:ok, view, _html} = live(conn, ~p"/")
+      refute has_element?(view, "#show-more")
+
+      jobs(owner, admin, davao, 20)
+
+      {:ok, view, html} = live(conn, ~p"/")
+      assert length(row_titles(html)) == 20
+      refute has_element?(view, "#show-more")
+    end
+
+    test "an address with `shown` delivers that many rows at once, before any live connection",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      jobs(owner, admin, davao, 45)
+
+      html = conn |> get("/?shown=40") |> html_response(200)
+
+      assert row_titles(html) == numbered(1..40)
+
+      # "Show more" is a real link to the next address, and replaces this one in the
+      # browser's history, so Back never has to be pressed once per "Show more".
+      more = html |> LazyHTML.from_fragment() |> LazyHTML.query("a#show-more")
+      assert LazyHTML.attribute(more, "href") == ["/?shown=60"]
+      assert LazyHTML.attribute(more, "data-phx-link-state") == ["replace"]
+
+      # Opened live at that address, "Show more" carries on from there.
+      {:ok, view, html} = live(conn, "/?shown=40")
+      assert row_titles(html) == numbered(1..40)
+
+      html = view |> element("#show-more") |> render_click()
+      assert_patch(view, "/?shown=60")
+      assert row_titles(html) == numbered(1..45)
+    end
+
+    test "`shown` works with a region, a search and a type, and they stay in the address",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      jobs(owner, admin, davao, 25, "Barista shift")
+      jobs(owner, admin, davao, 3, "Cashier shift")
+      jobs(owner, admin, cebu, 2, "Barista shift")
+
+      {:ok, view, html} = live(conn, "/jobs/davao-city?search=barista&type=full-time")
+      assert length(row_titles(html)) == 20
+      assert text_of(html, "#jobs-count") == "25 jobs in Davao City · newest first"
+
+      html = view |> element("#show-more") |> render_click()
+
+      # (The test configuration sorts an address's parameters by name.)
+      assert_patch(view, "/jobs/davao-city?search=barista&shown=40&type=full-time")
+      assert row_titles(html) == numbered(1..25, "Barista shift")
+
+      # Opened again by that address: the same 25.
+      html =
+        conn
+        |> get("/jobs/davao-city?search=barista&type=full-time&shown=40")
+        |> html_response(200)
+
+      assert row_titles(html) == numbered(1..25, "Barista shift")
+    end
+
+    test "a new search, a type or a region starts again at 20",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      jobs(owner, admin, davao, 45)
+
+      {:ok, view, _html} = live(conn, "/?shown=40")
+
+      html = view |> element("#region-choice-davao-city") |> render_click()
+      assert_patch(view, "/jobs/davao-city")
+      assert row_titles(html) == numbered(1..20)
+
+      view |> element("#show-more") |> render_click()
+      assert_patch(view, "/jobs/davao-city?shown=40")
+
+      html = view |> form("#search-form", %{search: "job"}) |> render_submit()
+      assert_patch(view, "/jobs/davao-city?search=job")
+      assert row_titles(html) == numbered(1..20)
+
+      view |> element("#show-more") |> render_click()
+      html = view |> element("#clear-search") |> render_click()
+      assert_patch(view, "/jobs/davao-city")
+      assert row_titles(html) == numbered(1..20)
+    end
+
+    test "a `shown` that makes no sense is handled",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      jobs(owner, admin, davao, 45)
+
+      # Nothing, nonsense, too little, and a number between two steps: the first 20.
+      for shown <- ["0", "-40", "abc", "", "19", "20", "30", "20.5", "4e1"] do
+        html = conn |> get("/?shown=#{shown}") |> html_response(200)
+        assert row_titles(html) == numbered(1..20), "shown=#{shown}"
+      end
+
+      html = conn |> get("/?shown[]=40") |> html_response(200)
+      assert row_titles(html) == numbered(1..20)
+
+      # A step, and a number past one: down to the step.
+      html = conn |> get("/?shown=59") |> html_response(200)
+      assert row_titles(html) == numbered(1..40)
+
+      # Far too much: no more than the address ever keeps, which here is everything.
+      html = conn |> get("/?shown=100000") |> html_response(200)
+      assert row_titles(html) == numbered(1..45)
+    end
+
+    test "the address keeps up to 200 rows; past that \"Show more\" still works",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      jobs(owner, admin, davao, 225)
+
+      # However much is asked for, 200 rows are delivered at most.
+      html = conn |> get("/?shown=100000") |> html_response(200)
+      assert length(row_titles(html)) == 200
+
+      {:ok, view, html} = live(conn, "/?shown=200")
+      assert row_titles(html) == numbered(1..200)
+
+      # No address to go to now: a button that adds rows where they are.
+      assert has_element?(view, "button#show-more")
+
+      html = view |> element("#show-more") |> render_click()
+      assert row_titles(html) == numbered(1..220)
+      refute_patched(view, "/?shown=220")
+
+      html = view |> element("#show-more") |> render_click()
+      assert row_titles(html) == numbered(1..225)
+      refute has_element?(view, "#show-more")
     end
   end
 

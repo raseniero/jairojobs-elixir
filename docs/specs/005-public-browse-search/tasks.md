@@ -223,7 +223,7 @@ document changed, and every changed `.puml` is rendered on its own
   - Docs: spec 001 `screenflow-auth` (the home box gains the search field and the type)
   - Commit: `feat(browse): search and filter by type (REQ-005-4)`
 
-- [ ] **T11** — "Show more", and what Back restores (REQ-005-2; plan decision 9)
+- [x] **T11** — "Show more", and what Back restores (REQ-005-2; plan decision 9) — done 2026-11-26
   - "Show more" (`#show-more`) appends 20 and replaces the address with `shown`, up to
     200; opening an address with `shown` delivers that many rows; past 200 it still
     appends and the address stays
@@ -548,3 +548,28 @@ document changed, and every changed `.puml` is rendered on its own
   visible. Nothing scrolls the row to the chosen one; that would need a script.
 - T10: when no type is chosen the select shows "Any type" because it is the first
   option; no option is marked selected.
+- T11: 7 new tests, and "REQ-005-2: A long list is shown in parts" now also asks for more.
+  One test builds 225 listings to go past the 200 rows the address keeps; the file takes
+  about 2.5 seconds.
+- T11: up to 200 rows "Show more" is a real link to the same list opened 20 rows further,
+  marked to replace the address; past 200 it is a button that adds rows where they are.
+  When only `shown` grows, only the new rows are fetched and they go under the ones
+  already there. A new search, type or region starts again at 20. A `shown` that is not a
+  step of 20 goes down to one; nonsense is 20; anything above 200 is 200.
+- T11: the test configuration sorts an address's parameters by name, so tests see
+  `?search=…&shown=…&type=…`; the app writes `search`, `type`, `shown`.
+- T11, in a real browser (headless Chromium, the dev server, 45 throwaway listings, since
+  removed; the dev database's counts are what they were): 20 rows, then 40, then all 46,
+  with the browser's history the same length throughout. Scrolled to row 42, opened it,
+  pressed Back: the address was `/?shown=60`, all 46 rows were there, and the page was at
+  the same place, with that row in view. A fresh visit to a list starts at the top.
+  Reloading keeps the place. One more Back leaves the list in a single step.
+- T11, what puts the visitor back at the same place: LiveView, not the browser by
+  itself. LiveView switches the browser's own return-to-place off, notes the place in
+  the history entry a tenth of a second after scrolling stops, and puts it back on every
+  page load. So the plan's sentence holds in effect. I first thought it did not: my
+  script clicked a row before the place had been noted, and the page came back at the
+  top. I wrote a small hook to restore the place, then checked that the page failed
+  without it. It did not fail, so the hook was not needed and is not in the commit. A
+  visitor who taps a row within a tenth of a second of the page stopping comes back to
+  the place noted before that.

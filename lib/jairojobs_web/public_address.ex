@@ -20,8 +20,9 @@ defmodule JairojobsWeb.PublicAddress do
 
   `narrowed` is what narrows the list and is part of its address
   (REQ-005-4): `:search`, the words, and `:type`, as it is written in an
-  address ("part-time"). Whatever is `nil` is left out, so a list that is not
-  narrowed has a plain address.
+  address ("part-time"). `:shown` is how many rows the list is opened to,
+  when that is more than the first 20. Whatever is `nil` is left out, so a
+  list that is not narrowed has a plain address.
   """
   def list_path(region, narrowed \\ [])
 
@@ -29,7 +30,7 @@ defmodule JairojobsWeb.PublicAddress do
   def list_path(%Region{slug: slug}, narrowed), do: ~p"/jobs/#{slug}?#{query(narrowed)}"
 
   defp query(narrowed) do
-    for name <- [:search, :type], value = narrowed[name], do: {name, value}
+    for name <- [:search, :type, :shown], value = narrowed[name], do: {name, value}
   end
 
   @doc """

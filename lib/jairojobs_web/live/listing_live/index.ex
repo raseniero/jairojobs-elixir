@@ -5,11 +5,12 @@ defmodule JairojobsWeb.ListingLive.Index do
   at `/jobs/<region slug>` (REQ-005-3). One LiveView, so choosing a region
   changes the list without loading a new page.
 
-  The address is the state: the region, the words searched and the type of
-  work (REQ-005-4). Everything the page shows is read from it in
-  `handle_params/3`, so an address opened again, or reached with the browser's
-  back button, gives the same list. Searching, choosing a type and choosing a
-  region only ever change the address.
+  The address is the state: the region, the words searched, the type of work
+  (REQ-005-4), and how far the list is opened with "Show more". Everything the
+  page shows is read from it in `handle_params/3`, so an address opened again,
+  or reached with the browser's back button, gives the same list, opened as
+  far as it was (plan decision 9). Searching, choosing a type, choosing a
+  region and "Show more" only ever change the address.
 
   What may be listed is not decided here: `Jairojobs.Listings.list_public_listings/1`
   returns Published listings and nothing else (REQ-005-1). The page is the same
@@ -23,6 +24,11 @@ defmodule JairojobsWeb.ListingLive.Index do
   alias JairojobsWeb.Format
   alias JairojobsWeb.ListingComponents
   alias JairojobsWeb.PublicAddress
+
+  # Rows come 20 at a time (spec decision 9). The address remembers how far the list is
+  # opened up to 200 rows; past that "Show more" still adds rows, but the address stays.
+  @step 20
+  @most_in_address 200
 
   # A type of work as an address writes it ("part-time"), its value and its label.
   @types for type <- Listing.employment_types(),
@@ -142,6 +148,22 @@ defmodule JairojobsWeb.ListingLive.Index do
           </.link>
         </div>
 
+        <%!-- Up to 200 rows this is a real link to the same list opened 20 rows further. It
+             replaces the address, so Back never has to be pressed once per "Show more".
+             Past 200 the address stays, and a button adds the rows where they are. --%>
+        <div :if={@loaded < @total}>
+          <.link
+            :if={@next_shown}
+            id="show-more"
+            patch={PublicAddress.list_path(@region, @narrowed ++ [shown: @next_shown])}
+            replace
+            class="btn min-h-11 border border-base-300 btn-ghost"
+          >
+            Show more
+          </.link>
+          <.button :if={!@next_shown} id="show-more" phx-click="more">Show more</.button>
+        </div>
+
         <div :if={@total == 0} class="py-3">
           <p id="no-jobs" class="text-base-content/70">{nothing(@region, @narrowed?)}</p>
           <%!-- Links of their own, not inside the sentence, so each is 44 px tall. --%>
@@ -220,8 +242,10 @@ defmodule JairojobsWeb.ListingLive.Index do
     region = region(socket.assigns.live_action, params)
     search = Listings.search_words(params["search"])
     {type_param, type} = type(params["type"])
+    shown = shown(params["shown"])
 
-    {listings, total} = Listings.list_public_listings(region: region, search: search, type: type)
+    # What the list is: these three, and nothing else, decide which listings are on it.
+    list = [region: region, search: search, type: type]
 
     {:noreply,
      socket
@@ -231,9 +255,48 @@ defmodule JairojobsWeb.ListingLive.Index do
      |> assign(:narrowed, search: search, type: type_param)
      |> assign(:narrowed?, search != nil or type != nil)
      |> assign(:form, to_form(%{"search" => search, "type" => type_param}))
-     |> assign(:total, total)
-     |> stream(:listings, listings, reset: true)}
+     |> load(list, shown)}
   end
+
+  # The same list, opened further: only the rows that are not on the page yet are
+  # fetched, and they go under the ones already there. This is "Show more".
+  defp load(%{assigns: %{list: list, loaded: loaded}} = socket, list, shown)
+       when shown > loaded do
+    {listings, total} =
+      Listings.list_public_listings(list ++ [offset: loaded, limit: shown - loaded])
+
+    socket
+    |> assign(total: total, loaded: loaded + length(listings), next_shown: next_shown(shown))
+    |> stream(:listings, listings)
+  end
+
+  # Any other list, or the page as first opened: the first `shown` rows, replacing
+  # whatever was there.
+  defp load(socket, list, shown) do
+    {listings, total} = Listings.list_public_listings(list ++ [limit: shown])
+
+    socket
+    |> assign(list: list, total: total, loaded: length(listings), next_shown: next_shown(shown))
+    |> stream(:listings, listings, reset: true)
+  end
+
+  # How many rows the address asks for: 20, 40, … up to 200. Anything else in the
+  # address (nothing, nonsense, a number between two steps) goes down to a step.
+  defp shown(param) when is_binary(param) do
+    case Integer.parse(param) do
+      {number, ""} ->
+        number |> div(@step) |> Kernel.*(@step) |> max(@step) |> min(@most_in_address)
+
+      _not_a_number ->
+        @step
+    end
+  end
+
+  defp shown(_none), do: @step
+
+  # The address "Show more" leads to, or `nil` once the address keeps no more.
+  defp next_shown(shown) when shown < @most_in_address, do: shown + @step
+  defp next_shown(_shown), do: nil
 
   # "Search", or Enter in the field.
   @impl true
@@ -244,6 +307,17 @@ defmodule JairojobsWeb.ListingLive.Index do
     do: {:noreply, narrow(socket, params)}
 
   def handle_event("filter", _typing, socket), do: {:noreply, socket}
+
+  # "Show more" past the 200 rows the address keeps: 20 more, where they are.
+  def handle_event("more", _params, socket) do
+    %{list: list, loaded: loaded} = socket.assigns
+    {listings, total} = Listings.list_public_listings(list ++ [offset: loaded, limit: @step])
+
+    {:noreply,
+     socket
+     |> assign(total: total, loaded: loaded + length(listings))
+     |> stream(:listings, listings)}
+  end
 
   # Everything a search does is to change the address; `handle_params/3` does the rest.
   # The words and the type are cleaned here as they are there, so what cannot be
