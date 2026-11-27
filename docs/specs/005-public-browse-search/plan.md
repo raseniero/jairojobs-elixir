@@ -648,12 +648,12 @@ redraw the mock; that can wait until spec 007 changes the listing page again.
 | Migration 2 copies the slug rule, which could drift from the code | It runs once, on listings from before this spec; the rule is fixed by REQ-005-6. Its result on the dev database is checked by hand and recorded |
 | Deploying after this spec shows listings nobody can apply to until specs 006 and 007 | Not for this plan: raised with the owner earlier, still his to decide |
 
-## Decisions to confirm
+## Decisions confirmed (2026-11-26)
 
-Each has a proposed answer, written into the plan above. The first nine shape the build;
-the rest are small. Nothing here was decided on the owner's behalf without being listed.
+The owner read the plan and chose the proposed answer for all twenty, in one reply. Each
+is written into the plan above. The first nine shape the build; the rest are small.
 
-| # | Decision | Proposed | Hard to change later? |
+| # | Decision | Choice | Hard to change later? |
 |---|---|---|---|
 | 1 | Is the listing page a LiveView or a plain page? | A plain controller page; the two lists are a LiveView. The page must answer "gone" (410), "moved" (301) and "not found" (404), which a controller does directly and a LiveView cannot, and nothing on it needs a live connection. Cost: list → listing → back are ordinary page loads. This differs from the spec's note that "the public pages join the `:current_user` session": only the lists do. Other option: a LiveView with a plug in front of it for the three answers, which means two places that decide what an address is | medium — spec 007 builds on this page |
 | 2 | Where is a listing's address kept? | `slug` on the listing (the current one) and a `listing_addresses` table with every address it has or had, the current one included. One unique index is then the whole "never given to another listing" rule | medium — a migration |
@@ -681,8 +681,12 @@ the rest are small. Nothing here was decided on the owner's behalf without being
 **Reviewed:** 2026-11-26 at commit `22d51f8`
 
 The draft was committed (`62d65e5`), read against the documents below, corrected, and
-committed again (`22d51f8`). The corrected parts were then read once more. This section
-is the only change since.
+committed again (`22d51f8`). The corrected parts were then read once more.
+
+Since that commit two things changed, and nothing else: this section was written, and on
+2026-11-26 the owner confirmed the twenty decisions, so the decisions table was retitled
+and its column "Proposed" became "Choice". No answer changed, so nothing the review read
+is different.
 
 | Checked against | Result |
 |---|---|
