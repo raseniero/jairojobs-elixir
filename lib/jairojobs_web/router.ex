@@ -17,6 +17,12 @@ defmodule JairojobsWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # spec 005 — the sitemap (REQ-005-9). No pipeline: it is XML read by search engines,
+  # so it needs no session, no CSRF token and no layout, and `:browser` accepts only HTML.
+  scope "/", JairojobsWeb do
+    get "/sitemap.xml", SitemapController, :index
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", JairojobsWeb do
   #   pipe_through :api

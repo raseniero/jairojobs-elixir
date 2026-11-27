@@ -56,4 +56,8 @@ defmodule JairojobsWeb.PublicAddress do
   search engine.
   """
   def listing_url(%Listing{} = listing), do: url(~p"/jobs/#{listing.region.slug}/#{listing.slug}")
+
+  # An address as `Jairojobs.Listings.list_public_addresses/0` gives it: the two slugs.
+  def listing_url(%{region_slug: region_slug, slug: slug}),
+    do: url(~p"/jobs/#{region_slug}/#{slug}")
 end

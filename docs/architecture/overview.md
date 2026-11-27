@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-26 (the home page is the public list of jobs; a listing has a public address; spec 005, in progress)
+**Last updated:** 2026-11-27 (public pages, their addresses and the sitemap; search engines and chat apps as outside readers; spec 005, in progress)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -99,6 +99,9 @@ flowchart TD
   `:browser` pipeline, outside any `live_session`: it must be able to answer "gone",
   "moved" and "not found", and nothing on it needs a live connection. The pipeline puts
   `current_scope` on the connection, as for every page.
+
+  `/sitemap.xml` (spec 005) goes through no pipeline at all: it is XML for search
+  engines, with no session, no cookie and no layout.
 - **Background jobs:** none. Evaluate Oban via ADR when a spec needs it (constitution §5).
 - **Email:** Swoosh; local adapter in dev (`/dev/mailbox`); Resend in production from
   `hello@jairojobs.com` (ADR-0005). Sent by a notifier module beside the context that owns
@@ -106,6 +109,12 @@ flowchart TD
   reports has been committed, so a mail failure never undoes it. A context cannot build web
   addresses: the screen passes in a function that does.
 - **File storage (CVs):** TBD in spec 006 (local disk vs object storage).
+- **Search engines and chat apps (spec 005):** they only read. A public page says what it
+  is in its `<head>` (`JairojobsWeb.Seo`): a description, its one address, the text
+  preview of a shared link, and a listing's job details in the format search engines
+  publish. Narrowed lists, a hidden region's list and a listing that is no longer listed
+  ask not to be listed; the last is answered as "gone". Nothing is sent to anyone, and no
+  third-party script is on any page.
 - **Observability:** Phoenix LiveDashboard at `/dev/dashboard` (dev only).
 
 ## Request flow (typical LiveView page)

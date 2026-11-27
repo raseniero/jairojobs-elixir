@@ -16,11 +16,18 @@ System(jairojobs, "jairojobs", "National job board for the Philippines, organize
 
 System_Ext(email, "Resend", "Delivers magic links, confirmations, moderation emails and application emails from hello@jairojobs.com (ADR-0005).")
 System_Ext(inbox, "User inbox", "Where magic links, moderation emails and application emails arrive.")
+System_Ext(search, "Search engine", "Reads the public pages and the sitemap, so listings can be found (spec 005).")
+System_Ext(chat, "Chat app", "Reads a shared listing's page to show a text preview of the link (spec 005).")
 
-Rel(visitor, jairojobs, "Browses, searches, signs up", "HTTPS")
+Rel(visitor, jairojobs, "Browses, searches, opens and shares listings (005), signs up", "HTTPS")
 Rel(candidate, jairojobs, "Logs in, manages profile, applies", "HTTPS")
 Rel(employer, jairojobs, "Logs in, posts listings", "HTTPS")
 Rel(admin, jairojobs, "Moderates and posts listings, manages regions", "HTTPS")
+
+Rel(search, jairojobs, "Reads public pages, job details and /sitemap.xml", "HTTPS")
+Rel(chat, jairojobs, "Reads a listing's page for its preview", "HTTPS")
+Rel(visitor, search, "Finds listings through")
+Rel(visitor, chat, "Shares and receives links in")
 
 Rel(jairojobs, email, "Sends email via", "SMTP / API")
 Rel(email, inbox, "Delivers to")

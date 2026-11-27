@@ -335,7 +335,7 @@ document changed, and every changed `.puml` is rendered on its own
     parameters; an unnarrowed list of an active region does not ask
   - Commit: `feat(browse): titles, descriptions and job details for search engines (REQ-005-9)`
 
-- [ ] **T18** — The sitemap (REQ-005-9)
+- [x] **T18** — The sitemap (REQ-005-9) — done 2026-11-27
   - `get "/sitemap.xml", SitemapController, :index` in a scope with no pipeline;
     `priv/static/robots.txt` names `https://jairojobs.com/sitemap.xml`
   - Tests (**S**, new): `REQ-005-9: The sitemap lists the public pages only` (the home
@@ -696,3 +696,15 @@ document changed, and every changed `.puml` is rendered on its own
   search engines and chat apps read the first delivery of each address.
 - T17: not checked: the block has not been put through a search engine's own checker
   (Google's Rich Results Test needs a page it can reach, or pasted code, in a browser).
+- T18: 11 tests. All seven scenarios of REQ-005-9 are covered now, and with them all 74
+  scenarios of the spec should have a test; T19 runs the coverage command to say so.
+- T18: a listing's entry carries the day it last changed (`updated_at`); the lists carry
+  no date. One test asks for every address the sitemap lists and checks each opens.
+- T18, on the dev server: the sitemap answered as `application/xml`, with no cookie,
+  parsed as XML, and listed six addresses: the home page, the four regions' lists, and
+  the one listing with its date. `robots.txt` ends with the line naming the sitemap.
+- T18: `robots.txt` names the production address, `https://jairojobs.com/sitemap.xml`
+  (plan decision 12), also when the site runs elsewhere, as on the dev machine.
+- T18: both C4 diagrams were re-rendered with a search engine and a chat app as outside
+  readers; I looked at both. The overview has a paragraph on them and names the
+  sitemap's route.
