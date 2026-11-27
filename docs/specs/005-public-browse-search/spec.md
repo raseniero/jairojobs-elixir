@@ -834,7 +834,10 @@ Scenario: The same links on a listing that is no longer listed
 ## Non-functional requirements
 
 - **Mobile-first:** every screen is usable at 375 px — one column, rows, buttons, region
-  choices and fields ≥ 44 px, about six rows to a phone screen (design guide, principle 5).
+  choices and fields ≥ 44 px. The design guide hopes for about six rows to a phone screen
+  (principle 5). The lists do not reach that: the region choices, the search field and
+  the type choice sit above the list, so about five rows show before scrolling on a large
+  phone and under four on a small one. Accepted as built (decision 27).
 - **Speed:** a list and a listing page are readable in under 2 seconds on a mid-range phone
   over 4G (spec 000, success criteria; design guide, principle 2). No web fonts, no
   images, no third-party scripts.
@@ -892,6 +895,7 @@ the proposed answer for each.
 | 24 | Can an address a listing once had be given to another listing? | Never. That covers a closed or taken down listing's address and every earlier address of a moved listing. A listing moved back to a region returns to the address it had there. Known cost: numbers only go up (REQ-005-6) |
 | 25 | Does a hidden region's list ask search engines not to list it? | Yes. Its listings stay findable, each at its own address and in the sitemap; only the region's list asks not to be listed, until the region is shown again (REQ-005-9) |
 | 26 | Where does "All regions" sit among the region choices? | First, before the regions (resolved 2026-11-26, after the lists were built). It was last, as the mock draws it. With four regions the row is wider than a phone, and on the home page the chosen choice started off the screen (REQ-005-3) |
+| 27 | The spec asked for "about six rows to a phone screen". The lists as built show about five on a large phone and under four on a small one. What is done? | Left as built (resolved 2026-11-27, at the close). The number came from the mock, which has no search field or type choice; both must be 44 px tall to be tapped. The non-functional requirement says what is built. Ways to show more rows are kept as a product idea in `TODO.md`, for a later spec |
 
 ## Notes for the plan
 
@@ -1017,3 +1021,4 @@ changed part was read again:
 | 2026-11-26 | "Notes for the plan" brought in line with the approved plan (its decision 1): in the table of earlier documents, the row for `architecture/overview.md` says the two lists join the `:current_user` session and the listing's page and the sitemap are public pages outside it. It said "the public pages" join it. A sentence in "Review before approval" notes the same. No requirement, scenario or diagram changed |
 | 2026-11-26 | Amended after approval, on the owner's decision (decision 26): "All regions" is the first of the region choices, not the last. Seen once the lists were built: with four regions the row of choices is wider than a phone, and on the home page the chosen choice was off the screen. REQ-005-3's rule and its scenario "The choices are the active regions" changed; `screenflow-browse` and `activity-browse-and-search` changed with them. The design guide's mock still draws "All regions" last |
 | 2026-11-27 | At the close, after every diagram was read again against the built screens. Three things the plan decided and the app does are now written in the requirements, each as a rule, with no scenario changed: how far a list is opened is part of its address, up to 200 rows (REQ-005-4; plan decision 9); `/jobs` alone forwards to the home page (REQ-005-3; plan decision 15); where "Share" can neither open a share sheet nor copy, it writes the address out (REQ-005-8; plan decision 19). Diagrams brought in line with the screens: `activity-share-and-be-found` (the third outcome of Share), `activity-browse-and-search` (the address keeps how far the list is opened), `activity-open-a-listing` (the way back is first on the page, as built), `screenflow-browse` (a region's heading, "Clear search" whenever words or a type are set, the third outcome of Share, `/jobs`). `activity-address-and-links` agreed and did not change |
+| 2026-11-27 | Amended at the close, on the owner's decision (decision 27): the non-functional requirement "Mobile-first" no longer asks for about six rows to a phone screen on the lists. It says what is built (about five on a large phone, under four on a small one) and why. No requirement, scenario or diagram changed. The idea of showing more rows is in `TODO.md` |
