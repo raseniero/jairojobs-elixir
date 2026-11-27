@@ -360,12 +360,13 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
 
       {:ok, _view, html} = live(conn, ~p"/")
 
-      # Alphabetical, then "All regions", which is the one chosen on the home page.
+      # "All regions" first, then the active regions in alphabetical order. On the home
+      # page "All regions" is the one chosen, so the chosen choice is the first thing seen.
       assert region_choices(html) == [
+               {"All regions", true},
                {"Cebu", false},
                {"Davao City", false},
-               {"Zamboanga", false},
-               {"All regions", true}
+               {"Zamboanga", false}
              ]
 
       refute html =~ "Baguio"
@@ -375,9 +376,9 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
       {:ok, _view, html} = live(conn, ~p"/jobs/cebu")
 
       assert region_choices(html) == [
+               {"All regions", false},
                {"Cebu", true},
-               {"Davao City", false},
-               {"All regions", false}
+               {"Davao City", false}
              ]
     end
 
@@ -413,9 +414,9 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
 
       # It is not offered, so no region choice is marked as chosen.
       assert region_choices(html) == [
+               {"All regions", false},
                {"Cebu", false},
-               {"Davao City", false},
-               {"All regions", false}
+               {"Davao City", false}
              ]
     end
 
@@ -457,9 +458,9 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
       assert row_titles(html) == ["Line cook"]
 
       assert region_choices(html) == [
+               {"All regions", false},
                {"Cebu", true},
-               {"Davao City", false},
-               {"All regions", false}
+               {"Davao City", false}
              ]
     end
 
@@ -501,7 +502,7 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
         |> LazyHTML.query("#region-choices a")
         |> LazyHTML.attribute("href")
 
-      assert hrefs == ["/jobs/cebu", "/jobs/davao-city", "/"]
+      assert hrefs == ["/", "/jobs/cebu", "/jobs/davao-city"]
     end
   end
 

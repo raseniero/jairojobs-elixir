@@ -223,8 +223,9 @@ then closed forwards to the address that says "no longer listed".
 
 ### The lists
 
-- **Region choices.** A row of pill links (`min-h-11`): the active regions in alphabetical
-  order, then "All regions". The row scrolls sideways inside itself when it is wider than
+- **Region choices.** A row of pill links (`min-h-11`): "All regions", then the active
+  regions in alphabetical order (spec decision 26, 2026-11-26; this plan first had "All
+  regions" last). The row scrolls sideways inside itself when it is wider than
   the phone, as in the mock; the page does not. The chosen one has
   `aria-current="page"` as well as the primary colour. On a hidden region's list none is
   chosen. Each choice keeps the search words and the type.

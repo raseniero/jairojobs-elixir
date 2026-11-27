@@ -24,8 +24,8 @@ else (no, the home page)
   hidden regions included.
   Rows show business, area and region;
 endif
-:Offer the region choices: every active region
-in alphabetical order, plus "All regions".
+:Offer the region choices: "All regions" first,
+then every active region in alphabetical order.
 A region with no jobs is still offered;
 note right
   Only Published listings are ever on a list

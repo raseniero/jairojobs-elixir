@@ -27,7 +27,7 @@ Drawer : Visitor: Browse jobs · Sign up · Log in
 Drawer : Candidate, Employer, Admin: Browse jobs · (their own items)
 
 state "Jobs (home, all regions)" as All
-All : region choices: Cebu · Davao City · Metro Manila · ● All regions
+All : region choices: ● All regions · Cebu · Davao City · Metro Manila
 All : search field ________  [ Search ]
 All : type: Any type ▾
 All : "142 jobs · newest first"
@@ -40,7 +40,7 @@ All : (search finds nothing) "No jobs match your search." · Clear search
 All : "Every listing shows salary and is checked by jairojobs before it is published."
 
 state "Jobs in a region" as Region
-Region : region choices: Cebu · ● Davao City · Metro Manila · All regions
+Region : region choices: All regions · Cebu · ● Davao City · Metro Manila
 Region : search field ________  [ Search ]
 Region : type: Any type ▾
 Region : "38 jobs in Davao City · newest first"

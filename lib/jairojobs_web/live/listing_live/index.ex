@@ -25,25 +25,27 @@ defmodule JairojobsWeb.ListingLive.Index do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <section id="jobs" class="space-y-3">
-        <%!-- The choices are the active regions; a hidden one is never offered, though its
-             own address still opens (REQ-005-3). The row scrolls inside itself when it is
-             wider than the phone; the page does not. --%>
+        <%!-- The choices are "All regions" and the active regions. A hidden region is never
+             offered, though its own address still opens (REQ-005-3). The row scrolls inside
+             itself when it is wider than the phone; the page does not. --%>
         <nav id="region-choices" aria-label="Regions" class="-mx-4 overflow-x-auto px-4">
           <ul class="flex w-max gap-2">
-            <li :for={choice <- @regions}>
-              <.region_choice
-                id={"region-choice-#{choice.slug}"}
-                path={PublicAddress.list_path(choice)}
-                chosen={@region != nil and @region.id == choice.id}
-                label={choice.name}
-              />
-            </li>
+            <%!-- "All regions" comes first: it is the one chosen on the home page, and at
+                 the end of a row wider than the phone it would start off the screen. --%>
             <li>
               <.region_choice
                 id="region-choice-all"
                 path={PublicAddress.list_path(nil)}
                 chosen={@region == nil}
                 label="All regions"
+              />
+            </li>
+            <li :for={choice <- @regions}>
+              <.region_choice
+                id={"region-choice-#{choice.slug}"}
+                path={PublicAddress.list_path(choice)}
+                chosen={@region != nil and @region.id == choice.id}
+                label={choice.name}
               />
             </li>
           </ul>

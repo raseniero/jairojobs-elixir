@@ -514,3 +514,10 @@ document changed, and every changed `.puml` is rendered on its own
 - T9: spec 002's `activity-seed-and-consume` was read against REQ-005-3 and agrees
   (active regions A to Z; a region found by its slug even when hidden; otherwise not
   found), so it did not change. `state-region` was re-rendered; I looked at it.
+- T9, the owner's answer (2026-11-26): "All regions" goes first. Spec decision 26;
+  REQ-005-3's rule and one scenario amended, with `screenflow-browse` and
+  `activity-browse-and-search`, in the commit that changed the screen. The plan's line on
+  the region choices says the same now. Four tests changed what they expect. Here the
+  code was changed a moment before the tests, not after: the old tests failed against the
+  new order, which at least shows they watch it.
+  The design guide's mock still draws "All regions" last; its note does not mention it.

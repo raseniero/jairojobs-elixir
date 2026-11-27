@@ -341,7 +341,7 @@ Scenario: Rows do not repeat the region
 Scenario: The choices are the active regions
   Given regions "Cebu" and "Davao City" are active and "Baguio" is hidden
   When I look at the region choices
-  Then they are "Cebu", "Davao City" and "All regions"
+  Then they are "All regions", "Cebu" and "Davao City"
   And "Baguio" is not offered
 
 Scenario: A region with no jobs
@@ -368,7 +368,9 @@ Scenario: Back to all regions
 ```
 
 **Rules**
-- The choices are the active regions in alphabetical order (REQ-002-6) plus "All regions".
+- The choices are "All regions" first, then the active regions in alphabetical order
+  (REQ-002-6). "All regions" is first because it is the choice marked on the home page,
+  and a row of choices wider than a phone would otherwise start with it off the screen.
   A region with no jobs is still offered.
 - The region is named once, in the heading, so the rows do not repeat it (design guide,
   trust signals).
@@ -881,6 +883,7 @@ the proposed answer for each.
 | 23 | How do posted dates read? | As the site's one time helper writes them: "20 min ago", "2 h ago", "1 d ago", then a date after 7 days. Not the mock's "Yesterday" (REQ-005-2) |
 | 24 | Can an address a listing once had be given to another listing? | Never. That covers a closed or taken down listing's address and every earlier address of a moved listing. A listing moved back to a region returns to the address it had there. Known cost: numbers only go up (REQ-005-6) |
 | 25 | Does a hidden region's list ask search engines not to list it? | Yes. Its listings stay findable, each at its own address and in the sitemap; only the region's list asks not to be listed, until the region is shown again (REQ-005-9) |
+| 26 | Where does "All regions" sit among the region choices? | First, before the regions (resolved 2026-11-26, after the lists were built). It was last, as the mock draws it. With four regions the row is wider than a phone, and on the home page the chosen choice started off the screen (REQ-005-3) |
 
 ## Notes for the plan
 
@@ -993,3 +996,4 @@ and the requirements: it disagrees with neither.
 | 2026-11-20 | "Review before approval" section added, under the new rule (constitution §6, README): what was checked, what was found, what was not, and the commit reviewed. `mix jairojobs.spec_review 005` passes |
 | 2026-11-23 | Approved by the owner, after a summary of every change since the first draft. `mix jairojobs.spec_review 005` passed on the approved text |
 | 2026-11-26 | "Notes for the plan" brought in line with the approved plan (its decision 1): in the table of earlier documents, the row for `architecture/overview.md` says the two lists join the `:current_user` session and the listing's page and the sitemap are public pages outside it. It said "the public pages" join it. A sentence in "Review before approval" notes the same. No requirement, scenario or diagram changed |
+| 2026-11-26 | Amended after approval, on the owner's decision (decision 26): "All regions" is the first of the region choices, not the last. Seen once the lists were built: with four regions the row of choices is wider than a phone, and on the home page the chosen choice was off the screen. REQ-005-3's rule and its scenario "The choices are the active regions" changed; `screenflow-browse` and `activity-browse-and-search` changed with them. The design guide's mock still draws "All regions" last |
