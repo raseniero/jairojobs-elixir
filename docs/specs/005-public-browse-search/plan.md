@@ -678,8 +678,21 @@ the rest are small. Nothing here was decided on the owner's behalf without being
 
 ## Review before approval
 
-Not reviewed yet. This section is filled in after the draft is committed, naming that
-commit.
+**Reviewed:** 2026-11-26 at commit `22d51f8`
+
+The draft was committed (`62d65e5`), read against the documents below, corrected, and
+committed again (`22d51f8`). The corrected parts were then read once more. This section
+is the only change since.
+
+| Checked against | Result |
+|---|---|
+| Every requirement and scenario of the spec has a place in this plan and a test | All 74 scenario names are in the test table (compared by a script against `spec.md`, not by eye). The Rules of all ten requirements and the non-functional requirements were read against the plan, and so were the five diagram sources. Four things were found and fixed. (1) The plan answered an earlier address of a closed listing with "gone" directly; `activity-open-a-listing` forwards first, so it now forwards. (2) The owner's and Admin's box was at the top of the listing page; both diagrams put it last. (3) Which empty message a searched region gets was not said. (4) It was not said that "Search" and "Share" are not accent buttons |
+| `architecture/overview.md` (contexts, boundaries, who gets in) | Agrees. No new context; Listings already depends on Regions, and now also locks a region's row and uses its slug rule. The web layer calls no `Repo`. Addresses are built in the web layer and passed in as functions. One difference from what the spec expected: only the two lists join `live_session :current_user`; the listing page and the sitemap are controller routes (decision 1) |
+| `architecture/data-model.md` and the ERD | Two things found and fixed. The new table had no `updated_at`, against the conventions. Migration 1 carried an index for the lists, a second concern (constitution §4.10); it is dropped until it is needed. Of the ERD source, the `regions` and `listings` parts and the planning comment were read |
+| ADRs and the constitution (new deps, background jobs, conventions) | Agrees: no dependency, no background job, no new ADR (ADR-0004 gives the address shape; read in full). Two points are put to the owner because a rule could be read against them: the job-details data block against the AGENTS.md line on inline scripts (decision 11), and a test helper that writes `published_at` directly against §3.3 (decision 20, added in this review). Read for this: §2.2, §2.3, §2.7, §3.1, §3.3 to §3.5, §3.12, §4.2, §4.5 to §4.8, §4.10, §4.12, §5 |
+| Earlier specs and documents this plan changes | All 21 rows of the spec's table have a step. One thing found: `priv/phone_check/003.exs` and `004.exs` call `approve_listing` and are not compiled, so the change to four arguments must be made there by hand |
+| Checked by running, not only by reading | In Postgres: the `simple` search on the examples of the five search scenarios, "driver" against "Drivers", and a search of punctuation only. The foreign key from a listing to its own address, with an empty slug, a move and a wrong slug, on temporary tables in a transaction that was rolled back. `Region.slugify/1` on "Café Staff — ₱500/day!!", "Barista (full-time)" and a title of peso signs. The callers of `approve_listing`, counted. `mix jairojobs.spec_review 005` still passes with this file in the folder |
+| Not checked | Nothing is built, so these rest on reading, not on a run: that a hook runs on a page with no LiveView (read in LiveView 1.2.13's source, not tried in a browser); that the browser puts the visitor back at the same place in the list on Back; that the search form works as a plain form before the live connection is up; the migration syntax for a foreign key over three columns (seen in Ecto's documentation). Not read: the sources of the C4 and use case diagrams, the rest of the ERD, ADRs 0001 to 0003 and 0005, and the text of the earlier documents in the 21 rows (the spec's own review opened each; here they were only placed). No rendered image was looked at |
 
 ## Alternatives considered
 
