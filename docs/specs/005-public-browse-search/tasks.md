@@ -1,6 +1,6 @@
 # 005 — Public browse and search — Tasks
 
-**Status:** Draft
+**Status:** In Progress
 **Plan:** [plan.md](./plan.md) (Approved 2026-11-26)
 
 Rules: ordered, each task is one commit, each task leaves `mix precommit` green.
@@ -34,7 +34,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase A — Addresses
 
-- [ ] **T1** — The slug rule (REQ-005-6)
+- [x] **T1** — The slug rule (REQ-005-6) — done 2026-11-26
   - `Jairojobs.Listings.Slug`: `from_title/1` (the region rule, at most 60 characters, cut
     back to a hyphen when the cut falls inside a word, `"job"` when nothing is left) and
     `free/2` (the wanted slug, or the lowest free number from 2, the whole at most 60)
@@ -401,3 +401,6 @@ document changed, and every changed `.puml` is rendered on its own
 - Left for T19, when every diagram is re-read against what was built: the Share diagram
   draws two outcomes and the plan has a third (the address written out, plan decision
   19); the screen flow does not draw `/jobs` forwarding to `/` (plan decision 15).
+- T1: 16 unit tests. `Slug.free/2` takes any list or set of taken slugs. The cut works on
+  the slug, not the title, so "at a word" means "at a hyphen". Spec 000's changelog does
+  not list feature-map status changes, so the 005 row changed without a changelog row.

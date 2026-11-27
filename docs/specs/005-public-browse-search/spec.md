@@ -1,6 +1,6 @@
 # 005 — Public browse and search
 
-**Status:** Approved
+**Status:** In Progress
 **Created:** 2026-11-20
 **Approved:** 2026-11-23
 **Owner:** Jairo

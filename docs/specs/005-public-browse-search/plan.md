@@ -1,6 +1,6 @@
 # 005 — Public browse and search — Plan
 
-**Status:** Approved
+**Status:** In Progress
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-23)
 **Created:** 2026-11-26
 **Approved:** 2026-11-26
