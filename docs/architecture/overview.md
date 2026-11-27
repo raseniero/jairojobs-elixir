@@ -86,7 +86,7 @@ flowchart TD
 
   | `live_session` | Who gets in | Routes | Since |
   |---|---|---|---|
-  | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in; the public list of jobs, `/` (005) | 001 |
+  | `:current_user` | anyone; scope mounted if logged in | sign-up, log-in; the public lists of jobs, `/` and `/jobs/<region>` (005) | 001 |
   | `:require_authenticated_user` | any logged-in account | `/users/settings` | 001 |
   | `:require_admin` | Admins | `/admin`, `/admin/regions…`, `/admin/listings…` (004) | 001 (first used by 002) |
   | `:require_poster` | Employers and Admins | `/my/listings…`, `/my/business` | 003 |

@@ -299,6 +299,212 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
     end
   end
 
+  describe "jobs in one region (REQ-005-3)" do
+    # The region choices, left to right: `{text, chosen?}`.
+    defp region_choices(html) do
+      html
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query("#region-choices a")
+      |> Enum.map(fn choice ->
+        {choice |> LazyHTML.text() |> String.trim(),
+         LazyHTML.attribute(choice, "aria-current") == ["page"]}
+      end)
+    end
+
+    test "REQ-005-3: Choose a region",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      published(owner, admin, "Barista", davao)
+      published(owner, admin, "Cashier", davao)
+      published(owner, admin, "Line cook", cebu)
+
+      {:ok, view, html} = live(conn, ~p"/")
+      assert length(row_titles(html)) == 3
+
+      html = view |> element("#region-choice-davao-city") |> render_click()
+
+      assert_patch(view, "/jobs/davao-city")
+      assert Enum.sort(row_titles(html)) == ["Barista", "Cashier"]
+      assert text_of(html, "#jobs-count") == "2 jobs in Davao City · newest first"
+      assert text_of(html, "h1#jobs-heading") == "Jobs in Davao City"
+      assert {"Davao City", true} in region_choices(html)
+    end
+
+    test "one job in a region is counted as \"1 job\"",
+         %{conn: conn, owner: owner, admin: admin, cebu: cebu} do
+      published(owner, admin, "Line cook", cebu)
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/cebu")
+
+      assert text_of(html, "#jobs-count") == "1 job in Cebu · newest first"
+    end
+
+    test "REQ-005-3: Rows do not repeat the region",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista (full-time)", davao, area: "Matina")
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/davao-city")
+
+      row = text_of(html, "#job-davao-city--barista-full-time")
+
+      assert row =~ "Kape Isla · Matina"
+      refute row =~ "Davao City"
+
+      # The region is named once, in the heading.
+      assert text_of(html, "h1#jobs-heading") == "Jobs in Davao City"
+      refute html =~ "sr-only"
+    end
+
+    test "REQ-005-3: The choices are the active regions", %{conn: conn, admin: admin} do
+      region_fixture(name: "Baguio", active: false)
+      zamboanga = region_fixture(name: "Zamboanga")
+
+      {:ok, _view, html} = live(conn, ~p"/")
+
+      # Alphabetical, then "All regions", which is the one chosen on the home page.
+      assert region_choices(html) == [
+               {"Cebu", false},
+               {"Davao City", false},
+               {"Zamboanga", false},
+               {"All regions", true}
+             ]
+
+      refute html =~ "Baguio"
+
+      # A region with no jobs is offered all the same; one that is hidden stops being.
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, zamboanga)
+      {:ok, _view, html} = live(conn, ~p"/jobs/cebu")
+
+      assert region_choices(html) == [
+               {"Cebu", true},
+               {"Davao City", false},
+               {"All regions", false}
+             ]
+    end
+
+    test "REQ-005-3: A region with no jobs",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista", davao)
+
+      {:ok, view, html} = live(conn, ~p"/jobs/cebu")
+
+      assert text_of(html, "#no-jobs") == "No jobs are listed in Cebu yet."
+      assert text_of(html, "#see-all-regions") == "See all regions"
+      assert row_titles(html) == []
+      refute has_element?(view, "#jobs-count")
+      assert text_of(html, "#trust-line") == @trust_line
+
+      # And a way to all regions.
+      view |> element("#see-all-regions") |> render_click()
+      assert_patch(view, "/")
+      assert row_titles(render(view)) == ["Barista"]
+    end
+
+    test "REQ-005-3: A hidden region still opens by its address",
+         %{conn: conn, owner: owner, admin: admin} do
+      baguio = region_fixture(name: "Baguio")
+      published(owner, admin, "Barista (full-time)", baguio)
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, baguio)
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/baguio")
+
+      assert text_of(html, "h1#jobs-heading") == "Jobs in Baguio"
+      assert row_titles(html) == ["Barista (full-time)"]
+      assert text_of(html, "#jobs-count") == "1 job in Baguio · newest first"
+
+      # It is not offered, so no region choice is marked as chosen.
+      assert region_choices(html) == [
+               {"Cebu", false},
+               {"Davao City", false},
+               {"All regions", false}
+             ]
+    end
+
+    test "REQ-005-3: Unknown region", %{conn: conn} do
+      assert_error_sent :not_found, fn -> get(conn, "/jobs/atlantis") end
+      assert_raise Ecto.NoResultsError, fn -> live(conn, "/jobs/atlantis") end
+
+      # Not a slug at all.
+      assert_error_sent :not_found, fn -> get(conn, "/jobs/Davao%20City") end
+    end
+
+    test "REQ-005-3: Back to all regions",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      published(owner, admin, "Barista", davao)
+      published(owner, admin, "Line cook", cebu)
+
+      {:ok, view, html} = live(conn, ~p"/jobs/davao-city")
+      assert row_titles(html) == ["Barista"]
+
+      html = view |> element("#region-choice-all") |> render_click()
+
+      assert_patch(view, "/")
+      assert Enum.sort(row_titles(html)) == ["Barista", "Line cook"]
+      assert {"All regions", true} in region_choices(html)
+
+      # On the home page the rows name the region again.
+      assert text_of(html, "#job-cebu--line-cook") =~ "Matina, Cebu"
+    end
+
+    test "from one region straight to another",
+         %{conn: conn, owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      published(owner, admin, "Barista", davao)
+      published(owner, admin, "Line cook", cebu)
+
+      {:ok, view, _html} = live(conn, ~p"/jobs/davao-city")
+      html = view |> element("#region-choice-cebu") |> render_click()
+
+      assert_patch(view, "/jobs/cebu")
+      assert row_titles(html) == ["Line cook"]
+
+      assert region_choices(html) == [
+               {"Cebu", true},
+               {"Davao City", false},
+               {"All regions", false}
+             ]
+    end
+
+    test "a renamed region keeps its address, and its new name is shown",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista", davao)
+      {:ok, _renamed} = Jairojobs.Regions.rename_region(admin, davao, %{name: "Davao"})
+
+      {:ok, _view, html} = live(conn, ~p"/jobs/davao-city")
+
+      assert text_of(html, "h1#jobs-heading") == "Jobs in Davao"
+      assert row_titles(html) == ["Barista"]
+    end
+
+    test "REQ-005-9: A region's jobs have their own title", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/jobs/davao-city")
+      assert page_title(view) =~ "Jobs in Davao City"
+
+      # As a search engine reads it: the first delivery, with the site's ending.
+      assert conn |> get(~p"/jobs/davao-city") |> html_response(200) |> text_of("title") ==
+               "Jobs in Davao City | jairojobs"
+
+      # The title follows the region when the visitor chooses another.
+      view |> element("#region-choice-cebu") |> render_click()
+      assert page_title(view) =~ "Jobs in Cebu"
+    end
+
+    test "a region's list needs no account, and every choice is a real link",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista", davao)
+
+      html = conn |> get(~p"/jobs/davao-city") |> html_response(200)
+
+      assert row_titles(html) == ["Barista"]
+
+      hrefs =
+        html
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("#region-choices a")
+        |> LazyHTML.attribute("href")
+
+      assert hrefs == ["/jobs/cebu", "/jobs/davao-city", "/"]
+    end
+  end
+
   # These five were the tests of the home page when it was a controller (spec 001). The
   # home page is this LiveView now; what they prove has not changed.
   test "REQ-001-1: public pages render without login (home page)", %{conn: conn} do

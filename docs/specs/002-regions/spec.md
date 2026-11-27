@@ -245,8 +245,11 @@ Scenario: Hidden region keeps its data
 
 **Rules**
 - There is no delete. Hiding is the only way to retire a region.
-- Hiding does not change any listing; what happens to a hidden region's *published*
-  listings on public pages is decided in spec 005.
+- Hiding does not change any listing. A hidden region's *published* listings stay public
+  (spec 005, decision 1 and REQ-005-1): they stay on the list of every region, in search
+  and at their own addresses. Hiding only stops the region being offered as a choice; its
+  own list still opens at its address (REQ-005-3). An Admin who wants such a listing gone
+  takes it down or moves it (spec 004).
 
 ### REQ-002-5: Launch regions are seeded
 
@@ -347,3 +350,4 @@ below says what was done about it.
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-24 | After the review, each item chosen by the owner. Amended: REQ-002-2 gains the scenario "Name with no letter or digit" and its rule (the app already refused such a name; one test renamed to the scenario, one screen test added); REQ-002-1's rule says the admin area lists Regions among its pages, no longer that Regions is its first page; the mobile requirement says adding and editing happen on their own pages, where it said "inline". Diagrams: the screen flow and the wireframe list the hidden region in alphabetical order with the rest; the activity diagram and the wireframe's error list show the new case. No code changed |
 | 2026-11-24 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
+| 2026-11-26 | Changed by spec 005, after Done: REQ-002-4's rule states what spec 005 decided about a hidden region's published listings (they stay public; the region is only no longer offered as a choice). `state-region` says the same. `activity-seed-and-consume` was read against REQ-005-3 and needed no change. No scenario changed |

@@ -98,6 +98,7 @@ defmodule JairojobsWeb.Router do
       # spec 005 — the public lists of jobs. Anyone gets in (REQ-005-1); the scope is
       # mounted when someone is logged in, so the menu still follows their role.
       live "/", ListingLive.Index, :all
+      live "/jobs/:region", ListingLive.Index, :region
 
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new

@@ -188,7 +188,7 @@ document changed, and every changed `.puml` is rendered on its own
     named beside the table as a public controller route)
   - Commit: `feat(browse): the home page lists the jobs (REQ-005-1, REQ-005-2)`
 
-- [ ] **T9** — Jobs in one region (REQ-005-3; part of REQ-005-9)
+- [x] **T9** — Jobs in one region (REQ-005-3; part of REQ-005-9) — done 2026-11-26
   - Router: `live "/jobs/:region", ListingLive.Index, :region` in the same block.
     `PublicAddress.region_path/2`
   - The region choices (`#region-choices`, `aria-current="page"` on the chosen one), the
@@ -499,3 +499,18 @@ document changed, and every changed `.puml` is rendered on its own
   list shows no stray divider lines.
 - T8: `screenflow-auth` (spec 001) still says "region chips" on the home page, which T9
   builds. The image was re-rendered; I looked at it.
+- T9: 12 tests. Choosing a region is a patch of the same LiveView; every choice is also a
+  real link, so it works in what is first delivered. The path of a list is built by
+  `PublicAddress.list_path/1` (the task called it `region_path/2`).
+- T9: "See all regions" under an empty region's list is a link of its own, 44 px tall. As
+  first written it sat inside the sentence and measured 18 px in the browser.
+- T9: looked at the home page, a region with a job and an empty region at 375 px. No
+  sideways scrolling of the page; nothing under 44 px after the fix above.
+- T9, for the owner: with the dev database's four regions the row of choices is wider
+  than a phone, as the mock expects, and scrolls inside itself. On the home page the
+  chosen one, "All regions", is last and so starts off the screen: the visitor sees four
+  unchosen regions and has to scroll the row to find it. Built as the spec and the plan
+  say (alphabetical, then "All regions"; one row). Put to the owner, not changed.
+- T9: spec 002's `activity-seed-and-consume` was read against REQ-005-3 and agrees
+  (active regions A to Z; a region found by its slug even when hidden; otherwise not
+  found), so it did not change. `state-region` was re-rendered; I looked at it.

@@ -1,7 +1,8 @@
 defmodule JairojobsWeb.PublicAddress do
   @moduledoc """
-  The public addresses of spec 005, built in one place (REQ-005-6):
-  `/jobs/<region slug>/<listing slug>` for a listing.
+  The public addresses of spec 005, built in one place: `/` for the jobs of
+  every region, `/jobs/<region slug>` for a region's (REQ-005-3), and
+  `/jobs/<region slug>/<listing slug>` for a listing (REQ-005-6).
 
   The rows of the lists, the owner's and the Admin's view, the approval email,
   the sitemap and a page's own stated address all come here, so they cannot
@@ -12,6 +13,13 @@ defmodule JairojobsWeb.PublicAddress do
 
   alias Jairojobs.Listings.Listing
   alias Jairojobs.Regions.Region
+
+  @doc """
+  The path of a list of jobs: a region's, or the home page for `nil`, which
+  is the list of every region.
+  """
+  def list_path(nil), do: ~p"/"
+  def list_path(%Region{slug: slug}), do: ~p"/jobs/#{slug}"
 
   @doc """
   The path of a listing's public page. The listing must have its slug, which

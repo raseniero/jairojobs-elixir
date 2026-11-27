@@ -14,8 +14,9 @@ state Hidden <<hidden>>
 Active : offered to employers (003) and visitors (005)
 Active : can be renamed (slug fixed)
 Active --> Hidden : admin hides
-Hidden : not offered in pickers or public index
+Hidden : not offered as a choice (pickers, public lists)
 Hidden : still resolves by slug; listings untouched
+Hidden : its Published listings stay public (005)
 Hidden : can be renamed (slug fixed)
 Hidden --> Active : admin unhides
 
