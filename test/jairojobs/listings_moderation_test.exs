@@ -1241,7 +1241,15 @@ defmodule Jairojobs.ListingsModerationTest do
         end
       end
 
-      raw_update(pending, "status = 'published', published_at = now()")
+      # With the time it is accepted. Since spec 005 a listing with a published time
+      # also needs its public address, recorded first.
+      Repo.insert!(%Jairojobs.Listings.ListingAddress{
+        listing_id: pending.id,
+        region_id: pending.region_id,
+        slug: "a-job"
+      })
+
+      raw_update(pending, "status = 'published', published_at = now(), slug = 'a-job'")
       assert reload(pending).status == :published
     end
 

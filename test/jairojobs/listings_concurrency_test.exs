@@ -11,7 +11,6 @@ defmodule Jairojobs.ListingsConcurrencyTest do
   alias Jairojobs.Accounts.User
   alias Jairojobs.Listings
   alias Jairojobs.Listings.Listing
-  alias Jairojobs.Listings.ListingAddress
   alias Jairojobs.ListingsFixtures
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
@@ -22,13 +21,19 @@ defmodule Jairojobs.ListingsConcurrencyTest do
 
     on_exit(fn ->
       unboxed(fn ->
-        new_users = from u in User, where: u.id not in ^users_before, select: u.id
-        new_listings = from l in Listing, where: l.user_id in subquery(new_users), select: l.id
+        # A listing and its public addresses refer to each other (spec 005), so the
+        # database refuses to delete either alone. One statement removes both.
+        Repo.query!(
+          """
+          WITH gone AS (
+            DELETE FROM listing_addresses WHERE listing_id IN
+              (SELECT id FROM listings WHERE user_id <> ALL($1))
+          )
+          DELETE FROM listings WHERE user_id <> ALL($1)
+          """,
+          [Enum.map(users_before, &Ecto.UUID.dump!/1)]
+        )
 
-        # A listing's addresses go first: the database refuses to delete a listing that
-        # has one (spec 005).
-        Repo.delete_all(from a in ListingAddress, where: a.listing_id in subquery(new_listings))
-        Repo.delete_all(from l in Listing, where: l.user_id in subquery(new_users))
         Repo.delete_all(from r in Region, where: r.id not in ^regions_before)
         Repo.delete_all(from u in User, where: u.id not in ^users_before)
       end)

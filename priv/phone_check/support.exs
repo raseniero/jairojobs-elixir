@@ -13,7 +13,6 @@ defmodule PhoneCheck do
   alias Jairojobs.Accounts
   alias Jairojobs.Accounts.{Scope, User, UserToken}
   alias Jairojobs.Listings.Listing
-  alias Jairojobs.Listings.ListingAddress
   alias Jairojobs.Regions
   alias Jairojobs.Regions.Region
   alias Jairojobs.Repo
@@ -71,13 +70,19 @@ defmodule PhoneCheck do
 
   @doc "Removes everything these scripts created, whichever spec made it."
   def cleanup do
-    users = from u in User, where: like(u.email, "phonecheck-%@example.com"), select: u.id
-    mine = from l in Listing, where: l.user_id in subquery(users), select: l.id
+    # A listing and its public addresses refer to each other (spec 005), so the
+    # database refuses to delete either alone. One statement removes both.
+    %{num_rows: listings} =
+      Repo.query!("""
+      WITH mine AS (
+        SELECT l.id FROM listings l JOIN users u ON u.id = l.user_id
+        WHERE u.email LIKE 'phonecheck-%@example.com'
+      ), gone AS (
+        DELETE FROM listing_addresses WHERE listing_id IN (SELECT id FROM mine)
+      )
+      DELETE FROM listings WHERE id IN (SELECT id FROM mine)
+      """)
 
-    # A listing's public addresses go first: the database refuses to delete a listing
-    # that has one (spec 005).
-    Repo.delete_all(from a in ListingAddress, where: a.listing_id in subquery(mine))
-    {listings, _} = Repo.delete_all(from l in Listing, where: l.user_id in subquery(users))
     {regions, _} = Repo.delete_all(from r in Region, where: like(r.name, "Phonecheck %"))
     {users, _} = Repo.delete_all(from u in User, where: like(u.email, "phonecheck-%@example.com"))
     "removed #{listings} listings, #{regions} regions, #{users} users"

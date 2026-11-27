@@ -90,6 +90,7 @@ users ||--o{ listings : "owns"
 users |o--o{ listings : "decided (latest)"
 regions |o--o{ listings : "located in"
 listings ||--o{ listing_addresses : "has or had"
+listings |o--|| listing_addresses : "current address"
 regions ||--o{ listing_addresses : "is in"
 
 note bottom of users
@@ -126,6 +127,10 @@ note bottom of listings
   Spec 005 (public address). slug is the listing's part of
   /jobs/<region slug>/<slug>: empty until approval, then
   changed only by a move to another region.
+  CHECK slug is present exactly when published_at is.
+  FK (id, region_id, slug) -> listing_addresses
+  (listing_id, region_id, slug): the current address is
+  one of the listing's own recorded addresses.
 end note
 
 note bottom of listing_addresses
@@ -134,6 +139,8 @@ note bottom of listing_addresses
   Indexes: unique(region_id, slug) — an address is never
   given to another listing; unique(listing_id, region_id) —
   a listing moved back finds the address it had.
+  unique(listing_id, region_id, slug), for the foreign key
+  from listings.
   CHECK slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$', at most 60.
   The current address is the row in the listing's own region;
   any other row is an earlier address, which forwards.

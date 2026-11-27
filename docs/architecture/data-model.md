@@ -20,7 +20,7 @@ this page is the readable summary.
 
 ![ERD](diagrams/out/erd-jairojobs.svg)
 
-*Source: `diagrams/src/erd-jairojobs.puml`. Status: matches the migrations through spec 005's first (public addresses).*
+*Source: `diagrams/src/erd-jairojobs.puml`. Status: matches the migrations through spec 005's three (public addresses, addresses for listings approved earlier, address checks).*
 
 ## Tables
 
@@ -44,6 +44,16 @@ a listing has or ever had is a row in `listing_addresses`, the current one inclu
 rows are only inserted. So an address is never given to another listing
 (`unique(region_id, slug)`), and a listing moved back to a region finds the address it had
 there (`unique(listing_id, region_id)`). A listing with an address is never deleted.
+
+The database holds two more rules about addresses. A listing has a slug exactly when it has
+`published_at`: approved once means it has an address, for good. And a foreign key from
+`listings (id, region_id, slug)` to `listing_addresses` means a listing's current address is
+always one of its own recorded addresses. Listings approved before spec 005 were given their
+addresses by a data migration, oldest approval first.
+
+Because a listing and its addresses now refer to each other, neither can be deleted alone.
+The app never deletes them. A clean-up of throwaway data (the concurrency test, the phone
+check) removes both in one statement.
 
 Planned, not yet designed: `profiles` + CV files (006),
 `applications` (007), `subscriptions` (011).

@@ -470,6 +470,67 @@ defmodule Jairojobs.ListingsPublicTest do
                })
     end
 
+    # Straight to the table, past every changeset: what the database itself refuses.
+    defp raw_update(%Listing{id: id}, set, params \\ []) do
+      Repo.query!(
+        "UPDATE listings SET #{set} WHERE id = $#{length(params) + 1}",
+        params ++ [Ecto.UUID.dump!(id)]
+      )
+    end
+
+    test "a listing has a slug exactly when it has been approved",
+         %{owner: owner, davao: davao, listing: listing} do
+      draft = listing_fixture(owner, complete_listing_attrs(region_id: davao.id))
+      waiting = pending(owner, "Cashier (weekends)", davao)
+
+      for unapproved <- [draft, waiting] do
+        assert_raise Postgrex.Error, ~r/listings_slug_iff_approved/, fn ->
+          raw_update(unapproved, "slug = 'cashier-weekends'")
+        end
+      end
+
+      assert_raise Postgrex.Error, ~r/listings_slug_iff_approved/, fn ->
+        raw_update(listing, "slug = NULL")
+      end
+
+      {:ok, closed} = Listings.close_listing(owner, listing)
+
+      assert_raise Postgrex.Error, ~r/listings_slug_iff_approved/, fn ->
+        raw_update(closed, "slug = NULL")
+      end
+    end
+
+    test "a listing's current address must be one of its own recorded addresses",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu, listing: listing} do
+      other = published(owner, admin, "Cashier (weekends)", davao)
+      assert other.slug == "cashier-weekends"
+
+      # A slug nobody has, another listing's slug, and a region it has no address in.
+      assert_raise Postgrex.Error, ~r/listings_current_address_fkey/, fn ->
+        raw_update(listing, "slug = 'something-else'")
+      end
+
+      assert_raise Postgrex.Error, ~r/listings_current_address_fkey/, fn ->
+        raw_update(listing, "slug = 'cashier-weekends'")
+      end
+
+      assert_raise Postgrex.Error, ~r/listings_current_address_fkey/, fn ->
+        raw_update(listing, "region_id = $1", [Ecto.UUID.dump!(cebu.id)])
+      end
+
+      # With the address recorded there first, the same move is accepted.
+      Repo.insert!(%ListingAddress{listing_id: listing.id, region_id: cebu.id, slug: "barista"})
+      raw_update(listing, "region_id = $1, slug = 'barista'", [Ecto.UUID.dump!(cebu.id)])
+
+      assert %Listing{slug: "barista"} = reload(listing)
+    end
+
+    test "a listing's current address cannot be removed", %{listing: listing} do
+      assert_raise Postgrex.Error, ~r/listings_current_address_fkey/, fn ->
+        Repo.delete_all(from a in ListingAddress, where: a.listing_id == ^listing.id)
+      end
+    end
+
     test "a listing that has an address cannot be deleted from the database",
          %{listing: listing} do
       assert_raise Ecto.ConstraintError, ~r/listing_addresses_listing_id_fkey/, fn ->

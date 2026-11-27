@@ -95,7 +95,7 @@ document changed, and every changed `.puml` is rendered on its own
     address and the old one forwards; the address is not something an edit can set)
   - Commit: `feat(listings): a moved listing's address follows it (REQ-005-6)`
 
-- [ ] **T3** — Addresses for listings already approved; the database checks (REQ-005-6)
+- [x] **T3** — Addresses for listings already approved; the database checks (REQ-005-6) — done 2026-11-26, after T4
   - `mix ecto.gen.migration give_addresses_to_approved_listings`: data only. Every listing
     with `published_at` and no slug gets one, oldest approval first. The rule is copied
     into the migration; it calls no module of the app. A comment says why
@@ -432,3 +432,26 @@ document changed, and every changed `.puml` is rendered on its own
   a move and an approval, cannot pick the same slug. A move into a hidden region was
   already refused; it now also writes no address. The "edited" email still names "Region"
   and says nothing of the address.
+- T3, by hand on the dev database: "Software Engineer" is at
+  `/jobs/davao-city/software-engineer`, with one row in `listing_addresses`; its
+  `updated_at` did not change. Rolled back both migrations and migrated again: the same
+  address, still one row.
+- T3, on a throwaway copy of the dev database (created, checked, dropped): eight
+  listings approved "earlier", made by copying the one Published row. Three with the same
+  title in Davao got `software-engineer`, `-2`, `-3` in order of approval, the third one
+  Closed; a Taken down "Café Staff — ₱500/day!!" got `cafe-staff-500-day`; two titles of
+  peso signs got `job` and `job-2`; an 83-character title was cut at a word to 58
+  characters; the same title in Cebu needed no number; the Pending listing got nothing.
+  Rolling back and migrating again there left eight addresses, and both checks in place.
+- T3: 3 new tests on what the database refuses (a slug on a listing never approved, an
+  approved listing without one, a slug or a region that is not one of the listing's own
+  addresses, removing a current address). One of spec 004's tests wrote
+  `published_at` directly to show the database accepts it; it now records an address
+  first, since an approved listing must have one.
+- T3: a listing and its addresses refer to each other, so neither deletes alone. The
+  concurrency test's clean-up and the phone check's remove both in one statement.
+  `scripts/phone-check.sh 004` was run to prove it: 15 pages, 0 failed, "removed 6
+  listings, 2 regions, 3 users", dev database unchanged. So the phone-check change T2
+  left unrun has now been run. I did not look at its screenshots; no screen changed.
+- T3: the migration that gives the addresses has no automated test. It was checked by
+  the two runs above.

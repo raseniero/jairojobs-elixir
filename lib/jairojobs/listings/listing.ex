@@ -185,6 +185,7 @@ defmodule Jairojobs.Listings.Listing do
     listing
     |> change(status: :published, published_at: now, slug: slug)
     |> decided(admin, now)
+    |> public_address_constraints()
   end
 
   @doc """
@@ -207,6 +208,26 @@ defmodule Jairojobs.Listings.Listing do
     listing
     |> change(status: :taken_down, takedown_reason: reason)
     |> decided(admin, now)
+  end
+
+  @doc """
+  Adds the listing's slug in its new region to an Admin edit that moves a
+  Published listing there (REQ-005-6). The context has already recorded the
+  address; the slug is never cast from params.
+  """
+  def move_changeset(%Ecto.Changeset{data: %__MODULE__{}} = changeset, slug)
+      when is_binary(slug) do
+    changeset
+    |> put_change(:slug, slug)
+    |> public_address_constraints()
+  end
+
+  # What the database asks of a public address (REQ-005-6): a slug exactly when
+  # the listing has been approved, and one the listing's own addresses record.
+  defp public_address_constraints(changeset) do
+    changeset
+    |> check_constraint(:slug, name: :listings_slug_iff_approved)
+    |> foreign_key_constraint(:slug, name: :listings_current_address_fkey)
   end
 
   # The latest decision: when, and by which Admin (REQ-004-4).

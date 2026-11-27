@@ -473,7 +473,7 @@ defmodule Jairojobs.Listings do
        ) do
     with {:ok, region_id} <- Ecto.Changeset.fetch_change(changeset, :region_id),
          {:ok, region} <- lock_active_region(region_id) do
-      Ecto.Changeset.put_change(changeset, :slug, address_in(listing, region))
+      Listing.move_changeset(changeset, address_in(listing, region))
     else
       :error ->
         changeset
