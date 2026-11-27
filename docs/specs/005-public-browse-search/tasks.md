@@ -349,7 +349,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase F — Close
 
-- [ ] **T19** — One journey, coverage, phone checks, documents
+- [x] **T19** — One journey, coverage, phone checks, documents — done 2026-11-27 (two items left for the owner: see Notes)
   - `test/jairojobs_web/live/browse_journey_test.exs`: an Employer posts, an Admin
     approves, a visitor finds the listing on the home page, by region and by search, and
     opens it; the Admin moves it and the old address forwards; the Employer closes it and
@@ -372,15 +372,31 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Definition of Done (constitution §7)
 
-- [ ] Every REQ in the spec has a passing, REQ-named test
-- [ ] Authorization tests present for any private resource
-- [ ] `mix precommit` green locally **and** CI green on `main`
-- [ ] Works at 375 px width (phone) before desktop
-- [ ] No new deps without a justification line in `plan.md`
-- [ ] `docs/architecture/` updated if contexts or data model changed
-- [ ] Diagrams in this spec and in earlier specs it changed match the built screens and code
-- [ ] `tasks.md` checked off; spec status set to `Done`
-- [ ] Deployed to Fly.io (once deployment exists) and smoke-checked
+Walked on 2026-11-27, at the end of T19.
+
+- [x] Every REQ in the spec has a passing, REQ-named test — `mix jairojobs.spec_coverage
+  005`: "All 74 scenarios have a REQ-named test." 782 tests pass; 230 of them were written
+  for this spec.
+- [x] Authorization tests present for any private resource — the public pages hold no
+  private resource; what they must never show is tested instead: a listing in each other
+  status is on no list, in no search, in no sitemap and has no page (context, lists,
+  listing page, sitemap); the owner's and the Admin's links are shown to nobody else; a
+  listing's id opens nothing public.
+- [ ] `mix precommit` green locally **and** CI green on `main` — green locally. CI has not
+  run: nothing is pushed. This is T20.
+- [x] Works at 375 px width (phone) before desktop — `scripts/phone-check.sh 005`: 21
+  pages, 0 failed; I looked at four of the screenshots. `003` (13 pages) and `004` (15
+  pages) were run in T15, after the last change to their screens: 0 failed. One point is
+  put to the owner: how many rows fit on the first screen (Notes, T19).
+- [x] No new deps without a justification line in `plan.md` — no dependency was added.
+- [x] `docs/architecture/` updated if contexts or data model changed — the overview, the
+  data model, the ERD and both C4 diagrams.
+- [x] Diagrams in this spec and in earlier specs it changed match the built screens and
+  code — all five of this spec's diagrams were read again against the screens; four
+  changed (Notes, T19). The 21 rows of earlier documents are walked below.
+- [ ] `tasks.md` checked off; spec status set to `Done` — T20, after CI.
+- [ ] Deployed to Fly.io (once deployment exists) and smoke-checked — no deployment
+  exists yet (parked).
 
 ## Notes / deviations from plan
 
@@ -708,3 +724,79 @@ document changed, and every changed `.puml` is rendered on its own
 - T18: both C4 diagrams were re-rendered with a search engine and a chat app as outside
   readers; I looked at both. The overview has a paragraph on them and names the
   sitemap's route.
+- T19: the journey test follows one listing through 10 steps on the real screens of an
+  Employer, an Admin and a visitor: posted, approved (the email carries the public
+  address), found on the home page, by region and by search, opened, reached by its owner
+  and by the Admin from its public page, moved to another region (the old address
+  forwards), closed (off every list and the sitemap; its address says "no longer listed"),
+  and its two addresses never given to a new listing. It passed the first time it ran;
+  nothing in the app changed for it.
+- T19: `mix jairojobs.spec_coverage 005`: all 74 scenarios have a REQ-named test.
+- T19: `priv/phone_check/005.exs` lists 21 pages: 14 as a visitor (both lists, a list
+  opened to 40 rows, an empty region, a hidden region, a search, a search that finds
+  nothing, a search typed into the form, four listing pages including one with a
+  90-character title and a long business name and one with only the required parts, the
+  page after "Share" is tapped, "no longer listed"), 3 as the owner, 4 as an Admin.
+  `scripts/phone-check.sh 005`: 21 checked, 0 failed, dev database unchanged. I looked at
+  four screenshots: the home page, the long listing (top and bottom), and the hidden
+  region's list.
+- T19, for the owner, rows on the first screen. The spec asks for "about six rows to a
+  phone screen". With the region choices, the search row and the type row above the
+  list, the first row starts about 300 px down. A row is about 98 px when nothing wraps.
+  On a screen 800 px tall that is five rows; on 667 px (a small iPhone), under four. The
+  mock reaches six because it has no search field or type choice. Not changed. Ways to
+  gain room: put the type choice beside the count line (about half a row), or tighten
+  the spacing of the form (a little).
+- T19, for the owner, "Share" on a real phone. REQ-005-8 asks for the tap to be checked
+  by hand on a phone. Not done: I have no phone. What was done is in the T16 note (six
+  cases in a headless browser). Still to do on a phone: tap "Share" on a listing and see
+  the phone's share sheet open with the title and the address.
+- T19: all five diagrams of this spec were read again against the built screens. Four
+  changed: `activity-share-and-be-found` (a third outcome of Share: the address written
+  out), `activity-browse-and-search` (the address keeps how far the list is opened),
+  `activity-open-a-listing` (the way back is first on the page, as built),
+  `screenflow-browse` (a region's heading; "Clear search" whenever words or a type are
+  set; the third outcome of Share; `/jobs`). `activity-address-and-links` agreed. I looked
+  at all five re-rendered images.
+- T19: three things the plan decided (decisions 9, 15 and 19) and the app does were not
+  in the spec's requirements, so the diagrams above would have shown more than the text.
+  Each is now one rule in the spec, with a changelog row: how far a list is opened is in
+  its address (REQ-005-4), `/jobs` forwards to the home page (REQ-005-3), the third
+  outcome of Share (REQ-005-8). No scenario changed. The spec's review section names the
+  commit.
+- T19: the plan was not edited at the close. Where it differs from what was built, the
+  notes above say so task by task: the order of T3 and T4, the lock on the region's row,
+  the double hyphen in a row's id, "All regions" first, two log tests, the hook that was
+  not needed, 33 callers of `approve_listing`, the extra fallback of Share.
+- T19, the spec's table of earlier documents, row by row:
+  1. 000 feature map: In Progress since T1; Done at T20.
+  2. 001 REQ-001-1 and `screenflow-auth`: T8 (the home page), T10 (search and type), T12
+     (the listing page), T16 (Share).
+  3. 001 `activity-request-access`: T13.
+  4. 002 REQ-002-4: T9.
+  5. 002 `state-region`: T9.
+  6. 002 `activity-seed-and-consume`: read in T9; agrees; not changed.
+  7. 003 lifecycle table, `state-listing`: a sentence under the table in T13;
+     `state-listing` read in T13, agrees, not changed.
+  8. 003 REQ-003-9 and `activity-after-submitting`: T13.
+  9. 003 REQ-003-10, `activity-my-listings`, `screenflow-posting`, `wireframe-posting`: T14.
+  10. 004 REQ-004-9, `activity-emails`, `sequence-decision-email`, `screenflow-moderation`: T15.
+  11. 004 REQ-004-4, `activity-find-and-review`, `screenflow-moderation`: T14.
+  12. 004 REQ-004-3 and REQ-004-7: T13.
+  13. 004 REQ-004-5 and `activity-approve-or-reject`: T2.
+  14. 004 REQ-004-8 and `activity-take-down-and-edit`: T4 (the move), T13 ("no longer
+      public").
+  15. 004 `state-listing`: T2.
+  16. `architecture/overview.md`: T8, T9 and T18 (the routes), this task (the Listings
+      row says implemented).
+  17. `architecture/data-model.md`, the ERD: T2 and T3.
+  18. `c4-context-system`, `c4-container-system`: T18.
+  19. `docs/design.md` and its mock: the note was added on 2026-11-26, in its own commit.
+      Since then the owner put "All regions" first among the region choices; the mock
+      draws it last and the note does not say so. Offered to the owner as a fifth line of
+      the note; not answered, not done.
+  20. The home page: T8.
+  21. The Admin's Regions screens: no change (plan decision 16).
+- T19, not done or not checked, in one place: CI (nothing is pushed); the tap on a real
+  phone; the job-details block in a search engine's own checker; the screenshots of the
+  phone check beyond the ones named in each task.

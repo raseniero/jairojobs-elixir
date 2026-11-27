@@ -46,6 +46,8 @@ case (Closed or\nTaken down)
   endif
   stop
 endswitch
+:Offer the way back, first on the page:
+"Jobs in <region>", always the listing's own region;
 :Title, business name;
 note right
   The listing as it is now, an Admin's edits included.
@@ -65,7 +67,6 @@ end note
 :Offer "Share" (REQ-005-8);
 :Say "Applying through jairojobs is coming soon."
 There is no Apply button until spec 007;
-:Offer the way back: "Jobs in <region>";
 if (Viewer is the owner or an Admin?) then (yes)
   :Add the link to the owner view
   or to the Admin view (REQ-005-10);

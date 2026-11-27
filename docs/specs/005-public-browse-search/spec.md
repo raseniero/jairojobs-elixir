@@ -377,6 +377,8 @@ Scenario: Back to all regions
 - A region's address uses its slug, which never changes (REQ-002-3), so a renamed region
   keeps its address.
 - Everything else is as on the home page: order, rows, count, parts of 20, the trust line.
+- `/jobs` with nothing after it is no page of its own: it forwards to the home page, which
+  is the list of every region.
 
 ### REQ-005-4: Search and filter by type
 
@@ -461,6 +463,10 @@ Scenario: An empty search is no search
   words mean the same.
 - The search words and the type are part of the page's address. What was searched is not
   stored.
+- How far a list is opened with "Show more" is part of the page's address too, up to 200
+  rows, so the browser's back button returns to the list as it was. Past 200 rows "Show
+  more" still works and the address stays. A new search, type or region starts again at
+  the first 20.
 
 ### REQ-005-5: The listing's public page
 
@@ -690,7 +696,9 @@ Scenario: A shared link opens without an account
 
 **Rules**
 - "Share" opens the phone's own share sheet with the title and the address. Where there is
-  no share sheet, it copies the address and says "Link copied".
+  no share sheet, it copies the address and says "Link copied". Where the address cannot
+  be copied either (an old browser), it is written out beside the button, to be copied by
+  hand. A share sheet that is closed again does nothing.
 - There are no buttons for particular networks, and nothing is added to the address to
   track who shared it.
 - The preview is text only. The salary is in it, because it is the first thing a job
@@ -1003,3 +1011,4 @@ each time only the changed part was read again:
 | 2026-11-23 | Approved by the owner, after a summary of every change since the first draft. `mix jairojobs.spec_review 005` passed on the approved text |
 | 2026-11-26 | "Notes for the plan" brought in line with the approved plan (its decision 1): in the table of earlier documents, the row for `architecture/overview.md` says the two lists join the `:current_user` session and the listing's page and the sitemap are public pages outside it. It said "the public pages" join it. A sentence in "Review before approval" notes the same. No requirement, scenario or diagram changed |
 | 2026-11-26 | Amended after approval, on the owner's decision (decision 26): "All regions" is the first of the region choices, not the last. Seen once the lists were built: with four regions the row of choices is wider than a phone, and on the home page the chosen choice was off the screen. REQ-005-3's rule and its scenario "The choices are the active regions" changed; `screenflow-browse` and `activity-browse-and-search` changed with them. The design guide's mock still draws "All regions" last |
+| 2026-11-27 | At the close, after every diagram was read again against the built screens. Three things the plan decided and the app does are now written in the requirements, each as a rule, with no scenario changed: how far a list is opened is part of its address, up to 200 rows (REQ-005-4; plan decision 9); `/jobs` alone forwards to the home page (REQ-005-3; plan decision 15); where "Share" can neither open a share sheet nor copy, it writes the address out (REQ-005-8; plan decision 19). Diagrams brought in line with the screens: `activity-share-and-be-found` (the third outcome of Share), `activity-browse-and-search` (the address keeps how far the list is opened), `activity-open-a-listing` (the way back is first on the page, as built), `screenflow-browse` (a region's heading, "Clear search" whenever words or a type are set, the third outcome of Share, `/jobs`). `activity-address-and-links` agreed and did not change |

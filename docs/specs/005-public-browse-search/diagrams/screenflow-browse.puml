@@ -36,11 +36,13 @@ All : Kape Isla · Matina, Davao City
 All : ₱14,000–16,000/mo · 2 h ago · ✓ Approved
 All : 20 rows at a time · [ Show more ]
 All : (none yet) "No jobs are listed yet."
-All : (search finds nothing) "No jobs match your search." · Clear search
+All : (words or a type set) Clear search
+All : (search finds nothing) "No jobs match your search."
 All : "Every listing shows salary and is checked by jairojobs before it is published."
 
 state "Jobs in a region" as Region
 Region : region choices: All regions · Cebu · ● Davao City · Metro Manila
+Region : heading: Jobs in Davao City
 Region : search field ________  [ Search ]
 Region : type: Any type ▾
 Region : "38 jobs in Davao City · newest first"
@@ -49,7 +51,8 @@ Region : Kape Isla · Matina
 Region : ₱14,000–16,000/mo · 2 h ago · ✓ Approved
 Region : 20 rows at a time · [ Show more ]
 Region : (none yet) "No jobs are listed in Davao City yet." · See all regions
-Region : (search finds nothing) "No jobs match your search." · Clear search
+Region : (words or a type set) Clear search
+Region : (search finds nothing) "No jobs match your search."
 Region : (a hidden region opens by its address, with no region choice marked)
 Region : the same footer line
 
@@ -80,7 +83,9 @@ state "The phone's share sheet" as Sheet <<outside>>
 Sheet : the listing's title and address,
 Sheet : ready to send in any app
 Sheet : (where there is no share sheet:
-Sheet : the address is copied, "Link copied")
+Sheet : the address is copied, "Link copied";
+Sheet : where it cannot be copied either,
+Sheet : it is written out beside the button)
 
 state "Email to the Employer (spec 004)" as Mail <<email>>
 Mail : Your listing is published
@@ -112,6 +117,7 @@ Outside --> Gone : follows the link\n(the listing was closed or taken down)
 Outside --> Listing : follows an address from before the\nlisting moved region → forwarded
 Outside --> NotFound : an address that never was a public listing\n(or one built from a listing's id)
 Outside --> Region : follows a region's address\n(unknown region → Not found)
+Outside --> All : follows /jobs with nothing\nafter it → forwarded
 Gone --> Region : See jobs in Davao City
 
 Admin -[dotted]-> Mail : on approve (004)\n(not when the listing is the Admin's own)

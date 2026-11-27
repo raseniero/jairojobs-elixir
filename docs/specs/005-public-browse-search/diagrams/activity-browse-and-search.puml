@@ -78,6 +78,11 @@ note right
 end note
 if (More than 20?) then (yes)
   :Offer "Show more" — 20 more each time;
+  note right
+    How far the list is opened is part of the
+    address too (up to 200 rows), so the browser's
+    back button returns to the list as it was.
+  end note
 else (no)
 endif
 if (Visitor chooses a region, searches,\nchooses a type or clears?) then (yes)

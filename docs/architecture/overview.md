@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last updated:** 2026-11-27 (public pages, their addresses and the sitemap; search engines and chat apps as outside readers; spec 005, in progress)
+**Last updated:** 2026-11-27 (public pages, their addresses and the sitemap; search engines and chat apps as outside readers; implemented by spec 005)
 
 Living document. Update when a spec adds or changes a context, boundary, or integration.
 Richer diagrams live in `diagrams/src/*.puml` (rendered to `diagrams/out/*.svg`; see `docs/README.md`).
@@ -50,7 +50,7 @@ Status becomes *Implemented* when the introducing spec is Done.
 |---|---|---|---|
 | `Jairojobs.Accounts` | Users, authentication (password + magic link), roles (candidate / employer / admin), `Scope`, admin promotion, business details of accounts that post listings | 001 | Implemented |
 | `Jairojobs.Regions` | Admin-managed list of PH regions/cities: slugs, hide / show, launch-region seed; active regions are what other contexts offer users | 002 | Implemented |
-| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), salary range, free-tier limit of 3 open listings; Admin moderation (queue, approve, reject, take down, edit) and the emails about each decision; slugs | 003, 004, 005 | Employer side (003) and moderation (004) implemented; public pages 005 planned |
+| `Jairojobs.Listings` | Employer job listings, lifecycle (draft → pending → published → closed, plus rejected and taken down), salary range, free-tier limit of 3 open listings; Admin moderation (queue, approve, reject, take down, edit) and the emails about each decision; what the public may read: the lists of Published listings, search, and each listing's public address | 003, 004, 005 | Employer side (003), moderation (004) and the public pages (005) implemented |
 | `Jairojobs.Profiles` | Candidate profile + CV upload | 006 | Planned |
 | `Jairojobs.Applications` | Candidate applies to listing; email delivery (phase 1), on-platform tracking (phase 2) | 007, 009 | Planned |
 | `Jairojobs.Billing` | Employer subscriptions; varies the open-listing limit by plan | 011 | Future |

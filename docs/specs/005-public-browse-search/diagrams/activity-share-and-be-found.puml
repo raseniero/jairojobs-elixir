@@ -6,9 +6,13 @@ start
 if (Who is asking?) then (a visitor on a listing's public page)
   :Taps "Share";
   if (The phone has a share sheet?) then (yes)
-    :Open it with the listing's title and address;
-  else (no)
+    :Open it with the listing's title and address.
+    A sheet that is closed again does nothing;
+  elseif (The address can be copied?) then (yes)
     :Copy the address and say "Link copied";
+  else (no)
+    :Write the address out beside the button,
+    to be copied by hand;
   endif
   note right
     No buttons for particular apps.
