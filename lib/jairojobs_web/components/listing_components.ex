@@ -174,9 +174,16 @@ defmodule JairojobsWeb.ListingComponents do
   A listing laid out the way visitors see it: title, business, facts box,
   then the text sections (design guide §4, "Listing detail").
 
-  The trust line (approved badge, posted date) is not part of this component:
-  it only exists once a listing is Published and is added by the public page
-  (spec 005). Parts that are not filled in yet read "Not set yet".
+  The trust line (approved badge, posted date, region) only exists once a
+  listing is Published. The public page passes it in the `trust` slot, which
+  sits under the business name (spec 005, REQ-005-5); the owner's and the
+  Admin's views leave the slot out. Parts that are not filled in yet read
+  "Not set yet".
+
+  `title_tag` is the heading level of the title. On the public page the title
+  is the page's one main heading, `"h1"`; inside the owner's and the Admin's
+  views, under their own page furniture, it is `"h2"`, the default. The
+  section headings are always one level below it.
 
   `business_name` / `business_about` are passed in because the caller decides
   which to show: the account's current details for a Draft or Rejected
@@ -185,19 +192,30 @@ defmodule JairojobsWeb.ListingComponents do
   attr :listing, :map, required: true
   attr :business_name, :string, default: nil
   attr :business_about, :string, default: nil
+  attr :title_tag, :string, default: "h2", values: ~w(h1 h2)
+
+  slot :trust, doc: "the public page's trust line, shown under the business name"
 
   def listing_detail(assigns) do
     assigns =
       assign(assigns,
         salary: Format.salary_range(assigns.listing.salary_min, assigns.listing.salary_max),
-        location: location(assigns.listing)
+        location: location(assigns.listing),
+        section_tag: if(assigns.title_tag == "h1", do: "h2", else: "h3")
       )
 
     ~H"""
     <article id="listing-detail" class="space-y-4">
       <header class="space-y-1">
-        <h2 id="listing-title" class="text-[22px] font-bold break-words">{@listing.title}</h2>
+        <.dynamic_tag
+          tag_name={@title_tag}
+          id="listing-title"
+          class="text-[22px] font-bold break-words"
+        >
+          {@listing.title}
+        </.dynamic_tag>
         <p id="listing-business">{@business_name}</p>
+        {render_slot(@trust)}
       </header>
 
       <dl class="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-base-200 p-3 text-sm">
@@ -216,10 +234,15 @@ defmodule JairojobsWeb.ListingComponents do
         />
       </dl>
 
-      <.text_section title="About the job" text={@listing.description} always />
-      <.text_section title="Requirements" text={@listing.requirements} />
-      <.text_section title="Benefits" text={@listing.benefits} />
-      <.text_section :if={@business_name} title={"About #{@business_name}"} text={@business_about} />
+      <.text_section tag={@section_tag} title="About the job" text={@listing.description} always />
+      <.text_section tag={@section_tag} title="Requirements" text={@listing.requirements} />
+      <.text_section tag={@section_tag} title="Benefits" text={@listing.benefits} />
+      <.text_section
+        :if={@business_name}
+        tag={@section_tag}
+        title={"About #{@business_name}"}
+        text={@business_about}
+      />
     </article>
     """
   end
@@ -248,6 +271,7 @@ defmodule JairojobsWeb.ListingComponents do
     """
   end
 
+  attr :tag, :string, required: true
   attr :title, :string, required: true
   attr :text, :string, default: nil
   attr :always, :boolean, default: false
@@ -256,7 +280,7 @@ defmodule JairojobsWeb.ListingComponents do
   defp text_section(assigns) do
     ~H"""
     <section :if={@text || @always} class="space-y-1">
-      <h3 class="text-[15px] font-bold">{@title}</h3>
+      <.dynamic_tag tag_name={@tag} class="text-[15px] font-bold">{@title}</.dynamic_tag>
       <p :if={@text} class="break-words whitespace-pre-line">{@text}</p>
       <p :if={!@text} class="text-base-content/60">Not written yet</p>
     </section>

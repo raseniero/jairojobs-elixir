@@ -234,7 +234,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase D — The listing page
 
-- [ ] **T12** — The listing's public page (REQ-005-5; part of REQ-005-1 and REQ-005-8)
+- [x] **T12** — The listing's public page (REQ-005-5; part of REQ-005-1 and REQ-005-8) — done 2026-11-26
   - `ListingHTML` `show`: "← Jobs in Davao City", `listing_detail` with its new `trust`
     slot and the title as the page's `h1`, the "coming soon" line, the page title
   - `ListingComponents.listing_detail/1`: the `trust` slot and the heading level. The
@@ -573,3 +573,17 @@ document changed, and every changed `.puml` is rendered on its own
   without it. It did not fail, so the hook was not needed and is not in the commit. A
   visitor who taps a row within a tenth of a second of the page stopping comes back to
   the place noted before that.
+- T12: 18 tests in the new file for the listing page. Nine of them already passed against
+  the bare page from T8 (the facts and the texts come from `listing_detail`); the other
+  nine failed first.
+- T12: on the public page the title is the page's `h1` and the sections are `h2`; in the
+  owner's and the Admin's views they stay `h2` and `h3`. One test opens both of those
+  views and checks they are as they were, with no trust line.
+- T12: the page title is set here ("Barista (full-time) — Kape Isla, Davao City |
+  jairojobs"); T17 adds the description and the rest of the head.
+- T12: looked at the page at 375 px with the dev database's listing: no sideways
+  scrolling, nothing under 44 px. It reads as the mock does, without the Apply bar.
+- T12: spec 001's `screenflow-auth` had an arrow from the listing page's Apply button to
+  Log in. There is no such button until spec 007, so the arrow is gone, with a comment in
+  the source saying it returns then. No user story of spec 001 used that path. I looked
+  at the re-rendered image.

@@ -1,9 +1,48 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <%!-- spec 005 — REQ-005-5. A first, bare page so a row on a list leads somewhere;
-       the trust line, the way back and the rest arrive with tasks T12 to T17. --%>
+  <%!-- spec 005 — REQ-005-5: a Published listing as the public reads it. Nothing here needs
+       a live connection, so the whole page is in what is first delivered (REQ-005-9). --%>
+
+  <%!-- The way back is always the listing's own region, whatever list the visitor came
+       from (spec decision 20); the browser's back button returns to that list. --%>
+  <.link
+    href={PublicAddress.list_path(@listing.region)}
+    id="back-to-region"
+    class="inline-flex min-h-11 items-center gap-1 text-sm text-primary hover:underline"
+  >
+    <.icon name="hero-arrow-left" class="size-4" /> Jobs in {@listing.region.name}
+  </.link>
+
+  <%!-- The business name and "about" are the listing's own copy (REQ-003-2, REQ-004-8).
+       The component shows no status, and leaves out the parts that are not filled in. --%>
   <.listing_detail
     listing={@listing}
     business_name={@listing.business_name}
     business_about={@listing.business_about}
-  />
+    title_tag="h1"
+  >
+    <:trust>
+      <%!-- "Approved" is written in words, not shown by colour or an icon alone. --%>
+      <p
+        id="listing-trust"
+        class="flex flex-wrap items-center gap-x-1.5 gap-y-1 pt-1 text-sm text-base-content/70"
+      >
+        <span
+          id="listing-approved"
+          class="rounded-full border border-success/40 px-2 text-xs font-semibold whitespace-nowrap text-success"
+        >
+          ✓ Approved
+        </span>
+        <span aria-hidden="true">·</span>
+        <span id="listing-posted">Posted {Format.time_ago(@listing.published_at)}</span>
+        <span aria-hidden="true">·</span>
+        <span id="listing-region">{@listing.region.name}</span>
+      </p>
+    </:trust>
+  </.listing_detail>
+
+  <%!-- No way to apply until spec 007, which puts "Apply for this job" where this line is
+       (spec decision 10). A plain line, not a button: this page has no accent action. --%>
+  <p id="apply-coming-soon" class="border-t border-base-300 pt-4 text-sm text-base-content/70">
+    Applying through jairojobs is coming soon.
+  </p>
 </Layouts.app>

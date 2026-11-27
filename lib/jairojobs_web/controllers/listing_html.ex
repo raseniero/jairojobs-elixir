@@ -6,5 +6,8 @@ defmodule JairojobsWeb.ListingHTML do
 
   import JairojobsWeb.ListingComponents
 
+  alias JairojobsWeb.Format
+  alias JairojobsWeb.PublicAddress
+
   embed_templates "listing_html/*"
 end

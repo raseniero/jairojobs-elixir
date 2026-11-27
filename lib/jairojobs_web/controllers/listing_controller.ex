@@ -13,7 +13,7 @@ defmodule JairojobsWeb.ListingController do
     case Listings.resolve_public_address(region_slug, listing_slug) do
       {:ok, listing} ->
         conn
-        |> assign(:page_title, listing.title)
+        |> assign(:page_title, page_title(listing))
         |> render(:show, listing: listing)
 
       # T13 gives an earlier address and a listing that is no longer listed their
@@ -22,4 +22,9 @@ defmodule JairojobsWeb.ListingController do
         raise Phoenix.Router.NoRouteError, conn: conn, router: JairojobsWeb.Router
     end
   end
+
+  # "Barista (full-time) — Kape Isla, Davao City"; the layout adds " | jairojobs"
+  # (REQ-005-9). The salary is in the description, not here (spec decision 19).
+  defp page_title(listing),
+    do: "#{listing.title} — #{listing.business_name}, #{listing.region.name}"
 end

@@ -25,11 +25,14 @@ state "Public pages" as Public <<public>> {
   Home : salary · date · ✓ Approved (spec 005)
   Home : "Every listing shows salary and is checked…"
   state "Listing detail" as Detail
+  Detail : ← Jobs in <region>
+  Detail : title, business
+  Detail : ✓ Approved · Posted 2 h ago · region
   Detail : facts box, sections
-  Detail : [Apply for this job]
-  Detail : "You'll need an account —\nwe'll email you a sign-in link"
+  Detail : "Applying through jairojobs is coming soon."
+  Detail : (spec 005; no Apply button until spec 007)
   Home --> Detail : tap a listing
-  Detail --> Home : back
+  Detail --> Home : ← Jobs in <region>
 }
 
 state "Drawer (☰)" as Drawer
@@ -95,7 +98,8 @@ Drawer --> Home : Browse jobs
 Drawer --> Signup : Sign up
 Drawer --> Login : Log in
 Home --> Login : [Log in]
-Detail --> Login : [Apply] while\nlogged out
+' The Apply button, and its way to Log in for someone logged out, arrive with spec 007.
+' Until then the listing page offers nothing that needs an account (spec 005, REQ-005-5).
 Signup --> Login : submit\n(message: an email was sent)
 Signup --> Login : "Log in" link
 Login --> Login : ask for a link\n(message: if your email is in our system…)
