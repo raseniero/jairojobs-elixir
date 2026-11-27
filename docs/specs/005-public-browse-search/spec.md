@@ -937,12 +937,18 @@ Not requirements; reminders for whoever writes `plan.md`.
 
 ## Review before approval
 
-**Reviewed:** 2026-11-26 at commit `5a8dfbc`
+**Reviewed:** 2026-11-26 at commit `ca32216`
 
 The whole spec was reviewed on 2026-11-20 at commit `4f3a9f8`; the table below is that
-review. On 2026-11-26 one row of "Notes for the plan" was changed after approval (see the
-Changelog). Only that row was read again, at commit `5a8dfbc`, against the approved plan
-and the requirements: it disagrees with neither.
+review. Two things changed after approval, both on 2026-11-26 (see the Changelog), and
+each time only the changed part was read again:
+
+- at commit `5a8dfbc`, one row of "Notes for the plan", against the approved plan and the
+  requirements;
+- at commit `ca32216`, the order of the region choices (decision 26): REQ-005-3's rule and
+  its scenario "The choices are the active regions", against `screenflow-browse`,
+  `activity-browse-and-search`, the other scenarios of REQ-005-3 and the built screen.
+  They agree. No other scenario names an order for the choices.
 
 | Checked against | Result |
 |---|---|
