@@ -945,18 +945,23 @@ Not requirements; reminders for whoever writes `plan.md`.
 
 ## Review before approval
 
-**Reviewed:** 2026-11-26 at commit `ca32216`
+**Reviewed:** 2026-11-27 at commit `e38bab9`
 
 The whole spec was reviewed on 2026-11-20 at commit `4f3a9f8`; the table below is that
-review. Two things changed after approval, both on 2026-11-26 (see the Changelog), and
-each time only the changed part was read again:
+review. Three things changed after approval (see the Changelog), and each time only the
+changed part was read again:
 
-- at commit `5a8dfbc`, one row of "Notes for the plan", against the approved plan and the
-  requirements;
-- at commit `ca32216`, the order of the region choices (decision 26): REQ-005-3's rule and
-  its scenario "The choices are the active regions", against `screenflow-browse`,
-  `activity-browse-and-search`, the other scenarios of REQ-005-3 and the built screen.
-  They agree. No other scenario names an order for the choices.
+- 2026-11-26, at commit `5a8dfbc`: one row of "Notes for the plan", against the approved
+  plan and the requirements;
+- 2026-11-26, at commit `ca32216`: the order of the region choices (decision 26):
+  REQ-005-3's rule and its scenario "The choices are the active regions", against
+  `screenflow-browse`, `activity-browse-and-search`, the other scenarios of REQ-005-3 and
+  the built screen. They agree. No other scenario names an order for the choices;
+- 2026-11-27, at commit `e38bab9`, at the close: three rules added (REQ-005-3, REQ-005-4,
+  REQ-005-8) for what plan decisions 9, 15 and 19 built, and four diagrams brought in
+  line with the built screens. All five diagrams were read against the screens, the
+  phone check's pages and the requirements, scenario by scenario for the parts that
+  changed. They agree. No scenario changed.
 
 | Checked against | Result |
 |---|---|
