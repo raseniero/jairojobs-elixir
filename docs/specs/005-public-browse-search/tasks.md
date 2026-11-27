@@ -168,7 +168,7 @@ document changed, and every changed `.puml` is rendered on its own
   - `JairojobsWeb.PublicAddress`: `listing_path/1`, `listing_url/1`
   - `JairojobsWeb.ListingLive.Index`: `#jobs`, the heading for screen readers, the count
     line, the rows as a stream of links (DOM id from the address), the empty message, the
-    trust line, the page title
+    trust line, the page title. An empty list shows its message and no count line
   - `ListingController.show` for now: a Published listing at its current address renders
     `listing_detail`; everything else is "not found". It exists so a row leads somewhere;
     T12 and T13 finish it
@@ -178,7 +178,7 @@ document changed, and every changed `.puml` is rendered on its own
     `…: A hidden region does not hide a listing`,
     `…: Logging in does not change the lists`,
     `REQ-005-2: Newest first`, `…: What a row shows` (and following the row gives 200),
-    `…: How many jobs` (3, and "1 job"), `…: Nothing listed yet`,
+    `…: How many jobs` (3, and "1 job"), `…: Nothing listed yet` (the message, and no `#jobs-count`),
     `…: A long list is shown in parts` (the first 20; "Show more" itself is T11),
     `…: The trust line is shown`; the title; no listing id anywhere in the page
   - The five tests of `page_controller_test.exs` (REQ-001-1 and the four REQ-001-12 menu
@@ -214,8 +214,12 @@ document changed, and every changed `.puml` is rendered on its own
     `get`: the words and the type are filled in), `…: Choosing a region keeps the search`,
     `…: An empty search is no search`; the count follows the search; a searched region
     with nothing found says "No jobs match your search."; an unknown `type` is ignored
-  - Tests: searched words are "[FILTERED]" in logged parameters, beside the other
-    filtered-parameter tests
+  - Tests (`test/jairojobs_web/endpoint_log_test.exs`, "request log"): a real request for
+    `/jobs/<region>?search=<an unusual word>`, with the log captured at `:debug` (the
+    parameter lines are logged at that level, below the file's usual `:info`); the word is
+    nowhere in the log. Make it fail once by taking `"search"` out of the filter
+  - Tests (**L**, beside the other filtered-parameter tests): `search` is "[FILTERED]" in
+    `Phoenix.Logger.filter_values/1`
   - Docs: spec 001 `screenflow-auth` (the home box gains the search field and the type)
   - Commit: `feat(browse): search and filter by type (REQ-005-4)`
 
@@ -389,6 +393,11 @@ document changed, and every changed `.puml` is rendered on its own
   - The preview tags (`og:`) arrive with Share in T16, and the other head tags in T17. The
     plan had the preview in step 11 and the rest in step 12; `Seo` is therefore created in
     T16.
-- The test that searched words are not logged sits beside the other filtered-parameter
-  tests, where spec 004 found such tests belong (its T10 note), not in
-  `endpoint_log_test.exs` as the plan says. To be confirmed when T10 is done.
+- 2026-11-26, after a comparison of the spec, its diagrams, the plan and this file (the
+  owner approved the changes): T8 says an empty list has no count line; T10 has two tests
+  that searched words are not logged, one on a real request in `endpoint_log_test.exs`
+  and one on the parameter filter. The plan was amended the same day to say the same, so
+  this is no longer a difference from it.
+- Left for T19, when every diagram is re-read against what was built: the Share diagram
+  draws two outcomes and the plan has a third (the address written out, plan decision
+  19); the screen flow does not draw `/jobs` forwarding to `/` (plan decision 15).
