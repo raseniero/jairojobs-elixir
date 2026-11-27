@@ -24,11 +24,20 @@ defmodule JairojobsWeb.Layouts do
   def seo(assigns) do
     ~H"""
     <%= if @seo do %>
+      <meta :if={@seo[:description]} name="description" content={@seo.description} />
+      <link :if={@seo[:canonical]} rel="canonical" href={@seo.canonical} />
+      <meta :if={@seo[:noindex]} name="robots" content="noindex" />
       <meta
         :for={{name, content} <- Map.get(@seo, :og, [])}
         property={"og:#{name}"}
         content={content}
       />
+      <%!-- Data for search engines, not a script that runs: the job details as schema.org
+           JSON-LD, the form they recommend (spec 005, plan decision 11). The text is
+           encoded so that nothing in it can end the block. --%>
+      <script :if={@seo[:json_ld]} type="application/ld+json">
+        <%= Phoenix.HTML.raw(JairojobsWeb.Seo.encode_json_ld(@seo.json_ld)) %>
+      </script>
     <% end %>
     """
   end

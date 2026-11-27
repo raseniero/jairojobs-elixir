@@ -318,7 +318,7 @@ document changed, and every changed `.puml` is rendered on its own
   - Docs: spec 001 `screenflow-auth` (the "Listing detail" box gains "Share")
   - Commit: `feat(browse): share a listing (REQ-005-8)`
 
-- [ ] **T17** — What search engines read on each page (REQ-005-9)
+- [x] **T17** — What search engines read on each page (REQ-005-9) — done 2026-11-27
   - `Seo`: description and `rel="canonical"` for the home page, a region's list and a
     listing; `noindex` for a list with words or a type, a hidden region's list and the
     gone page; the `JobPosting` block, HTML-safe JSON
@@ -668,3 +668,31 @@ document changed, and every changed `.puml` is rendered on its own
   plan; the plan has share, else copy, else write out.
 - T16: `screenflow-auth` (spec 001) gained "[ Share ]". Not looked at again: one line in
   a diagram looked at in T12.
+- T17: 17 tests: 10 for the listing page, 7 for the lists. Six of REQ-005-9's seven
+  scenarios are covered; the seventh, the sitemap, is T18.
+- T17: the job details are one `JobPosting` block in the head, built from a map and
+  written as JSON in which `<`, `>` and `&` are escapes. A test gives a listing texts
+  with `</script>`, an `<img onerror>`, an unclosed comment and `]]>`: the page still has
+  exactly one block, it still parses, and none of it reaches the page as markup. With the
+  escaping taken out on purpose that test failed; restored.
+- T17: the block's description is the three texts as simple HTML, which is how search
+  engines read a job's description: each text escaped, its line breaks as `<br>`,
+  "Requirements" and "Benefits" as headings in bold. The date posted is the day of
+  approval in Manila. There is no closing date and no identifier.
+- T17: the types of work are named as schema.org names them: FULL_TIME, PART_TIME,
+  CONTRACTOR, TEMPORARY, INTERN.
+- T17: a list opened further (`shown` alone) narrows nothing, so it does not ask not to
+  be listed; it states the list's plain address, so it is not counted twice. An empty
+  search and a type the site does not have are the same.
+- T17, on the dev server, by reading what five addresses deliver (the listing, the home
+  page, a region, a searched region, `?shown=40`): each has the title, description, one
+  address and "do not list" the plan's table gives it, and the listing's block parsed
+  as JSON with the right values.
+- T17: a page's one address and the address in the preview are built from the address
+  the site is configured to answer at. On the dev machine that is `localhost`; in
+  production it must be `jairojobs.com`, which is part of the deployment that is parked.
+- T17: when a visitor changes a list without a reload only the title follows; the
+  description and the rest stay as first delivered. As the plan says, that is enough:
+  search engines and chat apps read the first delivery of each address.
+- T17: not checked: the block has not been put through a search engine's own checker
+  (Google's Rich Results Test needs a page it can reach, or pasted code, in a browser).

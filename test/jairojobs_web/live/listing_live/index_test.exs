@@ -1010,6 +1010,127 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
     end
   end
 
+  describe "what a search engine reads on a list (REQ-005-9)" do
+    # Every test here is one plain request: a search engine reads the first delivery.
+    defp first_delivery(conn, path),
+      do: conn |> get(path) |> html_response(200) |> LazyHTML.from_fragment()
+
+    defp named(doc, name),
+      do: doc |> LazyHTML.query(~s(meta[name="#{name}"])) |> LazyHTML.attribute("content")
+
+    defp canonical(doc),
+      do: doc |> LazyHTML.query(~s(link[rel="canonical"])) |> LazyHTML.attribute("href")
+
+    defp site, do: JairojobsWeb.Endpoint.url()
+
+    test "the home page and a region's list each have a title, a one-sentence description and their one address",
+         %{conn: conn} do
+      doc = first_delivery(conn, "/")
+
+      assert doc |> LazyHTML.query("title") |> LazyHTML.text() ==
+               "Jobs in the Philippines, with the salary shown | jairojobs"
+
+      assert named(doc, "description") == [
+               "Jobs across the Philippines, newest first, each with its salary shown and checked by jairojobs before it is published."
+             ]
+
+      assert canonical(doc) == [site() <> "/"]
+      assert named(doc, "robots") == []
+
+      doc = first_delivery(conn, "/jobs/davao-city")
+
+      assert named(doc, "description") == [
+               "Jobs in Davao City, newest first, each with its salary shown and checked by jairojobs before it is published."
+             ]
+
+      assert canonical(doc) == [site() <> "/jobs/davao-city"]
+      assert named(doc, "robots") == []
+    end
+
+    test "REQ-005-9: Search results ask not to be listed", %{conn: conn} do
+      # Words, a type, or both; in a region or across all.
+      for path <- [
+            "/jobs/davao-city?search=barista",
+            "/jobs/davao-city?type=part-time",
+            "/jobs/davao-city?search=barista&type=part-time&shown=40",
+            "/?search=barista",
+            "/?type=internship"
+          ] do
+        assert conn |> first_delivery(path) |> named("robots") == ["noindex"], path
+      end
+
+      # The same lists, not narrowed, do not ask.
+      assert conn |> first_delivery("/jobs/davao-city") |> named("robots") == []
+      assert conn |> first_delivery("/") |> named("robots") == []
+    end
+
+    test "a narrowed list still states the one address of the list it narrows", %{conn: conn} do
+      assert conn
+             |> first_delivery("/jobs/davao-city?search=barista&type=part-time&shown=40")
+             |> canonical() ==
+               [site() <> "/jobs/davao-city"]
+
+      assert conn |> first_delivery("/?search=barista") |> canonical() == [site() <> "/"]
+    end
+
+    test "a list opened further is the same page, not another one", %{conn: conn} do
+      # `shown` alone narrows nothing: no "do not list", and the plain address is stated,
+      # so the same list is not counted twice.
+      doc = first_delivery(conn, "/?shown=60")
+
+      assert named(doc, "robots") == []
+      assert canonical(doc) == [site() <> "/"]
+
+      # Nor does an empty search, or a type the site does not have.
+      assert conn |> first_delivery("/?search=%20&type=astronaut") |> named("robots") == []
+    end
+
+    test "REQ-005-9: A hidden region's list asks not to be listed",
+         %{conn: conn, owner: owner, admin: admin} do
+      baguio = region_fixture(name: "Baguio")
+      published(owner, admin, "Barista (full-time)", baguio)
+
+      # While the region is active its list is like any other.
+      assert conn |> first_delivery("/jobs/baguio") |> named("robots") == []
+
+      {:ok, hidden} = Jairojobs.Regions.hide_region(admin, baguio)
+      assert conn |> first_delivery("/jobs/baguio") |> named("robots") == ["noindex"]
+
+      # The home page, which still lists that region's job, is not affected.
+      assert conn |> first_delivery("/") |> named("robots") == []
+
+      # Shown again, it stops asking.
+      {:ok, _shown} = Jairojobs.Regions.show_region(admin, hidden)
+      assert conn |> first_delivery("/jobs/baguio") |> named("robots") == []
+    end
+
+    test "REQ-005-9: A page is complete as first delivered",
+         %{conn: conn, owner: owner, admin: admin, davao: davao} do
+      published(owner, admin, "Barista (full-time)", davao,
+        area: "Matina",
+        salary_min: 14_000,
+        salary_max: 16_000
+      )
+
+      # One request, no script run: the row, with its title and salary, is in it.
+      for path <- ["/", "/jobs/davao-city"] do
+        html = conn |> get(path) |> html_response(200)
+
+        assert row_titles(html) == ["Barista (full-time)"]
+        assert text_of(html, "#job-davao-city--barista-full-time") =~ "₱14,000–16,000/mo"
+        assert text_of(html, "#job-davao-city--barista-full-time") =~ "Kape Isla"
+        assert text_of(html, "#trust-line") == @trust_line
+      end
+    end
+
+    test "a list carries no job-posting block and no preview of a listing", %{conn: conn} do
+      html = conn |> get("/jobs/davao-city") |> html_response(200)
+
+      refute html =~ "application/ld+json"
+      refute html =~ "og:title"
+    end
+  end
+
   # These five were the tests of the home page when it was a controller (spec 001). The
   # home page is this LiveView now; what they prove has not changed.
   test "REQ-001-1: public pages render without login (home page)", %{conn: conn} do

@@ -385,6 +385,250 @@ defmodule JairojobsWeb.ListingControllerTest do
     end
   end
 
+  describe "what a search engine reads (REQ-005-9)" do
+    setup %{owner: owner, admin: admin, davao: davao} do
+      listing =
+        published(owner, admin, "Barista (full-time)", davao,
+          area: "Matina",
+          salary_min: 14_000,
+          salary_max: 16_000,
+          employment_type: :full_time,
+          description:
+            "We're a neighbourhood café.\nTraining is provided; espresso experience is a plus.",
+          requirements: "At least 18 years old\nWilling to work weekends",
+          benefits: "Free meals on shift"
+        )
+
+      %{
+        listing: listing,
+        path: "/jobs/davao-city/barista-full-time",
+        address: JairojobsWeb.Endpoint.url() <> "/jobs/davao-city/barista-full-time"
+      }
+    end
+
+    defp named(doc, name),
+      do: doc |> LazyHTML.query(~s(meta[name="#{name}"])) |> LazyHTML.attribute("content")
+
+    defp canonical(doc),
+      do: doc |> LazyHTML.query(~s(link[rel="canonical"])) |> LazyHTML.attribute("href")
+
+    # The job-posting block, read as a search engine reads it: found by its type, parsed
+    # as JSON.
+    defp job_posting(html) do
+      [json] =
+        Regex.run(~r{<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>}s, html,
+          capture: :all_but_first
+        )
+
+      Jason.decode!(json)
+    end
+
+    test "REQ-005-9: A listing page has its own title and description", %{conn: conn, path: path} do
+      doc = page(conn, path)
+
+      assert text(doc, "title") == "Barista (full-time) — Kape Isla, Davao City | jairojobs"
+
+      # The description names the salary, the type, the area and the region.
+      assert [description] = named(doc, "description")
+
+      assert description ==
+               "Barista (full-time) at Kape Isla: ₱14,000–16,000 / month, Full-time, Matina, Davao City."
+    end
+
+    test "REQ-005-9: A listing page carries job details a search engine can read",
+         %{conn: conn, listing: listing, path: path} do
+      html = conn |> get(path) |> html_response(200)
+      job = job_posting(html)
+
+      # Marked as a job posting, in the format search engines publish.
+      assert job["@context"] == "https://schema.org"
+      assert job["@type"] == "JobPosting"
+
+      # The title, the business name, the area and region.
+      assert job["title"] == "Barista (full-time)"
+      assert job["hiringOrganization"] == %{"@type" => "Organization", "name" => "Kape Isla"}
+
+      assert job["jobLocation"] == %{
+               "@type" => "Place",
+               "address" => %{
+                 "@type" => "PostalAddress",
+                 "addressLocality" => "Matina",
+                 "addressRegion" => "Davao City",
+                 "addressCountry" => "PH"
+               }
+             }
+
+      # The salary range, in PHP, per month.
+      assert job["baseSalary"] == %{
+               "@type" => "MonetaryAmount",
+               "currency" => "PHP",
+               "value" => %{
+                 "@type" => "QuantitativeValue",
+                 "minValue" => 14_000,
+                 "maxValue" => 16_000,
+                 "unitText" => "MONTH"
+               }
+             }
+
+      # The type, the date posted (the day of approval, in Manila) and the text.
+      assert job["employmentType"] == "FULL_TIME"
+
+      assert job["datePosted"] ==
+               listing.published_at
+               |> DateTime.add(8 * 3600, :second)
+               |> DateTime.to_date()
+               |> Date.to_iso8601()
+
+      for part <- [
+            "We&#39;re a neighbourhood café.",
+            "Training is provided; espresso experience is a plus.",
+            "At least 18 years old",
+            "Willing to work weekends",
+            "Free meals on shift"
+          ] do
+        assert job["description"] =~ part
+      end
+
+      # No closing date (listings do not expire), and no id of any kind.
+      refute Map.has_key?(job, "validThrough")
+      refute Map.has_key?(job, "identifier")
+      refute Jason.encode!(job) =~ listing.id
+    end
+
+    test "each type of work is named as search engines name it",
+         %{conn: conn, owner: owner, admin: admin, cebu: cebu} do
+      for {type, expected} <- [
+            part_time: "PART_TIME",
+            contract: "CONTRACTOR",
+            temporary: "TEMPORARY",
+            internship: "INTERN"
+          ] do
+        listing = published(owner, admin, "A #{type} job", cebu, employment_type: type)
+        html = conn |> get("/jobs/cebu/#{listing.slug}") |> html_response(200)
+
+        assert job_posting(html)["employmentType"] == expected
+      end
+    end
+
+    test "a listing with only the required parts still gives complete job details",
+         %{conn: conn, admin: admin, cebu: cebu} do
+      owner = admin_poster_scope_fixture(business_name: "Tindahan ni Aling Nena")
+
+      published(owner, admin, "Store attendant", cebu,
+        schedule: nil,
+        requirements: nil,
+        benefits: nil,
+        salary_min: 15_000,
+        salary_max: 15_000
+      )
+
+      job = conn |> get("/jobs/cebu/store-attendant") |> html_response(200) |> job_posting()
+
+      assert job["baseSalary"]["value"]["minValue"] == 15_000
+      assert job["baseSalary"]["value"]["maxValue"] == 15_000
+      refute job["description"] =~ "Requirements"
+      refute job["description"] =~ "Benefits"
+    end
+
+    test "an employer's text cannot end the job-details block or put anything into the page",
+         %{conn: conn, owner: owner, admin: admin, cebu: cebu} do
+      attack =
+        ~s|Good job.</script><script>alert("x")</script><img src=x onerror=alert(1)> & more, at least fifty characters.|
+
+      published(owner, admin, ~s(Cook </script> "nights"), cebu,
+        area: ~s(Lahug </script>),
+        description: attack,
+        requirements: "<!-- a comment that never closes",
+        benefits: "]]> and </SCRIPT > too"
+      )
+
+      html = conn |> get("/jobs/cebu/cook-script-nights") |> html_response(200)
+
+      # Still exactly one block, and it still parses, with the text intact inside it.
+      assert length(Regex.scan(~r{<script[^>]*application/ld\+json}, html)) == 1
+      job = job_posting(html)
+
+      assert job["title"] == ~s(Cook </script> "nights")
+      assert job["jobLocation"]["address"]["addressLocality"] == "Lahug </script>"
+      assert job["description"] =~ "alert"
+
+      # Nothing of it reached the page as markup.
+      refute html =~ ~s|<script>alert("x")</script>|
+      refute html =~ "<img src=x"
+      refute html =~ "<!-- a comment"
+
+      doc = LazyHTML.from_fragment(html)
+      assert doc |> LazyHTML.query("img") |> Enum.count() == 0
+      assert text(doc, "#listing-title") == ~s(Cook </script> "nights")
+    end
+
+    test "the page states its one address, whatever is added to it",
+         %{conn: conn, path: path, address: address} do
+      assert conn |> page(path) |> canonical() == [address]
+      assert conn |> page(path <> "?utm_source=chat&search=barista") |> canonical() == [address]
+    end
+
+    test "REQ-005-9: A hidden region's list asks not to be listed",
+         %{conn: conn, admin: admin, davao: davao, path: path, address: address} do
+      {:ok, _hidden} = Jairojobs.Regions.hide_region(admin, davao)
+
+      # The list of a hidden region asks not to be listed…
+      list = conn |> get("/jobs/davao-city") |> html_response(200) |> LazyHTML.from_fragment()
+      assert named(list, "robots") == ["noindex"]
+
+      # …and its Published listing's page does not: it is treated like any other.
+      doc = page(conn, path)
+      assert named(doc, "robots") == []
+      assert canonical(doc) == [address]
+      assert [_description] = named(doc, "description")
+    end
+
+    test "REQ-005-9: A page is complete as first delivered", %{conn: conn, path: path} do
+      # One request, no script run: the listing's title, salary and text are all in it.
+      html = conn |> get(path) |> html_response(200)
+      doc = LazyHTML.from_fragment(html)
+
+      assert text(doc, "#listing-title") == "Barista (full-time)"
+      assert text(doc, "#listing-salary") == "₱14,000–16,000 / month"
+
+      assert text(doc, "#listing-detail") =~
+               "Training is provided; espresso experience is a plus."
+
+      assert text(doc, "#listing-detail") =~ "Willing to work weekends"
+      assert text(doc, "#listing-detail") =~ "Free meals on shift"
+
+      # Nothing on the page waits for a live connection: it has no LiveView at all.
+      refute html =~ "data-phx-main"
+      refute html =~ "data-phx-session"
+    end
+
+    test "a listing that is no longer listed asks not to be listed, and says nothing more",
+         %{conn: conn, owner: owner, listing: listing, path: path} do
+      {:ok, _closed} = Listings.close_listing(owner, listing)
+
+      html = conn |> get(path) |> html_response(410)
+      doc = LazyHTML.from_fragment(html)
+
+      assert named(doc, "robots") == ["noindex"]
+      assert named(doc, "description") == []
+      assert canonical(doc) == []
+      refute html =~ "application/ld+json"
+    end
+
+    test "no third-party script, tag or tracker is on the page", %{conn: conn, path: path} do
+      doc = page(conn, path)
+
+      for src <-
+            LazyHTML.attribute(
+              LazyHTML.query(doc, "script[src], link[href], img[src], iframe[src]"),
+              "src"
+            ) ++
+              LazyHTML.attribute(LazyHTML.query(doc, "link[rel=stylesheet]"), "href") do
+        assert String.starts_with?(src, "/"), "loaded from elsewhere: #{src}"
+      end
+    end
+  end
+
   describe "who can open it (REQ-005-1, REQ-005-8)" do
     setup %{owner: owner, admin: admin, davao: davao} do
       %{listing: published(owner, admin, "Barista (full-time)", davao)}

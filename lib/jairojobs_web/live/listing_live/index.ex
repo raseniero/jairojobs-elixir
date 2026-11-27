@@ -24,6 +24,7 @@ defmodule JairojobsWeb.ListingLive.Index do
   alias JairojobsWeb.Format
   alias JairojobsWeb.ListingComponents
   alias JairojobsWeb.PublicAddress
+  alias JairojobsWeb.Seo
 
   # Rows come 20 at a time (spec decision 9). The address remembers how far the list is
   # opened up to 200 rows; past that "Show more" still adds rows, but the address stays.
@@ -250,6 +251,8 @@ defmodule JairojobsWeb.ListingLive.Index do
     {:noreply,
      socket
      |> assign(:page_title, page_title(region))
+     # Read by search engines in what is first delivered; the root layout writes it once.
+     |> assign(:seo, Seo.list(region, search != nil or type != nil))
      |> assign(:region, region)
      # What narrows the list, as the address carries it; the region choices keep it.
      |> assign(:narrowed, search: search, type: type_param)

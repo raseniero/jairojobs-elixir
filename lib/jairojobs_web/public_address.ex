@@ -34,6 +34,13 @@ defmodule JairojobsWeb.PublicAddress do
   end
 
   @doc """
+  The full address of a list of jobs, with nothing added: the one address a
+  list states for itself (REQ-005-9).
+  """
+  def list_url(nil), do: url(~p"/")
+  def list_url(%Region{slug: slug}), do: url(~p"/jobs/#{slug}")
+
+  @doc """
   The path of a listing's public page. The listing must have its slug, which
   it gets at approval, and its region loaded.
   """

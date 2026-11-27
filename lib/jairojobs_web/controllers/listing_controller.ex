@@ -45,6 +45,7 @@ defmodule JairojobsWeb.ListingController do
         conn
         |> put_status(:gone)
         |> assign(:page_title, "This job is no longer listed")
+        |> assign(:seo, Seo.gone())
         |> render(:gone, region: region, manage: manage(conn, id, owner_id))
 
       :not_found ->
