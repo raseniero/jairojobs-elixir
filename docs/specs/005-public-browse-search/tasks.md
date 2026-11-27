@@ -143,7 +143,7 @@ document changed, and every changed `.puml` is rendered on its own
     words are harmless
   - Commit: `feat(listings): search and type on the public list (REQ-005-4)`
 
-- [ ] **T7** — What an address is (REQ-005-6, REQ-005-7, REQ-005-9)
+- [x] **T7** — What an address is (REQ-005-6, REQ-005-7, REQ-005-9) — done 2026-11-26
   - `Listings.resolve_public_address/2`: `{:ok, listing}`, `{:moved, %{region_slug,
     slug}}`, `{:gone, %{id, user_id, region}}`, `:not_found`
   - `Listings.list_public_addresses/0`; `Regions.get_region_by_slug!/1`
@@ -470,3 +470,14 @@ document changed, and every changed `.puml` is rendered on its own
   their listings a text that names nothing they search for.
 - T6: one test pins what the plan chose and the spec does not promise: "driver" does not
   find "Delivery drivers wanted". If search is ever made more forgiving, that test changes.
+- T7: 14 tests (11 in the context file, 3 for regions). With the lookup changed on
+  purpose to read any listing, not only a Published one, two tests failed (a Closed
+  listing came back as if it were public); restored.
+- T7: text that could never be a slug is "not found" without asking the database: capital
+  letters, spaces, a null byte, a listing's id. `Region.slug?/1` is the one test of the
+  shape, used for a region's slug and a listing's. `Regions.get_region_by_slug/1` (spec
+  002) uses it too: before, a null byte in a region's address would have been an error
+  page, not "not found". Its answers for every real slug are unchanged.
+- T7: `:moved` is answered for an earlier address whatever the listing's status, so the
+  old address of a listing that was moved and then closed forwards to the address that
+  says "no longer listed", as `activity-open-a-listing` draws it.

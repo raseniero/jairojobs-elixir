@@ -70,6 +70,16 @@ defmodule Jairojobs.Regions.Region do
     end
   end
 
+  @slug_format ~r/\A[a-z0-9]+(-[a-z0-9]+)*\z/
+
+  @doc """
+  Whether `text` has the shape of a slug: lowercase ASCII letters and digits,
+  in groups joined by single hyphens. The database holds every slug to the
+  same shape, a region's and a listing's alike (spec 005, REQ-005-6).
+  """
+  def slug?(text) when is_binary(text), do: Regex.match?(@slug_format, text)
+  def slug?(_not_text), do: false
+
   @doc """
   Derives a URL-safe slug: lowercase ASCII letters, digits and hyphens only.
 

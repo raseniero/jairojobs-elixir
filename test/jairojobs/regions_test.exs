@@ -267,6 +267,41 @@ defmodule Jairojobs.RegionsTest do
     test "REQ-002-6: unknown slug is not found" do
       assert Regions.get_region_by_slug("nowhere") == nil
     end
+
+    test "text that could never be a slug is not found, without asking the database" do
+      region_fixture(name: "Cebu")
+
+      for not_a_slug <- [
+            "Cebu",
+            "ce bu",
+            "cebu-",
+            "-cebu",
+            "ce--bu",
+            "",
+            "cebu\0",
+            "cebú",
+            "../cebu"
+          ] do
+        assert Regions.get_region_by_slug(not_a_slug) == nil
+      end
+    end
+  end
+
+  # spec 005 — REQ-005-3: a region's public list is found by its slug.
+  describe "get_region_by_slug!/1" do
+    test "finds an active and a hidden region" do
+      hidden = region_fixture(name: "Baguio", active: false)
+      active = region_fixture(name: "Cebu")
+
+      assert Regions.get_region_by_slug!("baguio") == hidden
+      assert Regions.get_region_by_slug!("cebu") == active
+    end
+
+    test "REQ-005-3: an unknown slug raises \"not found\"" do
+      for unknown <- ["atlantis", "Atlantis", "cebu\0", ""] do
+        assert_raise Ecto.NoResultsError, fn -> Regions.get_region_by_slug!(unknown) end
+      end
+    end
   end
 
   describe "seed_launch_regions/0" do

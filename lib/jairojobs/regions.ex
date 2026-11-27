@@ -39,7 +39,24 @@ defmodule Jairojobs.Regions do
   Looks a region up by slug, whether it is active or hidden, so old links and
   existing listings keep resolving (REQ-002-6). Returns `nil` when unknown.
   """
-  def get_region_by_slug(slug) when is_binary(slug), do: Repo.get_by(Region, slug: slug)
+  def get_region_by_slug(slug) when is_binary(slug) do
+    # Slugs arrive from public addresses (spec 005). Text that could never be a
+    # slug is not looked up at all: it cannot match, and some of it (a null
+    # byte) the database would refuse with an error.
+    if Region.slug?(slug), do: Repo.get_by(Region, slug: slug)
+  end
+
+  @doc """
+  As `get_region_by_slug/1`, but raises `Ecto.NoResultsError` when no region
+  has the slug, so a public address with an unknown region is "not found"
+  (REQ-005-3).
+  """
+  def get_region_by_slug!(slug) do
+    case is_binary(slug) && get_region_by_slug(slug) do
+      %Region{} = region -> region
+      _unknown -> raise Ecto.NoResultsError, queryable: Region
+    end
+  end
 
   @doc """
   A changeset for the region form.

@@ -474,6 +474,203 @@ defmodule Jairojobs.ListingsPublicTest do
     end
   end
 
+  describe "resolve_public_address/2 (REQ-005-6, REQ-005-7)" do
+    defp move_to(admin, listing, region) do
+      {:ok, moved, _email} =
+        Listings.update_listing_as_admin(admin, listing, %{region_id: region.id}, owner_url())
+
+      moved
+    end
+
+    setup %{owner: owner, admin: admin, davao: davao} do
+      %{listing: published(owner, admin, "Barista (full-time)", davao)}
+    end
+
+    test "the current address of a Published listing gives the listing, with its region",
+         %{listing: listing} do
+      assert {:ok, %Listing{} = found} =
+               Listings.resolve_public_address("davao-city", "barista-full-time")
+
+      assert found.id == listing.id
+      assert found.status == :published
+      assert found.region.name == "Davao City"
+    end
+
+    test "a Published listing in a hidden region is still found",
+         %{admin: admin, davao: davao, listing: listing} do
+      {:ok, _hidden} = Regions.hide_region(admin, davao)
+
+      assert {:ok, %Listing{id: id, region: %{active: false}}} =
+               Listings.resolve_public_address("davao-city", "barista-full-time")
+
+      assert id == listing.id
+    end
+
+    test "an earlier address answers with the current one",
+         %{admin: admin, cebu: cebu, listing: listing} do
+      moved = move_to(admin, listing, cebu)
+
+      assert Listings.resolve_public_address("davao-city", "barista-full-time") ==
+               {:moved, %{region_slug: "cebu", slug: "barista-full-time"}}
+
+      assert {:ok, %Listing{id: id}} =
+               Listings.resolve_public_address("cebu", "barista-full-time")
+
+      assert id == moved.id
+    end
+
+    test "every earlier address answers with the current one, and a numbered one too",
+         %{owner: owner, admin: admin, cebu: cebu, listing: listing} do
+      manila = region_fixture(name: "Metro Manila")
+      _in_manila = published(owner, admin, "Barista (full-time)", manila)
+
+      listing |> then(&move_to(admin, &1, cebu)) |> then(&move_to(admin, &1, manila))
+
+      current = %{region_slug: "metro-manila", slug: "barista-full-time-2"}
+
+      assert Listings.resolve_public_address("davao-city", "barista-full-time") ==
+               {:moved, current}
+
+      assert Listings.resolve_public_address("cebu", "barista-full-time") == {:moved, current}
+
+      assert {:ok, %Listing{id: id}} =
+               Listings.resolve_public_address("metro-manila", "barista-full-time-2")
+
+      assert id == listing.id
+    end
+
+    test "a listing moved back is found at its first address again, and the other forwards",
+         %{admin: admin, davao: davao, cebu: cebu, listing: listing} do
+      listing |> then(&move_to(admin, &1, cebu)) |> then(&move_to(admin, &1, davao))
+
+      assert {:ok, %Listing{}} =
+               Listings.resolve_public_address("davao-city", "barista-full-time")
+
+      assert Listings.resolve_public_address("cebu", "barista-full-time") ==
+               {:moved, %{region_slug: "davao-city", slug: "barista-full-time"}}
+    end
+
+    test "REQ-005-7: Nothing of the listing is shown",
+         %{owner: owner, admin: admin, davao: davao, listing: listing} do
+      {:ok, closed} = Listings.close_listing(owner, listing)
+
+      {:ok, taken_down, _email} =
+        Listings.take_down_listing(
+          admin,
+          published(owner, admin, "Cashier (weekends)", davao),
+          %{reason: @reason},
+          owner_url()
+        )
+
+      for {slug, gone} <- [{"barista-full-time", closed}, {"cashier-weekends", taken_down}] do
+        assert {:gone, answer} = Listings.resolve_public_address("davao-city", slug)
+
+        # Only what the page needs: where to send the visitor, and whose listing it is
+        # so the owner and Admins can be given their link. No title, text or reason, and
+        # nothing that tells a close from a take-down.
+        assert answer == %{id: gone.id, user_id: owner.user.id, region: davao}
+        assert answer |> Map.keys() |> Enum.sort() == [:id, :region, :user_id]
+      end
+    end
+
+    test "the earlier address of a listing that was moved and then closed forwards, too",
+         %{owner: owner, admin: admin, cebu: cebu, listing: listing} do
+      moved = move_to(admin, listing, cebu)
+      {:ok, _closed} = Listings.close_listing(owner, moved)
+
+      assert Listings.resolve_public_address("davao-city", "barista-full-time") ==
+               {:moved, %{region_slug: "cebu", slug: "barista-full-time"}}
+
+      assert {:gone, %{id: id, region: %{slug: "cebu"}}} =
+               Listings.resolve_public_address("cebu", "barista-full-time")
+
+      assert id == listing.id
+    end
+
+    test "an address that never was a listing is not found",
+         %{owner: owner, davao: davao, listing: listing} do
+      _waiting = pending(owner, "Cashier (weekends)", davao)
+
+      for {region, slug} <- [
+            {"davao-city", "no-such-job"},
+            # A listing that is not approved yet has no address.
+            {"davao-city", "cashier-weekends"},
+            # The right slug in the wrong region, and an unknown region.
+            {"cebu", "barista-full-time"},
+            {"atlantis", "barista-full-time"},
+            # The id is never an address (constitution §4.8).
+            {"davao-city", listing.id},
+            {listing.region_id, listing.id},
+            # Not slugs at all.
+            {"davao-city", "Barista-Full-Time"},
+            {"davao-city", "barista full time"},
+            {"davao-city", "barista-full-time\0"},
+            {"davao-city", ""},
+            {"", "barista-full-time"},
+            {"davao-city", "%"},
+            {"davao-city", "' OR 1=1 --"}
+          ] do
+        assert Listings.resolve_public_address(region, slug) == :not_found
+      end
+
+      assert Listings.resolve_public_address(nil, "barista-full-time") == :not_found
+      assert Listings.resolve_public_address("davao-city", %{"a" => "b"}) == :not_found
+    end
+  end
+
+  describe "list_public_addresses/0 (REQ-005-9)" do
+    test "the address of every Published listing, and of nothing else",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      barista = owner |> published(admin, "Barista (full-time)", davao) |> approved_ago(2, :hour)
+      cashier = owner |> published(admin, "Cashier (weekends)", cebu) |> approved_ago(1, :hour)
+
+      _draft = listing_fixture(owner, complete_listing_attrs(region_id: davao.id))
+      _waiting = pending(owner, "A pending one", davao)
+
+      {:ok, _closed} =
+        Listings.close_listing(owner, published(owner, admin, "A closed one", davao))
+
+      {:ok, _taken_down, _email} =
+        Listings.take_down_listing(
+          admin,
+          published(owner, admin, "A taken down one", davao),
+          %{reason: @reason},
+          owner_url()
+        )
+
+      # Newest approval first, each with the time it last changed.
+      assert Listings.list_public_addresses() == [
+               %{
+                 region_slug: "cebu",
+                 slug: "cashier-weekends",
+                 updated_at: reload(cashier).updated_at
+               },
+               %{
+                 region_slug: "davao-city",
+                 slug: "barista-full-time",
+                 updated_at: reload(barista).updated_at
+               }
+             ]
+    end
+
+    test "a Published listing in a hidden region is included; an earlier address is not",
+         %{owner: owner, admin: admin, davao: davao, cebu: cebu} do
+      listing = published(owner, admin, "Barista (full-time)", davao)
+
+      {:ok, _moved, _email} =
+        Listings.update_listing_as_admin(admin, listing, %{region_id: cebu.id}, owner_url())
+
+      {:ok, _hidden} = Regions.hide_region(admin, cebu)
+
+      assert [%{region_slug: "cebu", slug: "barista-full-time"}] =
+               Listings.list_public_addresses()
+    end
+
+    test "nothing when nothing is Published" do
+      assert Listings.list_public_addresses() == []
+    end
+  end
+
   describe "a listing's public address (REQ-005-6)" do
     test "REQ-005-6: The address is made at approval", %{owner: owner, admin: admin, davao: davao} do
       waiting = pending(owner, "Barista (full-time)", davao)

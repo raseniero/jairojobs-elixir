@@ -341,6 +341,77 @@ defmodule Jairojobs.Listings do
   defp narrow({:type, type}, query), do: from(l in query, where: l.employment_type == ^type)
   defp narrow({option, _value}, query) when option in [:limit, :offset], do: query
 
+  @doc """
+  What the public address `/jobs/<region_slug>/<listing_slug>` is (REQ-005-6,
+  REQ-005-7):
+
+    * `{:ok, listing}` — the current address of a Published listing, which
+      comes with its region preloaded
+    * `{:moved, %{region_slug: …, slug: …}}` — an address the listing had
+      before an Admin moved it to another region; the map is its current
+      address. This is answered whatever the listing's status is now: an
+      earlier address forwards first, and the current one says the rest
+    * `{:gone, %{id: …, user_id: …, region: …}}` — the current address of a
+      listing that was Published and is now Closed or Taken down. Nothing of
+      the listing itself is returned: only its region, for the way onward, and
+      whose it is, so its owner and Admins can be given their link
+    * `:not_found` — no listing ever had this address. A Draft, a Pending and
+      a Rejected listing have none, and a listing's id is never one
+
+  Takes no scope: the answer is the same for everyone.
+  """
+  def resolve_public_address(region_slug, listing_slug) do
+    with true <- Region.slug?(region_slug) and Region.slug?(listing_slug),
+         %{} = address <- address_at(region_slug, listing_slug) do
+      answer(address)
+    else
+      _never_an_address -> :not_found
+    end
+  end
+
+  # The recorded address, with the little of its listing that says what the
+  # address is now. Not the listing itself: only a Published one is ever read,
+  # and only through `published/0`.
+  defp address_at(region_slug, listing_slug) do
+    Repo.one(
+      from a in ListingAddress,
+        join: r in assoc(a, :region),
+        join: l in assoc(a, :listing),
+        join: current in assoc(l, :region),
+        where: r.slug == ^region_slug and a.slug == ^listing_slug,
+        select: %{
+          listing_id: l.id,
+          user_id: l.user_id,
+          current?: a.region_id == l.region_id,
+          current: %{region_slug: current.slug, slug: l.slug},
+          region: current
+        }
+    )
+  end
+
+  defp answer(%{current?: false, current: current}), do: {:moved, current}
+
+  defp answer(%{listing_id: id, user_id: user_id, region: region}) do
+    case Repo.one(from l in published(), where: l.id == ^id, preload: [:region]) do
+      %Listing{} = listing -> {:ok, listing}
+      nil -> {:gone, %{id: id, user_id: user_id, region: region}}
+    end
+  end
+
+  @doc """
+  The public address of every Published listing, newest approval first, for
+  the sitemap (REQ-005-9): `%{region_slug: …, slug: …, updated_at: …}`. A
+  listing in a hidden region is included; nothing that is not Published is.
+  """
+  def list_public_addresses do
+    Repo.all(
+      from l in published(),
+        join: r in assoc(l, :region),
+        order_by: [desc: l.published_at, desc: l.id],
+        select: %{region_slug: r.slug, slug: l.slug, updated_at: l.updated_at}
+    )
+  end
+
   ## Moderation (spec 004)
 
   @moderation_statuses [:pending, :published, :rejected, :taken_down, :closed]
