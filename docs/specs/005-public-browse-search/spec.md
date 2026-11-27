@@ -949,10 +949,10 @@ Not requirements; reminders for whoever writes `plan.md`.
 
 ## Review before approval
 
-**Reviewed:** 2026-11-27 at commit `e38bab9`
+**Reviewed:** 2026-11-27 at commit `9aa2a31`
 
 The whole spec was reviewed on 2026-11-20 at commit `4f3a9f8`; the table below is that
-review. Three things changed after approval (see the Changelog), and each time only the
+review. Four things changed after approval (see the Changelog), and each time only the
 changed part was read again:
 
 - 2026-11-26, at commit `5a8dfbc`: one row of "Notes for the plan", against the approved
@@ -965,7 +965,10 @@ changed part was read again:
   REQ-005-8) for what plan decisions 9, 15 and 19 built, and four diagrams brought in
   line with the built screens. All five diagrams were read against the screens, the
   phone check's pages and the requirements, scenario by scenario for the parts that
-  changed. They agree. No scenario changed.
+  changed. They agree. No scenario changed.;
+- 2026-11-27, at commit `9aa2a31`: the non-functional requirement "Mobile-first" and
+  decision 27, against the phone check's measurements of the lists and the design
+  guide's principle 5. The sentence says what was measured. Nothing else depends on it.
 
 | Checked against | Result |
 |---|---|
