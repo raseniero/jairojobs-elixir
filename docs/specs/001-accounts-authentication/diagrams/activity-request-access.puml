@@ -44,8 +44,10 @@ if (Route requires login?) then (yes)
   endif
 else (no)
   note right
-    Public pages: home, listing index,
-    listing detail, sign-up, log-in.
+    Public pages: the home page (the list of
+    jobs), a region's jobs, a listing's page
+    and its "no longer listed" page, the
+    sitemap (spec 005), sign-up, log-in.
     Never redirect a Visitor here.
   end note
 endif

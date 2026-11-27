@@ -138,6 +138,11 @@ must agree with this diagram.
 | Closed | Closed | the Employer, Admins | no |
 | Taken down | Taken down | the Employer, Admins | no |
 
+Since spec 005, "everyone" means the public lists and the listing's public page
+(REQ-005-1). The public address of a Closed or Taken down listing still answers, but only
+with "This job is no longer listed." and nothing of the listing (REQ-005-7): the listing
+itself is seen by the Employer and Admins alone, as the table says.
+
 ## Screen flow
 
 ![Screen flow](diagrams/screenflow-posting.svg)
@@ -517,6 +522,9 @@ Scenario: Only published listings can be closed
 **Rules**
 - Closed is final. A Closed or Taken down listing has no Employer actions.
 - Closing frees one place under the limit (REQ-003-12).
+- "No longer visible to the public" means, since spec 005: it is on no public list
+  (REQ-005-1), and its public address says "This job is no longer listed." and shows
+  nothing of it (REQ-005-7). The address stays the listing's own.
 
 ### REQ-003-10: See the listing as a job seeker will
 
@@ -775,3 +783,4 @@ below says what was done about it.
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-24 | After the review, each item chosen by the owner. Diagrams only, no requirement changed: the screen flow's Admin area starts with "Listings" and its submit arrow names a region hidden in the meantime; the activity diagrams draw five things the requirements already said (active regions only on the form, the business details copied at submit, the old reason cleared on a resubmission, what an unfinished draft is missing, the ₱1,000,000 maximum); the state diagram says Closed and Taken down are final for everyone, as spec 004's does |
 | 2026-11-24 | "Review before approval" section brought up to date: it says what was done about each finding and names the commit that holds the fixes |
+| 2026-11-26 | Changed by spec 005, after Done: what "no longer visible to the public" means now that there are public pages. A sentence under the lifecycle table and a rule in REQ-003-9 point to REQ-005-1 and REQ-005-7; `activity-after-submitting` says the same at "Close". `state-listing` was read against REQ-005-1 and REQ-005-7 and needed no change ("visible to everyone (005)", "no longer public" still hold). No scenario changed |

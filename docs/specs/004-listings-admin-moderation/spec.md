@@ -289,8 +289,10 @@ Scenario: Nothing waiting
 
 **Serves:** US-004-7
 
-Until the public pages exist (spec 005) this page is the only way for an Admin to reach a
-Published listing, so it lists every submitted listing, one status at a time.
+This page lists every submitted listing, one status at a time. When it was written it was
+the only way for an Admin to reach a Published listing; since spec 005 there are public
+pages, and a Published listing's public page also leads an Admin to its Admin view
+(REQ-005-10).
 
 ```gherkin
 Scenario: Choose a status
@@ -524,8 +526,10 @@ Scenario: Taking down frees a place
 - Taken down is final for everyone. To be listed again the Employer posts a new listing,
   which goes through approval like any other.
 - A Taken down listing is kept, never deleted (REQ-003-11).
-- Until spec 005 there are no public pages. "No longer visible to the public" is met by the
-  status being Taken down; spec 005 must not show a Taken down listing.
+- "No longer visible to the public" means, since spec 005: a Taken down listing is on no
+  public list (REQ-005-1), and its public address says "This job is no longer listed." and
+  shows nothing of it, the reason included (REQ-005-7). The words are the same as for a
+  Closed listing, so the public cannot tell a take-down from a close.
 
 ### REQ-004-8: Fix a listing as an Admin
 
@@ -863,3 +867,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-23 | "Review before approval" section added after the fact, at the owner's request: the spec as it stands was read against its diagrams and the architecture documents. Findings are listed in that section; nothing else was changed |
 | 2026-11-26 | Changed by spec 005, after Done: approving also gives the listing its public address (REQ-005-6). A rule added to REQ-004-5; `activity-approve-or-reject` gains the step; `state-listing` says a Published listing gets its public address on approval. No scenario changed |
 | 2026-11-26 | Changed by spec 005, after Done: an Admin edit that moves a Published listing to another region moves its public address, and the old address forwards; the public address joins what an edit cannot set (REQ-005-6). Two rules in REQ-004-8; `activity-take-down-and-edit` gains a note and a step. No scenario changed |
+| 2026-11-26 | Changed by spec 005, after Done: the public pages exist. REQ-004-3's opening no longer says this page is the only way to a Published listing; REQ-004-7's rule says what "no longer visible to the public" means now (REQ-005-1, REQ-005-7); `activity-take-down-and-edit` says the same at "Take down". No scenario changed |

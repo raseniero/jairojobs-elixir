@@ -111,6 +111,10 @@ defmodule JairojobsWeb.Router do
     # `current_scope` on the connection. It needs no account, so it sits in no guarded scope.
     get "/jobs/:region/:listing", ListingController, :show
 
+    # `/jobs` alone is nothing; it forwards to the home page, which is the list of
+    # every region (spec 005, plan decision 15).
+    get "/jobs", ListingController, :index
+
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
   end

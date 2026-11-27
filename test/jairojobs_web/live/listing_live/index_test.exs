@@ -1055,19 +1055,4 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
       refute html =~ ~s(id="nav-listings")
     end
   end
-
-  describe "the listing's address, until its page is finished (T12, T13)" do
-    test "anything that is not the current address of a Published listing is not found",
-         %{conn: conn, owner: owner, admin: admin, davao: davao} do
-      listing = published(owner, admin, "Barista (full-time)", davao)
-
-      for path <- [
-            "/jobs/davao-city/no-such-job",
-            "/jobs/atlantis/barista-full-time",
-            "/jobs/davao-city/#{listing.id}"
-          ] do
-        assert conn |> get(path) |> response(404) == "Not Found"
-      end
-    end
-  end
 end

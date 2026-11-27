@@ -1,0 +1,16 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <%!-- spec 005 — REQ-005-7: the address of a listing that was Published and is now Closed
+       or Taken down. The same words for both, and nothing of the listing: this template is
+       given the region and nothing else. --%>
+  <section class="space-y-2">
+    <h1 id="listing-gone" class="text-[22px] font-bold">This job is no longer listed.</h1>
+
+    <.link
+      href={PublicAddress.list_path(@region)}
+      id="see-region-jobs"
+      class="inline-flex min-h-11 items-center text-primary hover:underline"
+    >
+      See jobs in {@region.name}
+    </.link>
+  </section>
+</Layouts.app>

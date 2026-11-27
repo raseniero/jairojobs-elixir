@@ -21,7 +21,8 @@ if (Action?) then (take down)
   :Status → Taken down, reason saved.
   The employer sees "Taken down" and the reason;
   :Record the time and the Admin;
-  :No longer public (005);
+  :No longer public: off every list; its address
+  says "This job is no longer listed." (005);
   :Frees one open-listing slot (003);
   :Email the employer the reason (REQ-004-9);
   note right

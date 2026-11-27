@@ -251,7 +251,7 @@ document changed, and every changed `.puml` is rendered on its own
     not "Apply for this job")
   - Commit: `feat(browse): the listing's public page (REQ-005-5)`
 
-- [ ] **T13** — No longer listed, forwarding, not found (REQ-005-7; rest of REQ-005-6)
+- [x] **T13** — No longer listed, forwarding, not found (REQ-005-7; rest of REQ-005-6) — done 2026-11-26
   - `ListingController.show` answers by `resolve_public_address/2`: 301 for `:moved`, 410
     with `ListingHTML` `gone` for `:gone` (`#listing-gone`, "See jobs in Davao City"),
     404 otherwise. `get "/jobs"` forwards to `/` (plan decision 15)
@@ -587,3 +587,17 @@ document changed, and every changed `.puml` is rendered on its own
   Log in. There is no such button until spec 007, so the arrow is gone, with a comment in
   the source saying it returns then. No user story of spec 001 used that path. I looked
   at the re-rendered image.
+- T13: 14 tests (six scenarios of REQ-005-7, three of REQ-005-6, five more). The one
+  from T8 that stood in for them, in the lists' test file, is gone.
+- T13: the "no longer listed" page is given the region and nothing else, so it has
+  nothing of the listing to show. Its title is "This job is no longer listed |
+  jairojobs" and its one sentence is the page's heading. A test compares the page of a
+  Taken down listing with that of a Closed one, word for word.
+- T13: with the dev server, by `curl`: `/jobs` and `/jobs?search=x` answer 301 to `/`;
+  the dev database's listing answers 200; an unknown slug and an unknown region 404. The
+  "no longer listed" page was not looked at in a browser here (the dev database has no
+  closed listing); T19's phone check does that.
+- T13: spec 003's `state-listing` was read against REQ-005-1 and REQ-005-7 and did not
+  change. The three diagrams that did change (`activity-request-access`,
+  `activity-after-submitting`, `activity-take-down-and-edit`) were re-rendered; I looked
+  at all three.

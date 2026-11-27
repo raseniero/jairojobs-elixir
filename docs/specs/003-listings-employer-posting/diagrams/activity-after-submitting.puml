@@ -37,7 +37,8 @@ case (Published)
   if (Close?) then (yes)
     :Confirm;
     :Status → Closed;
-    :No longer public (005);
+    :No longer public: off every list; its address
+    says "This job is no longer listed." (005);
     :Frees one open-listing slot;
     note right
       Final. To hire again,

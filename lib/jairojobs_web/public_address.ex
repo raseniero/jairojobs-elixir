@@ -40,6 +40,10 @@ defmodule JairojobsWeb.PublicAddress do
   def listing_path(%Listing{slug: slug, region: %Region{slug: region_slug}}) when is_binary(slug),
     do: ~p"/jobs/#{region_slug}/#{slug}"
 
+  # An address as `Jairojobs.Listings.resolve_public_address/2` gives it for a listing
+  # that has moved: the two slugs, and nothing else of the listing.
+  def listing_path(%{region_slug: region_slug, slug: slug}), do: ~p"/jobs/#{region_slug}/#{slug}"
+
   @doc """
   The full address of a listing's public page, for an email, a share or a
   search engine.
