@@ -83,7 +83,8 @@ switch (Status)
 case (Pending approval)
   :Offer Approve, Reject, Edit;
 case (Published)
-  :Offer Take down, Edit;
+  :Offer Take down, Edit, and a link:
+  "See the public page" (REQ-005-10);
 case (Rejected, Closed,\nTaken down)
   :Read-only — no actions;
 endswitch

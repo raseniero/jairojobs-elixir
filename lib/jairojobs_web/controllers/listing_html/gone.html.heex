@@ -1,7 +1,8 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <%!-- spec 005 — REQ-005-7: the address of a listing that was Published and is now Closed
        or Taken down. The same words for both, and nothing of the listing: this template is
-       given the region and nothing else. --%>
+       given the region, and the paths of the owner's and the Admin's links, and nothing
+       else. --%>
   <section class="space-y-2">
     <h1 id="listing-gone" class="text-[22px] font-bold">This job is no longer listed.</h1>
 
@@ -13,4 +14,8 @@
       See jobs in {@region.name}
     </.link>
   </section>
+
+  <%!-- The owner and Admins see the same page as everyone, plus their one link: they read
+       the listing itself on the owner view or the Admin view (REQ-005-10). --%>
+  <.manage_links manage={@manage} />
 </Layouts.app>

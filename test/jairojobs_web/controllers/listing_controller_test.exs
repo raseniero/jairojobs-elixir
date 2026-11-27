@@ -603,6 +603,168 @@ defmodule JairojobsWeb.ListingControllerTest do
     end
   end
 
+  describe "links to the pages that manage a listing (REQ-005-10)" do
+    setup %{admin: admin, davao: davao} do
+      employer = employer_scope_fixture(business_name: "Kape Isla")
+      listing = published(employer, admin, "Barista (full-time)", davao)
+
+      %{employer: employer, listing: listing, path: "/jobs/davao-city/barista-full-time"}
+    end
+
+    defp href(doc, selector), do: doc |> LazyHTML.query(selector) |> LazyHTML.attribute("href")
+
+    test "REQ-005-10: An Admin gets to the Admin view from the public page",
+         %{conn: conn, admin: admin, listing: listing, path: path} do
+      doc = conn |> log_in_user(admin.user) |> page(path)
+
+      assert text(doc, "#open-admin-view") == "Open the Admin view"
+      assert href(doc, "#manage-links a#open-admin-view") == ["/admin/listings/#{listing.id}"]
+
+      # Not the owner: no "This is your listing.", no link to My listings.
+      refute has?(doc, "#your-listing-note")
+      refute has?(doc, "#manage-listing")
+    end
+
+    test "REQ-005-10: The owner gets to their listing from the public page",
+         %{conn: conn, employer: employer, listing: listing, path: path} do
+      doc = conn |> log_in_user(employer.user) |> page(path)
+
+      assert text(doc, "#your-listing-note") == "This is your listing."
+      assert text(doc, "#manage-listing") == "Manage this listing"
+      assert href(doc, "#manage-links a#manage-listing") == ["/my/listings/#{listing.id}"]
+
+      refute has?(doc, "#open-admin-view")
+    end
+
+    test "REQ-005-10: Nobody else sees those links",
+         %{conn: conn, listing: listing, path: path} do
+      visitor = conn
+      candidate = log_in_user(conn, user_fixture(role: "candidate"))
+      another_employer = log_in_user(conn, employer_scope_fixture().user)
+
+      for conn <- [visitor, candidate, another_employer] do
+        html = conn |> get(path) |> html_response(200)
+        doc = LazyHTML.from_fragment(html)
+
+        refute has?(doc, "#manage-links")
+        refute has?(doc, "#manage-listing")
+        refute has?(doc, "#open-admin-view")
+        refute has?(doc, "#your-listing-note")
+        refute html =~ "/admin/listings"
+        refute html =~ "/my/listings/#{listing.id}"
+        refute html =~ listing.id
+      end
+    end
+
+    test "an Admin who owns the listing sees both links",
+         %{conn: conn, admin: admin, davao: davao} do
+      owner = admin_poster_scope_fixture()
+      own = published(owner, admin, "Line cook (nights)", davao)
+
+      doc = conn |> log_in_user(owner.user) |> page("/jobs/davao-city/line-cook-nights")
+
+      assert text(doc, "#your-listing-note") == "This is your listing."
+      assert href(doc, "#manage-listing") == ["/my/listings/#{own.id}"]
+      assert href(doc, "#open-admin-view") == ["/admin/listings/#{own.id}"]
+    end
+
+    test "an owner who can no longer open My listings is not shown the link",
+         %{conn: conn, admin: admin, davao: davao} do
+      # An Admin who posted, then demoted to Candidate (spec 004, hand-offs to spec 008).
+      owner = admin_poster_scope_fixture()
+      published(owner, admin, "Line cook (nights)", davao)
+
+      {:ok, demoted} =
+        Jairojobs.Accounts.demote_admin(Jairojobs.Accounts.Scope.system(), owner.user)
+
+      assert demoted.role == :candidate
+
+      doc = conn |> log_in_user(demoted) |> page("/jobs/davao-city/line-cook-nights")
+
+      refute has?(doc, "#manage-links")
+      refute has?(doc, "#your-listing-note")
+    end
+
+    test "the links come last on the page, after the \"coming soon\" line",
+         %{conn: conn, employer: employer, path: path} do
+      doc = conn |> log_in_user(employer.user) |> page(path)
+
+      ids =
+        doc
+        |> LazyHTML.query("#back-to-region, #listing-detail, #apply-coming-soon, #manage-links")
+        |> LazyHTML.attribute("id")
+
+      assert ids == ["back-to-region", "listing-detail", "apply-coming-soon", "manage-links"]
+    end
+
+    test "REQ-005-10: The same links on a listing that is no longer listed",
+         %{
+           conn: conn,
+           admin: admin,
+           employer: employer,
+           davao: davao,
+           listing: listing,
+           path: path
+         } do
+      {:ok, _closed} = Listings.close_listing(employer, listing)
+
+      taken_down = published(employer, admin, "Cashier (weekends)", davao)
+
+      {:ok, _taken_down, _email} =
+        Listings.take_down_listing(
+          admin,
+          taken_down,
+          %{reason: "Not suitable for the board as it is written."},
+          owner_url()
+        )
+
+      for {path, listing} <- [{path, listing}, {"/jobs/davao-city/cashier-weekends", taken_down}] do
+        # The owner: a link to it in My listings.
+        doc =
+          conn
+          |> log_in_user(employer.user)
+          |> get(path)
+          |> html_response(410)
+          |> LazyHTML.from_fragment()
+
+        assert text(doc, "#listing-gone") == "This job is no longer listed."
+        assert text(doc, "#manage-listing") == "Manage this listing"
+        assert href(doc, "#manage-listing") == ["/my/listings/#{listing.id}"]
+        refute has?(doc, "#open-admin-view")
+
+        # An Admin: a link to its Admin view.
+        doc =
+          conn
+          |> log_in_user(admin.user)
+          |> get(path)
+          |> html_response(410)
+          |> LazyHTML.from_fragment()
+
+        assert text(doc, "#open-admin-view") == "Open the Admin view"
+        assert href(doc, "#open-admin-view") == ["/admin/listings/#{listing.id}"]
+        refute has?(doc, "#manage-listing")
+
+        # Everyone else: neither, and no id.
+        for conn <- [conn, log_in_user(conn, user_fixture(role: "candidate"))] do
+          html = conn |> get(path) |> html_response(410)
+
+          refute has?(LazyHTML.from_fragment(html), "#manage-links")
+          refute html =~ listing.id
+        end
+      end
+    end
+
+    test "the links lead to pages that check who is asking, as before",
+         %{conn: conn, listing: listing} do
+      # Showing or hiding a link is a convenience, not the guard (REQ-004-1, REQ-003-14).
+      another_employer = log_in_user(conn, employer_scope_fixture().user)
+
+      assert_error_sent :not_found, fn -> get(another_employer, "/my/listings/#{listing.id}") end
+      assert another_employer |> get("/admin/listings/#{listing.id}") |> redirected_to() == "/"
+      assert conn |> get("/admin/listings/#{listing.id}") |> redirected_to() == "/users/log-in"
+    end
+  end
+
   describe "the owner's and the Admin's views are as they were (spec 003, spec 004)" do
     import Phoenix.LiveViewTest
 

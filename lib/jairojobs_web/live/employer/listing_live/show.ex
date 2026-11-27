@@ -12,6 +12,7 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
   import JairojobsWeb.ListingComponents
 
   alias Jairojobs.Listings
+  alias JairojobsWeb.PublicAddress
 
   @impl true
   def render(assigns) do
@@ -86,6 +87,17 @@ defmodule JairojobsWeb.Employer.ListingLive.Show do
         <div :if={@listing.status == :pending}>
           <.button id="withdraw-listing" phx-click="withdraw">Withdraw</.button>
         </div>
+
+        <%!-- spec 005 — REQ-005-10: the address to post and to send to people. Only a
+             Published listing has a public page. --%>
+        <.link
+          :if={@listing.status == :published}
+          href={PublicAddress.listing_path(@listing)}
+          id="see-public-page"
+          class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline"
+        >
+          See the public page <.icon name="hero-arrow-right" class="size-4" />
+        </.link>
 
         <div :if={@listing.status == :published}>
           <.button

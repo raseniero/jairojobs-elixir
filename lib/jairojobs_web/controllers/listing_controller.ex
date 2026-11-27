@@ -19,6 +19,7 @@ defmodule JairojobsWeb.ListingController do
   """
   use JairojobsWeb, :controller
 
+  alias Jairojobs.Accounts.Scope
   alias Jairojobs.Listings
   alias JairojobsWeb.PublicAddress
 
@@ -27,7 +28,7 @@ defmodule JairojobsWeb.ListingController do
       {:ok, listing} ->
         conn
         |> assign(:page_title, page_title(listing))
-        |> render(:show, listing: listing)
+        |> render(:show, listing: listing, manage: manage(conn, listing.id, listing.user_id))
 
       # Forwarded first, whatever the listing's status is now; its current address
       # says the rest. Anything added to the old address is dropped.
@@ -38,11 +39,11 @@ defmodule JairojobsWeb.ListingController do
 
       # "Gone" tells a search engine to drop the page. The answer holds the region
       # and whose listing it was, and nothing of the listing itself.
-      {:gone, %{region: region}} ->
+      {:gone, %{region: region, id: id, user_id: owner_id}} ->
         conn
         |> put_status(:gone)
         |> assign(:page_title, "This job is no longer listed")
-        |> render(:gone, region: region)
+        |> render(:gone, region: region, manage: manage(conn, id, owner_id))
 
       :not_found ->
         raise Phoenix.Router.NoRouteError, conn: conn, router: JairojobsWeb.Router
@@ -57,6 +58,23 @@ defmodule JairojobsWeb.ListingController do
     conn
     |> put_status(:moved_permanently)
     |> redirect(to: PublicAddress.list_path(nil))
+  end
+
+  # The links from a public page to the pages that manage the listing (REQ-005-10),
+  # for whoever is logged in: to My listings for its owner, to the Admin view for an
+  # Admin, both for an Admin who owns it, and none for anyone else.
+  #
+  # An owner who can no longer post (an Admin since demoted to Candidate) could not open
+  # My listings, so is not offered it. Offering a link is a convenience; the pages the
+  # links lead to check who is asking themselves (REQ-003-14, REQ-004-1).
+  defp manage(conn, listing_id, owner_id) do
+    scope = conn.assigns.current_scope
+    owner? = Scope.poster?(scope) and scope.user.id == owner_id
+
+    %{
+      owner_path: if(owner?, do: ~p"/my/listings/#{listing_id}"),
+      admin_path: if(Scope.admin?(scope), do: ~p"/admin/listings/#{listing_id}")
+    }
   end
 
   # "Barista (full-time) — Kape Isla, Davao City"; the layout adds " | jairojobs"

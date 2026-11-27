@@ -784,4 +784,57 @@ defmodule JairojobsWeb.Employer.ListingLiveTest do
       assert_raise Ecto.NoResultsError, fn -> live(conn, ~p"/my/listings/not-a-uuid") end
     end
   end
+
+  # spec 005 — REQ-005-10: from a listing the Employer manages to its public page.
+  describe "owner view: the link to the public page" do
+    setup :log_in_employer
+
+    test "REQ-005-10: The owner view links to the public page", %{conn: conn, scope: scope} do
+      region = region_fixture(name: "Davao City")
+
+      listing =
+        listing_in_status_fixture(scope, :published,
+          title: "Barista (full-time)",
+          region_id: region.id
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+      assert text(view, "#see-public-page") == "See the public page"
+
+      assert has_element?(
+               view,
+               ~s(#listing-status-box a#see-public-page[href="/jobs/davao-city/barista-full-time"])
+             )
+
+      # It leads to the page the public sees.
+      assert {:error, {:redirect, %{to: "/jobs/davao-city/barista-full-time" = path}}} =
+               view |> element("#see-public-page") |> render_click()
+
+      assert conn |> get(path) |> html_response(200) =~ "Barista (full-time)"
+    end
+
+    test "REQ-005-10: Only a Published listing has the link", %{conn: conn, scope: scope} do
+      for status <- [:draft, :pending, :rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(scope, status)
+
+        {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+
+        refute has_element?(view, "#see-public-page"), "#{status} shows the link"
+        refute render(view) =~ "/jobs/"
+      end
+    end
+
+    test "the link goes when the listing is closed, without leaving the page",
+         %{conn: conn, scope: scope} do
+      listing = listing_in_status_fixture(scope, :published)
+
+      {:ok, view, _html} = live(conn, ~p"/my/listings/#{listing.id}")
+      assert has_element?(view, "#see-public-page")
+
+      view |> element("#close-listing") |> render_click()
+
+      refute has_element?(view, "#see-public-page")
+    end
+  end
 end

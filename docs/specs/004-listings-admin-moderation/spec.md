@@ -383,6 +383,8 @@ Scenario: A Draft is not found
   Admin who made it. A listing that was rejected and sent again shows no decision until the
   next one; the old reason is gone (REQ-003-8).
 - An Admin's own listing is marked "Your listing" here as well.
+- A Published listing's box also has a link, "See the public page", to the listing's
+  public address (spec 005, REQ-005-10). No other status has it.
 - A hidden region is marked with the neutral "hidden" pill from the design guide, on a
   listing in any status. The warning about approval is shown only while the listing is
   Waiting for approval, and names the three ways forward in REQ-004-5. Tapping Approve
@@ -868,3 +870,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-26 | Changed by spec 005, after Done: approving also gives the listing its public address (REQ-005-6). A rule added to REQ-004-5; `activity-approve-or-reject` gains the step; `state-listing` says a Published listing gets its public address on approval. No scenario changed |
 | 2026-11-26 | Changed by spec 005, after Done: an Admin edit that moves a Published listing to another region moves its public address, and the old address forwards; the public address joins what an edit cannot set (REQ-005-6). Two rules in REQ-004-8; `activity-take-down-and-edit` gains a note and a step. No scenario changed |
 | 2026-11-26 | Changed by spec 005, after Done: the public pages exist. REQ-004-3's opening no longer says this page is the only way to a Published listing; REQ-004-7's rule says what "no longer visible to the public" means now (REQ-005-1, REQ-005-7); `activity-take-down-and-edit` says the same at "Take down". No scenario changed |
+| 2026-11-26 | Changed by spec 005, after Done: the Admin view of a Published listing has a link, "See the public page" (REQ-005-10). A rule in REQ-004-4; `activity-find-and-review` and `screenflow-moderation` say the same. No scenario changed |

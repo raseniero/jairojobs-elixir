@@ -274,7 +274,7 @@ document changed, and every changed `.puml` is rendered on its own
 
 ## Phase E — Links, the email, sharing, search engines
 
-- [ ] **T14** — Links between a public page and the pages that manage it (REQ-005-10)
+- [x] **T14** — Links between a public page and the pages that manage it (REQ-005-10) — done 2026-11-26
   - Owner view and Admin view: "See the public page" (`#see-public-page`) while Published
   - Public page and gone page: `#manage-links` last on the page: "This is your listing."
     and "Manage this listing" for an owner who may still post; "Open the Admin view" for
@@ -601,3 +601,22 @@ document changed, and every changed `.puml` is rendered on its own
   change. The three diagrams that did change (`activity-request-access`,
   `activity-after-submitting`, `activity-take-down-and-edit`) were re-rendered; I looked
   at all three.
+- T14: 14 tests: 3 for the owner view, 3 for the Admin view, 8 for the public page and
+  the "no longer listed" page. Seven of REQ-005-10's eight scenarios are covered; the
+  eighth, the email, is T15.
+- T14: on the public page the box is last, with "This is your listing." above the
+  owner's link. On the "no longer listed" page the same links appear without that
+  sentence, as the screen flow draws it. An owner demoted to Candidate gets neither.
+- T14: the paths of the two links are worked out in the controller and passed to the
+  page, so the "no longer listed" page still receives nothing of the listing but its
+  region and those paths.
+- T14, in a real browser at 375 px (throwaway data, removed; the dev database's counts
+  are what they were), eleven pages: the public page and the "no longer listed" page as
+  a visitor, as the owner and as an Admin; the public page of an Admin's own listing;
+  the owner view; the Admin view. Each showed exactly the links it should and no others,
+  none scrolled sideways, nothing was under 44 px. "See the public page" led from the
+  owner view to the public page, and "Manage this listing" and "Open the Admin view" led
+  back. I looked at three of the screenshots. This is also the first look at the "no
+  longer listed" page, which T13 could not show.
+- T14: five diagrams of specs 003 and 004 were re-rendered. I looked at
+  `screenflow-posting` and `screenflow-moderation`; the other three changed by one line.

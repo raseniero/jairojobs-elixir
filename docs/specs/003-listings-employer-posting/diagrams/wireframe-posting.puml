@@ -89,7 +89,7 @@
     ++ Salary is two whole-peso fields, monthly; there is no "negotiable" option (REQ-003-4)
     ++ Region offers active regions only (spec 002)
     ++ Owner view: a status box on top, then the listing as visitors will see it
-    ++ The status box changes with status: Waiting for approval → Withdraw; Needs changes → reason + Edit + Resubmit; Published → Close listing; Taken down → reason, no actions (spec 004)
+    ++ The status box changes with status: Waiting for approval → Withdraw; Needs changes → reason + Edit + Resubmit; Published → "See the public page" (a link, spec 005) + Close listing; Taken down → reason, no actions (spec 004)
     ++ Status labels: Draft, Waiting for approval, Published, Needs changes, Closed, Taken down — shown as a pill at the right of each row
   }
 }

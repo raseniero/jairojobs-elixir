@@ -1136,6 +1136,61 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
     end
   end
 
+  # spec 005 — REQ-005-10: from a listing's Admin view to its public page.
+  describe "the Admin view: the link to the public page" do
+    setup :log_in_admin
+
+    test "REQ-005-10: The Admin view links to the public page", %{conn: conn} do
+      region = region_fixture(name: "Davao City")
+
+      listing =
+        listing_in_status_fixture(employer_scope_fixture(), :published,
+          title: "Barista (full-time)",
+          region_id: region.id
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+      assert text(view, "#see-public-page") == "See the public page"
+
+      assert has_element?(
+               view,
+               ~s(#moderation-box a#see-public-page[href="/jobs/davao-city/barista-full-time"])
+             )
+
+      assert {:error, {:redirect, %{to: "/jobs/davao-city/barista-full-time" = path}}} =
+               view |> element("#see-public-page") |> render_click()
+
+      assert conn |> get(path) |> html_response(200) =~ "Barista (full-time)"
+    end
+
+    test "REQ-005-10: Only a Published listing has the link", %{conn: conn} do
+      # (An Admin is never shown a Draft at all: REQ-004-4.)
+      for status <- [:pending, :rejected, :closed, :taken_down] do
+        listing = listing_in_status_fixture(employer_scope_fixture(), status)
+
+        {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+
+        refute has_element?(view, "#see-public-page"), "#{status} shows the link"
+        refute render(view) =~ "/jobs/"
+      end
+    end
+
+    test "the link is there on the reject and take-down forms' page only when Published",
+         %{conn: conn} do
+      listing = listing_in_status_fixture(employer_scope_fixture(), :published)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}/take-down")
+      assert has_element?(view, "#see-public-page")
+
+      view
+      |> form("#decision-form", decision: %{reason: "Not suitable for the board as written."})
+      |> render_submit()
+
+      refute has_element?(view, "#see-public-page")
+    end
+  end
+
   describe "logging" do
     test "REQ-004: a reason is filtered from logged parameters" do
       params = %{"decision" => %{"reason" => "The business asked us to remove it."}, "id" => "1"}

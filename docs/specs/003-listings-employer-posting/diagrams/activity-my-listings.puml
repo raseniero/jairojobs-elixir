@@ -27,6 +27,8 @@ endif
 required fields are still missing;
 :Needs changes and Taken down also show
 the Admin's reason (REQ-003-8, REQ-004-7);
+:Published also shows "See the public page",
+a link to its public address (REQ-005-10);
 :Show the listing as visitors will see it
 (business name, salary, region, sections);
 :Offer only the actions the status allows;

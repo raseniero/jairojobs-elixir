@@ -18,6 +18,7 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
 
   alias Jairojobs.Listings
   alias JairojobsWeb.Format
+  alias JairojobsWeb.PublicAddress
 
   # The lists an Admin can have come from, by their value in the address.
   @lists ~w(waiting published needs-changes taken-down closed)
@@ -90,6 +91,16 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
           </p>
           <p :if={@listing.status == :pending}>{@region_hidden}</p>
         </div>
+
+        <%!-- spec 005 — REQ-005-10: only a Published listing has a public page. --%>
+        <.link
+          :if={@listing.status == :published}
+          href={PublicAddress.listing_path(@listing)}
+          id="see-public-page"
+          class="inline-flex min-h-11 items-center gap-1 text-primary hover:underline"
+        >
+          See the public page <.icon name="hero-arrow-right" class="size-4" />
+        </.link>
 
         <%= if @live_action == :show do %>
           <p :if={help(@listing.status, @own?)} id="moderation-help" class="text-sm">
