@@ -212,6 +212,268 @@ defmodule Jairojobs.ListingsPublicTest do
     end
   end
 
+  describe "search and type (REQ-005-4)" do
+    defp search(words, opts \\ []),
+      do: titles(Listings.list_public_listings([search: words] ++ opts))
+
+    # The fixtures' usual "About the job" mentions a barista, which every search for
+    # "barista" would then find. These listings say nothing a test searches for.
+    @plain "A steady job with a friendly team in a busy neighbourhood shop."
+
+    setup %{admin: admin, davao: davao} do
+      kape_isla = admin_poster_scope_fixture(business_name: "Kape Isla")
+
+      publish = fn title, attrs ->
+        published(kape_isla, admin, title, davao, Map.merge(%{description: @plain}, attrs))
+      end
+
+      %{kape_isla: kape_isla, publish: publish}
+    end
+
+    test "REQ-005-4: Search by a word in the title", %{publish: publish} do
+      publish.("Barista (full-time)", %{})
+      publish.("Cashier", %{})
+
+      assert search("barista") == ["Barista (full-time)"]
+      assert search("cashier") == ["Cashier"]
+    end
+
+    test "REQ-005-4: Search finds the business and the area", %{publish: publish, admin: admin} do
+      publish.("Barista (full-time)", %{area: "Matina"})
+
+      other = admin_poster_scope_fixture(business_name: "Tindahan ni Aling Nena")
+
+      published(other, admin, "Store attendant", region_fixture(),
+        area: "Lanang",
+        description: @plain
+      )
+
+      assert search("kape") == ["Barista (full-time)"]
+      assert search("matina") == ["Barista (full-time)"]
+      assert search("nena") == ["Store attendant"]
+      assert search("lanang") == ["Store attendant"]
+    end
+
+    test "REQ-005-4: Search finds words in the listing's text", %{publish: publish} do
+      publish.("Barista (full-time)", %{
+        description:
+          "Training provided; experience with espresso machines is a plus for this role.",
+        requirements: "At least 18 years old\nWilling to work weekends",
+        benefits: "Free meals on shift\nSSS, PhilHealth, Pag-IBIG"
+      })
+
+      publish.("Cashier", %{})
+
+      # About the job, Requirements, Benefits.
+      assert search("espresso") == ["Barista (full-time)"]
+      assert search("weekends") == ["Barista (full-time)"]
+      assert search("philhealth") == ["Barista (full-time)"]
+    end
+
+    test "REQ-005-4: Every word must be found", %{publish: publish} do
+      publish.("Barista", %{area: "Matina"}) |> approved_ago(1, :hour)
+      publish.("Barista", %{area: "Lanang"}) |> approved_ago(2, :hour)
+
+      assert {[%Listing{area: "Matina"}], 1} =
+               Listings.list_public_listings(search: "barista matina")
+
+      # The words may be in different parts, in any order.
+      assert {[%Listing{area: "Matina"}], 1} =
+               Listings.list_public_listings(search: "matina kape barista")
+
+      assert {[_, _], 2} = Listings.list_public_listings(search: "barista")
+      assert {[], 0} = Listings.list_public_listings(search: "barista toril")
+    end
+
+    test "REQ-005-4: Capitals do not matter", %{publish: publish} do
+      publish.("Barista (full-time)", %{})
+
+      assert search("BARISTA") == ["Barista (full-time)"]
+      assert search("bArIsTa") == ["Barista (full-time)"]
+      assert search("KAPE isla") == ["Barista (full-time)"]
+    end
+
+    test "REQ-005-4: Filter by type", %{publish: publish} do
+      publish.("A full-time job", %{employment_type: :full_time})
+      publish.("A part-time job", %{employment_type: :part_time})
+
+      assert {[%Listing{title: "A part-time job"}], 1} =
+               Listings.list_public_listings(type: :part_time)
+
+      assert {[%Listing{title: "A full-time job"}], 1} =
+               Listings.list_public_listings(type: :full_time)
+
+      assert {[], 0} = Listings.list_public_listings(type: :internship)
+
+      # No type is any type.
+      assert {[_, _], 2} = Listings.list_public_listings(type: nil)
+    end
+
+    test "REQ-005-4: Search and type together, inside a region",
+         %{publish: publish, kape_isla: kape_isla, admin: admin, davao: davao, cebu: cebu} do
+      publish.("Barista (weekends)", %{employment_type: :part_time})
+      publish.("Barista (full-time)", %{employment_type: :full_time})
+      publish.("Cashier (weekends)", %{employment_type: :part_time})
+
+      published(kape_isla, admin, "Barista (evenings)", cebu,
+        employment_type: :part_time,
+        description: @plain
+      )
+
+      assert {[%Listing{title: "Barista (weekends)"}], 1} =
+               Listings.list_public_listings(region: davao, search: "barista", type: :part_time)
+
+      assert {[_, _], 2} = Listings.list_public_listings(search: "barista", type: :part_time)
+    end
+
+    test "REQ-005-4: An empty search is no search", %{publish: publish} do
+      for title <- ["Barista", "Cashier", "Line cook"], do: publish.(title, %{})
+
+      for nothing <- [nil, "", "   ", "\n\t "] do
+        assert {[_, _, _], 3} = Listings.list_public_listings(search: nothing)
+      end
+    end
+
+    test "the count follows the search", %{publish: publish} do
+      for n <- 1..3, do: publish.("Barista number #{n}", %{})
+      publish.("Cashier", %{})
+
+      assert {[_, _, _], 3} = Listings.list_public_listings(search: "barista")
+      assert {[_, _], 3} = Listings.list_public_listings(search: "barista", limit: 2)
+    end
+
+    test "results stay newest first, whatever matched best", %{publish: publish} do
+      publish.("Barista barista barista", %{}) |> approved_ago(3, :day)
+      publish.("Line cook", %{description: String.duplicate("We also need a barista. ", 3)})
+
+      assert search("barista") == ["Line cook", "Barista barista barista"]
+    end
+
+    test "a search never finds a listing that is not Published",
+         %{kape_isla: kape_isla, admin: admin, davao: davao} do
+      _waiting = pending(kape_isla, "Barista (pending)", davao)
+
+      {:ok, _closed} =
+        Listings.close_listing(kape_isla, published(kape_isla, admin, "Barista (closed)", davao))
+
+      {:ok, _taken_down, _email} =
+        Listings.take_down_listing(
+          admin,
+          published(kape_isla, admin, "Barista (taken down)", davao),
+          %{reason: @reason},
+          owner_url()
+        )
+
+      assert search("barista") == []
+      assert {[], 0} = Listings.list_public_listings(type: :full_time)
+    end
+
+    test "a word is a whole word: part of one is not promised, and not found",
+         %{publish: publish} do
+      publish.("Delivery drivers wanted", %{})
+
+      assert search("drivers") == ["Delivery drivers wanted"]
+      assert search("driver") == []
+      assert search("deliv") == []
+    end
+
+    test "punctuation around a word does not get in the way", %{publish: publish} do
+      publish.("Barista (full-time)", %{requirements: "Customer-facing; cash handling."})
+
+      assert search("full-time") == ["Barista (full-time)"]
+      assert search("(barista)") == ["Barista (full-time)"]
+      assert search("handling") == ["Barista (full-time)"]
+      assert search("cash, handling!") == ["Barista (full-time)"]
+    end
+
+    test "the business name searched is the listing's own copy",
+         %{publish: publish, admin: admin} do
+      listing = publish.("Barista (full-time)", %{})
+
+      {:ok, _edited, _email} =
+        Listings.update_listing_as_admin(
+          admin,
+          listing,
+          %{business_name: "Bean Scene"},
+          owner_url()
+        )
+
+      assert search("bean") == ["Barista (full-time)"]
+      assert search("kape") == []
+    end
+
+    test "words past 100 characters are cut", %{publish: publish} do
+      publish.("Barista (full-time)", %{})
+
+      # The 101st character onwards is a word no listing has. Cut off, it changes nothing.
+      long = String.pad_trailing("barista", 100) <> "astronaut"
+      assert String.length(long) == 109
+
+      assert search(long) == ["Barista (full-time)"]
+      assert search("barista astronaut") == []
+    end
+
+    test "words made only of punctuation find nothing", %{publish: publish} do
+      publish.("Barista (full-time)", %{})
+
+      for words <- ["!!!", "—", "( )", "..."] do
+        assert search(words) == []
+      end
+    end
+
+    test "characters that mean something to the database are harmless", %{
+      publish: publish,
+      admin: admin
+    } do
+      publish.("Barista (full-time)", %{benefits: "100% of tips are yours"})
+      obrien = admin_poster_scope_fixture(business_name: "O'Brien's Pub")
+      published(obrien, admin, "Bartender", region_fixture(), description: @plain)
+
+      # Not wildcards, not quotes, not escapes, not operators: only words, or nothing.
+      assert search("%") == []
+      assert search("_") == []
+      assert search("\\") == []
+      assert search("'") == []
+      assert search("barista & cashier") == []
+      assert search("barista | cashier") == []
+      assert search("!barista") == ["Barista (full-time)"]
+      assert search("100%") == ["Barista (full-time)"]
+      assert search("o'brien") == ["Bartender"]
+      assert search("'; DROP TABLE listings; --") == []
+      assert search("bar\0ista") == []
+
+      assert {[_, _], 2} = Listings.list_public_listings()
+    end
+  end
+
+  describe "search_words/1 (REQ-005-4)" do
+    test "trims, and cuts at 100 characters" do
+      assert Listings.search_words("  barista  ") == "barista"
+      assert Listings.search_words("barista   matina") == "barista   matina"
+
+      cut = Listings.search_words(String.duplicate("ab ", 60))
+      assert String.length(cut) <= 100
+      assert String.starts_with?(cut, "ab ab")
+      refute String.ends_with?(cut, " ")
+    end
+
+    test "nothing typed, or only spaces, is no search" do
+      for nothing <- [nil, "", "   ", "\n\t "] do
+        assert Listings.search_words(nothing) == nil
+      end
+    end
+
+    test "counts characters, not bytes" do
+      assert Listings.search_words(String.duplicate("ñ", 150)) == String.duplicate("ñ", 100)
+    end
+
+    test "anything that is not text is no search" do
+      assert Listings.search_words(%{"a" => "b"}) == nil
+      assert Listings.search_words(["barista"]) == nil
+      assert Listings.search_words(42) == nil
+    end
+  end
+
   describe "a listing's public address (REQ-005-6)" do
     test "REQ-005-6: The address is made at approval", %{owner: owner, admin: admin, davao: davao} do
       waiting = pending(owner, "Barista (full-time)", davao)

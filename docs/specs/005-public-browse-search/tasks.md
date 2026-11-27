@@ -129,7 +129,7 @@ document changed, and every changed `.puml` is rendered on its own
     `…: An edit does not move a listing`; `:region` returns that region's only
   - Commit: `feat(listings): the public list of Published listings (REQ-005-1, REQ-005-2)`
 
-- [ ] **T6** — Search and type (REQ-005-4)
+- [x] **T6** — Search and type (REQ-005-4) — done 2026-11-26
   - `list_public_listings/1` gains `:search` and `:type`: Postgres full-text search,
     `simple`, over the title, business name, area and the three texts; words trimmed and
     cut at 100 characters; blank is no search; `total` counts what matched
@@ -460,3 +460,13 @@ document changed, and every changed `.puml` is rendered on its own
   The test helper that sets a listing's approval time back is
   `ListingsFixtures.approved_ago/3` (plan decision 20). Two listings approved at the same
   instant are ordered by id, later first, so the order is always the same.
+- T6: 21 tests. `Listings.search_words/1` is the one place that trims the words and cuts
+  them at 100 characters; the screens will use it too, so the field and the address show
+  exactly what was looked for. It also turns control characters into spaces: the database
+  refuses a null byte, and a pasted one would otherwise be an error page.
+- T6: with the search switched on purpose to Postgres's English rules, one test failed:
+  "driver" found "drivers". Restored to `simple`.
+- T6: the fixtures' usual "About the job" mentions a barista, so the search tests give
+  their listings a text that names nothing they search for.
+- T6: one test pins what the plan chose and the spec does not promise: "driver" does not
+  find "Delivery drivers wanted". If search is ever made more forgiving, that test changes.

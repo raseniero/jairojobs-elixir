@@ -251,10 +251,18 @@ defmodule Jairojobs.Listings do
 
     * `:region` — a `Region`: only its listings (REQ-005-3). A hidden region's
       listings are returned like any other's
+    * `:search` — words to look for (REQ-005-4), cleaned by `search_words/1`.
+      A listing matches when every word is found, as a whole word and whatever
+      its capitals, in its title, business name, area, "About the job",
+      Requirements or Benefits. Nothing typed is no search
+    * `:type` — an employment type such as `:part_time`; `nil` is any type
     * `:limit` (default `20`) and `:offset` (default `0`)
 
   Returns `{listings, total}`. `total` counts every listing that matched, not
   only this page.
+
+  A search narrows the list and never reorders it: there is no ordering by how
+  well a listing matches. What was searched is not stored.
 
   The order never changes: an Admin's edit does not move a listing, because it
   does not touch the time of approval.
@@ -274,10 +282,63 @@ defmodule Jairojobs.Listings do
     {listings, Repo.aggregate(query, :count)}
   end
 
+  @max_search_length 100
+
+  @doc """
+  The words of a search as they are used and shown: trimmed, and cut at 100
+  characters (REQ-005-4). `nil` when nothing was typed, or only spaces, which
+  is no search at all.
+
+  The screens use this too, so the words in the search field and in the
+  page's address are exactly the words that were looked for.
+  """
+  def search_words(words) when is_binary(words) do
+    words
+    # A control character is never part of a word, and the database refuses a null byte.
+    |> String.replace(~r/[\x00-\x1F\x7F]/u, " ")
+    |> String.trim()
+    |> String.slice(0, @max_search_length)
+    |> String.trim()
+    |> case do
+      "" -> nil
+      words -> words
+    end
+  end
+
+  def search_words(_not_text), do: nil
+
   defp narrow({:region, %Region{id: region_id}}, query),
     do: from(l in query, where: l.region_id == ^region_id)
 
   defp narrow({:region, nil}, query), do: query
+
+  # Postgres full-text search with the `simple` configuration (plan decision 7):
+  # whole words, every word, capitals ignored, and no guessing at word endings
+  # or leaving "small" words out. `plainto_tsquery` reads the words as plain
+  # text, so nothing typed can act as an operator, a wildcard or a quote.
+  defp narrow({:search, words}, query) do
+    case search_words(words) do
+      nil ->
+        query
+
+      words ->
+        from l in query,
+          where:
+            fragment(
+              "to_tsvector('simple', concat_ws(' ', ?, ?, ?, ?, ?, ?)) @@ plainto_tsquery('simple', ?)",
+              l.title,
+              l.business_name,
+              l.area,
+              l.description,
+              l.requirements,
+              l.benefits,
+              ^words
+            )
+    end
+  end
+
+  defp narrow({:type, nil}, query), do: query
+  defp narrow({:type, type}, query), do: from(l in query, where: l.employment_type == ^type)
   defp narrow({option, _value}, query) when option in [:limit, :offset], do: query
 
   ## Moderation (spec 004)
