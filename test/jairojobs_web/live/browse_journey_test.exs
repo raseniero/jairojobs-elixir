@@ -9,7 +9,11 @@ defmodule JairojobsWeb.BrowseJourneyTest do
   A `Phoenix.LiveViewTest` and controller journey, not a browser test
   (constitution §3.1): JavaScript and CSS are outside it.
   """
-  use JairojobsWeb.ConnCase, async: true
+  # Not async (constitution §3.5): region names and slugs are unique, and these tests use
+  # fixed region names ("Davao City", "Cebu") because the public addresses they check are
+  # made from the region's slug. Concurrent sandbox transactions inserting the same names
+  # wait on each other's unique-index entries and can deadlock.
+  use JairojobsWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
   import Jairojobs.AccountsFixtures

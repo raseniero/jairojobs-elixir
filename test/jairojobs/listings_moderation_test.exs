@@ -831,7 +831,9 @@ defmodule Jairojobs.ListingsModerationTest do
     # the public page, placed first, and keeps the link to My listings.
     test "REQ-005-10: The approval email links to the public page", %{admin: admin} do
       employer = employer_scope_fixture()
-      region = region_fixture(name: "Davao City")
+      # A name no other test has: this file runs alongside others (see the pitfall on
+      # fixed region names in `regions_test.exs`). The address is read from the region.
+      region = region_fixture(name: "Davao #{System.unique_integer([:positive])}")
       pending = pending_listing(employer, title: "Barista (full-time)", region_id: region.id)
       setup_done()
 
@@ -842,7 +844,7 @@ defmodule Jairojobs.ListingsModerationTest do
       assert email.to == [{"", employer.user.email}]
       assert email.subject == "Your listing is published: Barista (full-time)"
 
-      public = "https://jairojobs.test/jobs/davao-city/barista-full-time"
+      public = "https://jairojobs.test/jobs/#{region.slug}/barista-full-time"
       mine = "https://jairojobs.test/my/listings/#{listing.id}"
 
       # It links to the listing's public page, and to the listing in My listings…

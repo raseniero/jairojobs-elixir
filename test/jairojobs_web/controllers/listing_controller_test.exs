@@ -5,7 +5,11 @@ defmodule JairojobsWeb.ListingControllerTest do
   engine makes it. Listings reach each status through the real context
   functions.
   """
-  use JairojobsWeb.ConnCase, async: true
+  # Not async (constitution §3.5): region names and slugs are unique, and these tests use
+  # fixed region names ("Davao City", "Cebu") because the public addresses they check are
+  # made from the region's slug. Concurrent sandbox transactions inserting the same names
+  # wait on each other's unique-index entries and can deadlock.
+  use JairojobsWeb.ConnCase, async: false
 
   import Jairojobs.AccountsFixtures
   import Jairojobs.ListingsFixtures

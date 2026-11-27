@@ -1145,7 +1145,10 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
     test "approving on the screen emails the owner the public address the site really has",
          %{conn: conn} do
-      region = region_fixture(name: "Davao City")
+      # A name no other test has: this file runs alongside others, and region names are
+      # unique. The address is read from the region.
+      region = region_fixture(name: "Davao #{System.unique_integer([:positive])}")
+      public_path = "/jobs/#{region.slug}/barista-full-time"
       employer = employer_scope_fixture()
 
       listing =
@@ -1162,19 +1165,19 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       assert email.to == [{"", employer.user.email}]
 
       # The same address the public page answers at, in full, and before the other link.
-      public = JairojobsWeb.Endpoint.url() <> "/jobs/davao-city/barista-full-time"
+      public = JairojobsWeb.Endpoint.url() <> public_path
       mine = JairojobsWeb.Endpoint.url() <> "/my/listings/#{listing.id}"
 
       assert email.text_body =~ public <> "\n"
       assert email.text_body =~ mine <> "\n"
       assert :binary.match(email.text_body, public) < :binary.match(email.text_body, mine)
 
-      assert conn |> get("/jobs/davao-city/barista-full-time") |> html_response(200) =~
-               "Barista (full-time)"
+      assert conn |> get(public_path) |> html_response(200) =~ "Barista (full-time)"
     end
 
     test "REQ-005-10: The Admin view links to the public page", %{conn: conn} do
-      region = region_fixture(name: "Davao City")
+      region = region_fixture(name: "Davao #{System.unique_integer([:positive])}")
+      public_path = "/jobs/#{region.slug}/barista-full-time"
 
       listing =
         listing_in_status_fixture(employer_scope_fixture(), :published,
@@ -1188,10 +1191,10 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
 
       assert has_element?(
                view,
-               ~s(#moderation-box a#see-public-page[href="/jobs/davao-city/barista-full-time"])
+               ~s(#moderation-box a#see-public-page[href="#{public_path}"])
              )
 
-      assert {:error, {:redirect, %{to: "/jobs/davao-city/barista-full-time" = path}}} =
+      assert {:error, {:redirect, %{to: ^public_path = path}}} =
                view |> element("#see-public-page") |> render_click()
 
       assert conn |> get(path) |> html_response(200) =~ "Barista (full-time)"
