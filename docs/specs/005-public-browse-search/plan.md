@@ -1,8 +1,9 @@
 # 005 — Public browse and search — Plan
 
-**Status:** Draft
+**Status:** Approved
 **Spec:** [spec.md](./spec.md) (Approved 2026-11-23)
 **Created:** 2026-11-26
+**Approved:** 2026-11-26
 
 ## Approach
 
@@ -604,7 +605,7 @@ changed in the commit of the step named, with a changelog row in the document ch
 | 16 | `architecture/overview.md`: the Listings row says implemented | 13 |
 | 17 | `architecture/data-model.md`, the ERD: slug, `listing_addresses`, the Conventions line, the planning comment | 1; the checks in 2 |
 | 18 | `c4-context-system`, `c4-container-system`: search engine, chat app, the Visitor's arrow | 12 |
-| 19 | `docs/design.md` and its mock | its own commit, once the owner approves the note below |
+| 19 | `docs/design.md` and its mock | done on 2026-11-26, in its own commit (the note below) |
 | 20 | The home page: "Listings are coming soon" goes | 5 |
 | 21 | The Admin's Regions screens | no change (decision 16) |
 
@@ -612,10 +613,11 @@ Two differences from the spec's wording of row 16, for the owner to know: the ov
 `:current_user` row gains the two lists only, and the listing page and the sitemap are
 named beside the table as public controller routes (decision 1).
 
-## Proposal: a note beside the mock in `docs/design.md`
+## The note beside the mock in `docs/design.md`
 
-Separate from this plan: the design guide is Accepted, so this needs the owner's approval,
-its own commit and a changelog row. Proposed text, directly under the mock's source line:
+Approved by the owner on 2026-11-26 and made in `docs/design.md` that day, in its own
+commit with a changelog row. It was a proposal separate from this plan, because the design
+guide is Accepted. The text, directly under the mock's source line:
 
 > *The mock was drawn before the public pages were specified (spec 005) and differs from
 > the site in four places. The listing page has no "Apply for this job" button until spec
@@ -683,10 +685,11 @@ is written into the plan above. The first nine shape the build; the rest are sma
 The draft was committed (`62d65e5`), read against the documents below, corrected, and
 committed again (`22d51f8`). The corrected parts were then read once more.
 
-Since that commit two things changed, and nothing else: this section was written, and on
+Since that commit three things changed, and nothing else: this section was written; on
 2026-11-26 the owner confirmed the twenty decisions, so the decisions table was retitled
-and its column "Proposed" became "Choice". No answer changed, so nothing the review read
-is different.
+and its column "Proposed" became "Choice"; and the same day he approved the plan and the
+note for the design guide, so the status, the note's heading and row 19 of the documents
+table say so. No answer changed, so nothing the review read is different.
 
 | Checked against | Result |
 |---|---|
