@@ -60,7 +60,7 @@ words on screen say "jobs" (constitution §4.7, spec 000).
 | Function | Returns | REQ |
 |---|---|---|
 | `list_public_listings(opts)` | `{listings, total}`: Published only, newest approval first (`published_at` then `id`, descending), region preloaded. `opts`: `:region` (a `Region`), `:search` (text), `:type` (an employment type), `:limit` (20), `:offset` (0). `total` counts everything that matched, not the page | 1, 2, 3, 4 |
-| `resolve_public_address(region_slug, listing_slug)` | `{:ok, listing}`, the current address of a Published listing · `{:moved, listing}`, an earlier address of a Published listing · `{:gone, %{id, user_id, region}}`, any address of a Closed or Taken down listing · `:not_found` | 5, 6, 7 |
+| `resolve_public_address(region_slug, listing_slug)` | `{:ok, listing}`, the current address of a Published listing · `{:moved, %{region_slug, slug}}`, an earlier address of any listing, with its current one · `{:gone, %{id, user_id, region}}`, the current address of a Closed or Taken down listing · `:not_found` | 5, 6, 7 |
 | `list_public_addresses()` | for the sitemap: region slug, listing slug and `updated_at` of every Published listing | 9 |
 | `approve_listing(scope, listing, owner_url, public_url)` (was `/3`) | as in spec 004; the listing comes back with its `slug` | 6, 10 |
 | `update_listing_as_admin/4` | unchanged shape; a changed region on a Published listing also changes its `slug` and records the new address | 6 |
@@ -71,7 +71,7 @@ words on screen say "jobs" (constitution §4.7, spec 000).
 - `:gone` carries only what the page needs: the region for "See jobs in …", and the
   listing's id and owner id so the screen can offer the owner's and the Admin's link. The
   title, the text and the reason never leave the context, so the page cannot show them by
-  mistake (REQ-005-7).
+  mistake (REQ-005-7). `:moved` carries only the address to forward to.
 - `public_url` is a function from a listing to its full public address, passed in by the
   Admin view, like `owner_url` (spec 004, decision 4).
 
@@ -129,6 +129,7 @@ erDiagram
         uuid region_id FK
         string slug "lowercase letters, digits, hyphens; at most 60"
         utc_datetime_usec inserted_at
+        utc_datetime_usec updated_at
     }
 ```
 
@@ -136,7 +137,8 @@ erDiagram
   slug plus this. It is on the listing, not only in the new table, so that every existing
   read (My listings, the Admin view, the email) has it without a join.
 - **`listing_addresses`** has one row per address, the current one included. Rows are only
-  ever inserted.
+  ever inserted. It has both timestamps like every table (data-model conventions), though
+  `updated_at` never differs.
   - `unique(region_id, slug)`: an address belongs to one listing for good (decision 24 of
     the spec).
   - `unique(listing_id, region_id)`: a listing has one address per region, so a listing
@@ -154,7 +156,6 @@ erDiagram
      a delete
    - CHECK `listing_addresses_slug_format`: `slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'` and at
      most 60 characters (the same pattern `regions.slug` has)
-   - partial index `listings(published_at, id) WHERE status = 'published'`, for the lists
 2. `give_addresses_to_approved_listings` (data only, decision 6)
    - every listing that has `published_at` and no slug gets one, oldest approval first, by
      the rule above. That is Published, Closed and Taken down listings alike
@@ -209,9 +210,13 @@ Where each goes, and why:
 | The address is | Answer |
 |---|---|
 | the current address of a Published listing | 200, the public page |
-| an earlier address of a Published listing | 301 (moved for good) to the current address |
-| any address, current or earlier, of a Closed or Taken down listing | 410 (gone), the "no longer listed" page |
+| an earlier address of a listing, whatever its status now | 301 (moved for good) to its current address, which then answers by this table |
+| the current address of a Closed or Taken down listing | 410 (gone), the "no longer listed" page |
 | anything else: never a listing, a listing's id, an unknown region | 404, the usual "not found" |
+
+An earlier address forwards first and the status is looked at second, as
+`activity-open-a-listing` draws it. So the old address of a listing that was moved and
+then closed forwards to the address that says "no longer listed".
 
 `/jobs/atlantis` raises from `Regions.get_region_by_slug!/1`, the same 404.
 
@@ -225,7 +230,8 @@ Where each goes, and why:
 - **Search.** One form: a search field (`type="search"`, at most 100 characters), the type
   select ("Any type" and the five types), and a "Search" button. It is an ordinary GET
   form that the LiveView also handles, so it works before the live connection is up.
-  Choosing a type applies at once. Submitting patches the address.
+  Choosing a type applies at once. Submitting patches the address. "Search" is a primary
+  (blue) button, not the accent: no public screen in this spec has an accent action.
 - **In the address:** `?search=barista&type=part-time&shown=40` (decision 8). Words are
   trimmed and cut at 100 characters; nothing typed, or only spaces, removes the parameter.
   An unknown type or a `shown` that is not a number is ignored.
@@ -246,8 +252,9 @@ Where each goes, and why:
 - **"Show more".** Shown only when there are more. It appends the next 20 and replaces
   the address with `shown=40`, `60`, … up to 200.
 - **Empty states.** "No jobs are listed yet." · "No jobs are listed in Cebu yet." with
-  "See all regions" · "No jobs match your search." "Clear search" is shown whenever words
-  or a type are set, and leads to the same list without them.
+  "See all regions" · "No jobs match your search." When words or a type are set, an empty
+  list always gets the third message, in a region too. "Clear search" is shown whenever
+  words or a type are set, and leads to the same list without them.
 - **The trust line** sits under the list always, rows or none.
 
 ### What the browser's back button restores
@@ -268,10 +275,10 @@ The spec leaves this to the plan (spec decisions 9 and 20).
 
 ### The listing page
 
-Top to bottom: "← Jobs in Davao City" (always the listing's region); for the owner and for
-Admins, a small box with their links; `listing_detail` with the trust line in its new slot
-("✓ Approved · Posted 2 h ago · Davao City"); "Share"; "Applying through jairojobs is
-coming soon."
+Top to bottom: "← Jobs in Davao City" (always the listing's region); `listing_detail` with
+the trust line in its new slot ("✓ Approved · Posted 2 h ago · Davao City"); "Share", a
+plain button; "Applying through jairojobs is coming soon."; and last, for the owner and
+for Admins only, a small box with their links. That is the order of the spec's diagrams.
 
 - The business name and "about" are the listing's own copy. `listing_detail` already
   leaves out an empty schedule, Requirements, Benefits and "About …", and shows no status.
@@ -287,8 +294,8 @@ coming soon."
 ### The "no longer listed" page
 
 Status 410. "This job is no longer listed." and "See jobs in Davao City". The same two
-links for the owner and for Admins. Built from the `:gone` result, which holds nothing of
-the listing. It also asks not to be listed.
+links for the owner and for Admins, by the same rule as on the listing page. Built from
+the `:gone` result, which holds nothing of the listing. It also asks not to be listed.
 
 ### Head tags (REQ-005-8, REQ-005-9)
 
@@ -511,13 +518,14 @@ Other tests, not named for a scenario:
 | `Slug.from_title/1` and `Slug.free/2`: 60 characters, the cut at a word, "job", the number, the number within 60 | `test/jairojobs/listings/slug_test.exs` (unit) |
 | A listing moved back returns to the address it had; a move into a region where its slug is taken gets a number | C |
 | Two Admins approve the same title in one region at the same moment: both succeed, with different addresses | `test/jairojobs/listings_concurrency_test.exs` (real connections, as its other tests) |
+| The old address of a listing that was moved and then closed forwards to the page that says "no longer listed" | P |
 | The two unique indexes, the two CHECKs and the foreign key: one test each that tries to break it with a direct write | C |
 | `approve_listing` as an Employer or Candidate still writes no address (spec 004's "Only an Admin can decide" stays green) | M |
 | Searched words are not logged | `test/jairojobs_web/endpoint_log_test.exs` |
 | `shown`: 40 in the address gives 40 rows; a value over 200, or not a number, is handled | L |
 | The job-details block is valid JSON and an employer's `</script>` in a text does not end it | P |
 | `/jobs` forwards to `/` | P |
-| One journey (`test/jairojobs_web/live/browse_journey_test.exs`): an Employer posts, an Admin approves, a visitor finds it on the home page, by region and by search, opens it; the Admin moves it and the old address forwards; the Employer closes it and both addresses say it is no longer listed | LiveView + controller |
+| One journey (`test/jairojobs_web/live/browse_journey_test.exs`): an Employer posts, an Admin approves, a visitor finds it on the home page, by region and by search, opens it; the Admin moves it and the old address forwards; the Employer closes it and its address says it is no longer listed | LiveView + controller |
 
 Notes:
 
@@ -525,11 +533,13 @@ Notes:
   delivered" use a plain `get`, not a connected LiveView.
 - **Controller pages are asserted through `LazyHTML` selectors** on the DOM ids above, not
   by matching raw HTML (AGENTS.md, LiveView tests).
+- **New test files are `async: true`.** Each test has its own regions, so fixed titles
+  such as "Barista (full-time)" do not clash between tests.
 - **Time.** "2 h ago" and "10 days ago" need listings approved in the past. The context
   stamps the real time, so those tests set `published_at` back with one test-support
-  function in `ListingsFixtures` that updates that column and nothing else. It does not
-  bring back the status helper spec 004 removed: the status is still reached through the
-  real functions.
+  function in `ListingsFixtures` that updates that column and nothing else (decision 20).
+  It does not bring back the status helper spec 004 removed: the status is still reached
+  through the real functions.
 - **The existing tests of the home page** (`page_controller_test.exs`: REQ-001-1 and the
   four REQ-001-12 menu tests) keep their names and move to file **L**, since `/` is now
   that LiveView. The REQ-001-1 test asserts `#jobs` where it asserted `#home`.
@@ -624,7 +634,7 @@ redraw the mock; that can wait until spec 007 changes the listing page again.
 |---|---|
 | Two approvals of the same title at the same moment pick the same slug | Approvals in one region take turns on the region's row lock; the unique index is the backstop; a concurrency test covers it |
 | The lock order could deadlock with another action | Every path locks the listing before a region, and nothing locks a region and then a listing; `submit_listing` locks the account, then the listing, and no region |
-| Search reads every Published listing on each search | Fine at launch size (spec 000 aims for 20 listings). A stored search column with an index can be added later without changing what search finds |
+| Search reads every Published listing on each search, and the lists have no index of their own | Fine at launch size (spec 000 aims for 20 listings). A stored search column and an index on the approval time can each be added later, in their own migration, without changing what anyone sees |
 | `simple` search does not know plurals: "drivers" does not find "Driver" | Within what the spec does not promise (spec decision 16). Decision 7 gives the alternative |
 | The job-details block is built from an employer's text | HTML-safe JSON escaping; a test with `</script>` in a text |
 | An employer's text in a preview or description | Escaped by the templates like any other text; descriptions use only the salary, type, area, region, title and business name |
@@ -641,7 +651,7 @@ redraw the mock; that can wait until spec 007 changes the listing page again.
 ## Decisions to confirm
 
 Each has a proposed answer, written into the plan above. The first nine shape the build;
-the rest are small.
+the rest are small. Nothing here was decided on the owner's behalf without being listed.
 
 | # | Decision | Proposed | Hard to change later? |
 |---|---|---|---|
@@ -664,6 +674,7 @@ the rest are small.
 | 17 | Listing ids in public pages | None: a row's DOM id is made from its address. ADR-0004 keeps ids out of public addresses; this keeps them out of the public HTML as well | no |
 | 18 | Forwarding | Permanent (301), to the current address, dropping any parameters | no |
 | 19 | Where "Share" and "coming soon" sit; Share with no way to copy | At the end of the page, not fixed to the bottom of the screen: the fixed bar is for the accent action spec 007 brings. Where the browser can neither share nor copy, the address is written out | no |
+| 20 | Tests that need a listing approved in the past | One function in the test fixtures sets `published_at` back, by a direct update of that one column. The account fixtures already do the same for token times. Constitution §3.3 prefers fixtures through context functions, and spec 004 removed a helper that wrote statuses directly; this one writes no status. Other option: give the context functions a clock to pass in, which changes product code for the tests' sake | no |
 
 ## Review before approval
 
@@ -687,7 +698,8 @@ commit.
 - **A retry loop on the unique index** in place of the region lock. More code, and a
   failed insert aborts the whole transaction in Postgres unless savepoints are added.
   Rejected.
-- **A stored, indexed search column now.** Not needed at this size; one migration later.
+- **A stored, indexed search column, or an index for the lists, now.** Not needed at this
+  size; one migration each, later.
 - **A dependency for slugs or sitemaps.** A few lines each; rejected (constitution §2.2).
 - **Telling search engines of each change** (ping, IndexNow). Out of scope (spec decision
   11).
