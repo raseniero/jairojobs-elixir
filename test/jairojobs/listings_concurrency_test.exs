@@ -99,7 +99,11 @@ defmodule Jairojobs.ListingsConcurrencyTest do
     outcomes =
       for listing <- listings do
         approve =
-          Task.async(fn -> unboxed(fn -> Listings.approve_listing(admin, listing, url) end) end)
+          Task.async(fn ->
+            unboxed(fn ->
+              Listings.approve_listing(admin, listing, url, &ListingsFixtures.public_url/1)
+            end)
+          end)
 
         withdraw =
           Task.async(fn -> unboxed(fn -> Listings.withdraw_listing(owner, listing) end) end)
@@ -161,7 +165,11 @@ defmodule Jairojobs.ListingsConcurrencyTest do
         [pair, admins]
         |> Enum.zip()
         |> Enum.map(fn {listing, admin} ->
-          Task.async(fn -> unboxed(fn -> Listings.approve_listing(admin, listing, url) end) end)
+          Task.async(fn ->
+            unboxed(fn ->
+              Listings.approve_listing(admin, listing, url, &ListingsFixtures.public_url/1)
+            end)
+          end)
         end)
         |> Task.await_many(15_000)
 

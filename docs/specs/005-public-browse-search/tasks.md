@@ -293,7 +293,7 @@ document changed, and every changed `.puml` is rendered on its own
     `screenflow-moderation`
   - Commit: `feat(browse): links between a listing's public page and its owner and Admin views (REQ-005-10)`
 
-- [ ] **T15** — The approval email links to the public page (REQ-005-10; amends REQ-004-9)
+- [x] **T15** — The approval email links to the public page (REQ-005-10; amends REQ-004-9) — done 2026-11-26
   - `approve_listing/4` (`public_url`); `ListingNotifier.deliver_approved/4`: the public
     link first, then My listings; the Admin view passes `PublicAddress.listing_url/1`
   - Every caller: the Admin view, `ListingsFixtures`, the tests, and by hand
@@ -620,3 +620,21 @@ document changed, and every changed `.puml` is rendered on its own
   longer listed" page, which T13 could not show.
 - T14: five diagrams of specs 003 and 004 were re-rendered. I looked at
   `screenflow-posting` and `screenflow-moderation`; the other three changed by one line.
+- T15: 3 new tests, and the existing "REQ-004-9: approved email" also expects the public
+  link. One of the new ones approves on the Admin's screen and checks the email carries
+  the address the site really builds, and that the address opens.
+- T15: `approve_listing/4` had 33 callers by now, not the 25 counted for the plan: the
+  tests written since added eight. One in the app, one fixture, 29 in tests, and the two
+  phone-check scripts. The compiler found the 31; the two scripts were changed by hand.
+- T15: both phone-check scripts were run to prove they still work: `004`, 15 pages, 0
+  failed; `003`, 13 pages, 0 failed; the dev database unchanged after each. Their pages
+  include the owner view and the Admin view of a Published listing, which now carry "See
+  the public page", so the 44 px check has passed on that link in both. I did not look at
+  these screenshots again.
+- T15: the three other emails to the owner still take one address and carry one link; a
+  test checks none of them mentions `/jobs/`.
+- T15: `sequence-decision-email` changed in four places, as the plan lists, with the
+  address step drawn as optional ("approve, or an edit that moves a Published
+  listing", since T4's move takes the same step). I looked at the re-rendered sequence
+  diagram and at `activity-emails`; not at `screenflow-moderation`, where one line
+  changed in a diagram looked at in T14.

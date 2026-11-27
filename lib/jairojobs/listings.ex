@@ -509,7 +509,10 @@ defmodule Jairojobs.Listings do
   listing has or ever had the same one. The slug is on the listing returned.
 
   `owner_url` turns the listing into the address of its page in My listings,
-  for the email to its owner (REQ-004-9). Returns:
+  and `public_url` into the full address of its public page, for the email to
+  its owner (REQ-004-9, REQ-005-10). Both are functions of the listing: a
+  context cannot build web addresses, and the public one does not exist until
+  the approval has made it. Returns:
 
     * `{:ok, listing, email}` — `email` says what happened to that email
     * `{:error, :not_pending}` — no longer waiting: withdrawn, or already decided
@@ -517,7 +520,8 @@ defmodule Jairojobs.Listings do
     * `{:error, :not_found}` — the listing no longer exists
     * `{:error, :unauthorized}` — the scope is not an Admin
   """
-  def approve_listing(scope, %Listing{} = listing, owner_url) when is_function(owner_url, 1) do
+  def approve_listing(scope, %Listing{} = listing, owner_url, public_url)
+      when is_function(owner_url, 1) and is_function(public_url, 1) do
     scope
     |> moderate(listing, fn admin, listing ->
       with :ok <- in_status(listing, [:pending], :not_pending),
@@ -526,7 +530,7 @@ defmodule Jairojobs.Listings do
         listing |> Listing.approve_changeset(admin, slug, DateTime.utc_now()) |> decide()
       end
     end)
-    |> notify_owner(scope, owner_url)
+    |> notify_owner(scope, %{owner: owner_url, public: public_url})
   end
 
   @doc """
@@ -788,14 +792,14 @@ defmodule Jairojobs.Listings do
        when owner_id == scope.user.id,
        do: {:ok, listing, :own_listing}
 
-  defp notify_owner({:ok, {listing, what_happened}}, _scope, owner_url) do
+  defp notify_owner({:ok, {listing, what_happened}}, _scope, urls) do
     kind = email_kind(listing, what_happened)
 
     {:ok, listing,
      attempt(kind, listing, fn ->
        # The owner, whatever their role is now (REQ-004-9).
        owner = Repo.get!(User, listing.user_id)
-       deliver_to_owner(kind, owner, listing, what_happened, owner_url.(listing))
+       deliver_to_owner(kind, owner, listing, what_happened, urls)
      end)}
   end
 
@@ -804,8 +808,19 @@ defmodule Jairojobs.Listings do
   defp email_kind(%Listing{status: :rejected}, :decided), do: :rejected
   defp email_kind(%Listing{status: :taken_down}, :decided), do: :taken_down
 
-  defp deliver_to_owner(:approved, owner, listing, _what, url),
-    do: ListingNotifier.deliver_approved(owner, listing, url)
+  # Only the approval email carries two links: the listing's public page, and the
+  # listing in My listings (REQ-005-10). The other three have the one.
+  defp deliver_to_owner(:approved, owner, listing, _what, %{owner: owner_url, public: public_url}),
+       do:
+         ListingNotifier.deliver_approved(
+           owner,
+           listing,
+           public_url.(listing),
+           owner_url.(listing)
+         )
+
+  defp deliver_to_owner(kind, owner, listing, what, owner_url) when is_function(owner_url, 1),
+    do: deliver_to_owner(kind, owner, listing, what, owner_url.(listing))
 
   defp deliver_to_owner(:rejected, owner, listing, _what, url),
     do: ListingNotifier.deliver_rejected(owner, listing, url)

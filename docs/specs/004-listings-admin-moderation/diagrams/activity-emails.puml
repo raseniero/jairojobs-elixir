@@ -29,7 +29,9 @@ else (an Admin approved, rejected,\ntook down or edited a listing)
   endif
   switch (Decision)
   case (approved)
-    :"Your listing is published";
+    :"Your listing is published", with a
+    link to its public page placed first
+    (spec 005, REQ-005-10);
   case (rejected)
     :"Your listing needs changes"
     with the reason, and that it can

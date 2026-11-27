@@ -31,7 +31,7 @@ defmodule Jairojobs.ListingsPublicTest do
   end
 
   defp approve(admin, listing) do
-    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url())
+    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url(), &public_url/1)
     listing
   end
 
@@ -802,7 +802,8 @@ defmodule Jairojobs.ListingsPublicTest do
       waiting = pending(owner, "Barista (full-time)", davao)
       {:ok, _hidden} = Regions.hide_region(admin, davao)
 
-      assert {:error, :region_hidden} = Listings.approve_listing(admin, waiting, owner_url())
+      assert {:error, :region_hidden} =
+               Listings.approve_listing(admin, waiting, owner_url(), &public_url/1)
 
       assert %Listing{status: :pending, slug: nil} = reload(waiting)
       assert addresses(waiting) == []

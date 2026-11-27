@@ -26,6 +26,7 @@ PhoneCheck.run(System.argv(), fn ->
   # The addresses only go into emails, which land in the dev mailbox.
   owner_url = &"http://localhost/my/listings/#{&1.id}"
   admin_url = &"http://localhost/admin/listings/#{&1.id}"
+  public_url = &"http://localhost/jobs/#{&1.region.slug}/#{&1.slug}"
 
   pending = fn scope, title, region ->
     {:ok, draft} =
@@ -49,7 +50,7 @@ PhoneCheck.run(System.argv(), fn ->
   end
 
   approved = fn listing ->
-    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url)
+    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url, public_url)
     listing
   end
 

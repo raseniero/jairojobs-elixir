@@ -660,6 +660,10 @@ Scenario: The decision stands if the email cannot be sent
 - Every email names the listing by its title, says in plain words what happened and what
   the Employer can do next, and links to the listing in My listings. Following the link
   asks the Employer to log in if they are not (REQ-003-1).
+- The "Your listing is published" email carries a second link, placed first: to the
+  listing's public page, for the Employer to post and to send to people (spec 005,
+  REQ-005-10). The link to My listings follows it. The other three emails have the one
+  link.
 - The edit email names the parts that changed by their short names: Job title, Region,
   Area, Salary, Type, Schedule, About the job, Requirements, Benefits, Business name, About
   the business. These are the form's labels without their hints ("Area", not "Area or
@@ -871,3 +875,4 @@ What was found is listed here and has **not** been changed: each item waits for 
 | 2026-11-26 | Changed by spec 005, after Done: an Admin edit that moves a Published listing to another region moves its public address, and the old address forwards; the public address joins what an edit cannot set (REQ-005-6). Two rules in REQ-004-8; `activity-take-down-and-edit` gains a note and a step. No scenario changed |
 | 2026-11-26 | Changed by spec 005, after Done: the public pages exist. REQ-004-3's opening no longer says this page is the only way to a Published listing; REQ-004-7's rule says what "no longer visible to the public" means now (REQ-005-1, REQ-005-7); `activity-take-down-and-edit` says the same at "Take down". No scenario changed |
 | 2026-11-26 | Changed by spec 005, after Done: the Admin view of a Published listing has a link, "See the public page" (REQ-005-10). A rule in REQ-004-4; `activity-find-and-review` and `screenflow-moderation` say the same. No scenario changed |
+| 2026-11-26 | Amended by spec 005, after Done (REQ-005-10): the "Your listing is published" email gains the link to the listing's public page, placed first, and keeps the link to My listings. A rule in REQ-004-9; `activity-emails`, `sequence-decision-email` and `screenflow-moderation` changed with it. The sequence diagram also shows what approval does since spec 005: it locks the region's row and gives the listing its public address, and `approve_listing` takes the two address functions. No scenario of this spec changed; the scenario for the public link is spec 005's |

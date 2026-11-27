@@ -247,7 +247,10 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
       live_listings =
         for _ <- 1..60 do
           pending = listing_in_status_fixture(owner, :pending, region_id: region.id)
-          {:ok, live_listing, _email} = Listings.approve_listing(admin, pending, url)
+
+          {:ok, live_listing, _email} =
+            Listings.approve_listing(admin, pending, url, &public_url/1)
+
           live_listing
         end
 
@@ -1139,6 +1142,36 @@ defmodule JairojobsWeb.Admin.ListingLiveTest do
   # spec 005 — REQ-005-10: from a listing's Admin view to its public page.
   describe "the Admin view: the link to the public page" do
     setup :log_in_admin
+
+    test "approving on the screen emails the owner the public address the site really has",
+         %{conn: conn} do
+      region = region_fixture(name: "Davao City")
+      employer = employer_scope_fixture()
+
+      listing =
+        listing_in_status_fixture(employer, :pending,
+          title: "Barista (full-time)",
+          region_id: region.id
+        )
+
+      flush_emails()
+      {:ok, view, _html} = live(conn, ~p"/admin/listings/#{listing.id}")
+      view |> element("#approve-listing") |> render_click()
+
+      assert_received {:email, email}
+      assert email.to == [{"", employer.user.email}]
+
+      # The same address the public page answers at, in full, and before the other link.
+      public = JairojobsWeb.Endpoint.url() <> "/jobs/davao-city/barista-full-time"
+      mine = JairojobsWeb.Endpoint.url() <> "/my/listings/#{listing.id}"
+
+      assert email.text_body =~ public <> "\n"
+      assert email.text_body =~ mine <> "\n"
+      assert :binary.match(email.text_body, public) < :binary.match(email.text_body, mine)
+
+      assert conn |> get("/jobs/davao-city/barista-full-time") |> html_response(200) =~
+               "Barista (full-time)"
+    end
 
     test "REQ-005-10: The Admin view links to the public page", %{conn: conn} do
       region = region_fixture(name: "Davao City")

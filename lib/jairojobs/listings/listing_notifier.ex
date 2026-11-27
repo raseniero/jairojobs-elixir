@@ -2,7 +2,8 @@ defmodule Jairojobs.Listings.ListingNotifier do
   @moduledoc """
   The emails about a listing (spec 004): one to its owner for each Admin
   decision on it (REQ-004-9), and one to each Admin when a listing is submitted
-  (REQ-004-10).
+  (REQ-004-10). Since spec 005 the approval email also links to the listing's
+  public page (REQ-005-10).
 
   Plain text, from the site's one sender (ADR-0005). An email names the
   listing by its title and carries the Admin's reason where there is one. The
@@ -41,17 +42,23 @@ defmodule Jairojobs.Listings.ListingNotifier do
   end
 
   @doc """
-  Tells the owner their listing was approved and is published.
+  Tells the owner their listing was approved and is published. The email
+  carries two links: the listing's public page first, to post and to send to
+  people, then the listing in My listings (REQ-005-10).
   """
-  def deliver_approved(%User{} = owner, %Listing{} = listing, url) do
+  def deliver_approved(%User{} = owner, %Listing{} = listing, public_url, owner_url) do
     deliver(owner.email, "Your listing is published: #{listing.title}", """
     Hi,
 
     Your listing "#{listing.title}" was approved and is published on jairojobs.
 
+    Anyone can see it here. This is the link to share:
+
+    #{public_url}
+
     It stays up until you close it. Close it when the job is filled:
 
-    #{url}
+    #{owner_url}
     """)
   end
 

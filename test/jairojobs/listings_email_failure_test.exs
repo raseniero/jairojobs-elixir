@@ -43,7 +43,7 @@ defmodule Jairojobs.ListingsEmailFailureTest do
       log =
         capture_log(fn ->
           assert {:ok, %Listing{status: :published} = live, :failed} =
-                   Listings.approve_listing(admin, waiting, owner_url())
+                   Listings.approve_listing(admin, waiting, owner_url(), &public_url/1)
 
           assert %Listing{status: :published, published_at: %DateTime{}} =
                    Repo.get!(Listing, live.id)
@@ -85,7 +85,7 @@ defmodule Jairojobs.ListingsEmailFailureTest do
       log =
         capture_log(fn ->
           assert {:ok, %Listing{status: :published}, :failed} =
-                   Listings.approve_listing(admin, waiting, owner_url())
+                   Listings.approve_listing(admin, waiting, owner_url(), &public_url/1)
         end)
 
       assert Repo.get!(Listing, waiting.id).status == :published

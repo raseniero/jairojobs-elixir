@@ -1,5 +1,7 @@
 @startuml sequence-decision-email
 ' Spec 004 — an Admin decision and the email to the listing's owner (REQ-004-5..9).
+' Amended by spec 005 (REQ-005-6, REQ-005-10): approval gives the listing its public address,
+' and the approval email links to it.
 ' Parties: Admin's browser, JairojobsWeb (Admin listing LiveView), Jairojobs.Listings, Postgres,
 ' Mailer (Resend in production), the owner's inbox.
 
@@ -17,7 +19,7 @@ participant "Owner's inbox" as IN
 
 Admin -> B : Approve\n(or Reject / Take down with a reason,\nor Save changes)
 B -> W : event
-W -> L : approve_listing(scope, listing, owner_url)\n(reject_… / take_down_… / update_listing_as_admin)
+W -> L : approve_listing(scope, listing, owner_url, public_url)\n(reject_… / take_down_… / update_listing_as_admin,\neach with owner_url only)
 
 group one transaction
   L -> DB : re-read the acting account,\nlock the listing row (FOR UPDATE)
@@ -32,7 +34,10 @@ group one transaction
     L --> W : {:error, changeset}
     W --> B : validation error
   else allowed
-    L -> DB : update status, decided_at, decided_by_id\n(+ published_at / reason / edited fields)
+    opt approve, or an edit that moves a Published listing (spec 005, REQ-005-6)
+      L -> DB : lock the region's row; give the listing\nits public address there
+    end
+    L -> DB : update status, decided_at, decided_by_id\n(+ published_at and slug / reason / edited fields)
     DB --> L : committed
   end
 end
@@ -43,7 +48,7 @@ alt the Admin owns the listing, or an edit changed nothing
   L --> W : {:ok, listing, :own_listing}\n({:ok, listing, :unchanged})
   W --> B : confirmation
 else someone else's listing
-  L -> M : deliver_approved(owner, listing, url)\n(rejected / taken down / edited)
+  L -> M : deliver_approved(owner, listing, public_url, owner_url)\n(rejected / taken down / edited: owner_url only)
   M -> R : send
   alt accepted
     R -> IN : "Your listing is published: <title>"
@@ -60,6 +65,8 @@ end
 
 note over B, IN
   No second attempt. The owner still sees the outcome in My listings.
+  The approval email carries two links: the listing's public page first,
+  then the listing in My listings (spec 005, REQ-005-10). The others carry the second only.
   After approve and reject the Admin is back on the queue; after take down and edit, on the listing.
 end note
 @enduml

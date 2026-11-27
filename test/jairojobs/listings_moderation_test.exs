@@ -36,7 +36,7 @@ defmodule Jairojobs.ListingsModerationTest do
 
   defp published_listing(scope, admin, attrs \\ %{}) do
     {:ok, listing, _email} =
-      Listings.approve_listing(admin, pending_listing(scope, attrs), owner_url())
+      Listings.approve_listing(admin, pending_listing(scope, attrs), owner_url(), &public_url/1)
 
     listing
   end
@@ -68,7 +68,7 @@ defmodule Jairojobs.ListingsModerationTest do
       pending = pending_listing(employer)
 
       assert {:ok, %Listing{} = listing, _email} =
-               Listings.approve_listing(admin, pending, owner_url())
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       assert listing.status == :published
       assert %DateTime{} = listing.published_at
@@ -82,7 +82,9 @@ defmodule Jairojobs.ListingsModerationTest do
 
     test "REQ-004-5: approving does not change the listing", %{employer: employer, admin: admin} do
       pending = pending_listing(employer)
-      {:ok, listing, _email} = Listings.approve_listing(admin, pending, owner_url())
+
+      {:ok, listing, _email} =
+        Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       content = [
         :title,
@@ -109,7 +111,8 @@ defmodule Jairojobs.ListingsModerationTest do
       pending = pending_listing(employer, region_id: region.id)
       {:ok, _region} = Regions.hide_region(admin, region)
 
-      assert {:error, :region_hidden} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:error, :region_hidden} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       assert %Listing{status: :pending, published_at: nil, decided_at: nil} = reload(pending)
     end
@@ -118,14 +121,22 @@ defmodule Jairojobs.ListingsModerationTest do
       # Withdrawn by its Employer: the status refusal, not "not found".
       withdrawn = pending_listing(employer)
       {:ok, _draft} = Listings.withdraw_listing(employer, withdrawn)
-      assert {:error, :not_pending} = Listings.approve_listing(admin, withdrawn, owner_url())
+
+      assert {:error, :not_pending} =
+               Listings.approve_listing(admin, withdrawn, owner_url(), &public_url/1)
+
       assert %Listing{status: :draft, published_at: nil, decided_by_id: nil} = reload(withdrawn)
 
       # Already approved by another Admin.
       other_admin = admin_scope_fixture()
       approved = pending_listing(employer)
-      {:ok, first, _email} = Listings.approve_listing(other_admin, approved, owner_url())
-      assert {:error, :not_pending} = Listings.approve_listing(admin, approved, owner_url())
+
+      {:ok, first, _email} =
+        Listings.approve_listing(other_admin, approved, owner_url(), &public_url/1)
+
+      assert {:error, :not_pending} =
+               Listings.approve_listing(admin, approved, owner_url(), &public_url/1)
+
       assert reload(approved).decided_by_id == other_admin.user.id
       assert reload(approved).published_at == first.published_at
 
@@ -135,7 +146,9 @@ defmodule Jairojobs.ListingsModerationTest do
       {:ok, _rejected, _email} =
         Listings.reject_listing(other_admin, rejected, %{reason: @reason}, owner_url())
 
-      assert {:error, :not_pending} = Listings.approve_listing(admin, rejected, owner_url())
+      assert {:error, :not_pending} =
+               Listings.approve_listing(admin, rejected, owner_url(), &public_url/1)
+
       assert reload(rejected).status == :rejected
     end
 
@@ -143,7 +156,9 @@ defmodule Jairojobs.ListingsModerationTest do
       admin = admin_poster_scope_fixture()
       pending = pending_listing(admin)
 
-      assert {:ok, listing, _email} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:ok, listing, _email} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
+
       assert listing.status == :published
       assert listing.decided_by_id == admin.user.id
       assert listing.user_id == admin.user.id
@@ -157,7 +172,8 @@ defmodule Jairojobs.ListingsModerationTest do
 
       {:ok, _deleted} = Listings.delete_listing(employer, rejected)
 
-      assert {:error, :not_found} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:error, :not_found} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       assert {:error, :not_found} =
                Listings.reject_listing(admin, pending, %{reason: @reason}, owner_url())
@@ -175,7 +191,10 @@ defmodule Jairojobs.ListingsModerationTest do
 
       # The scope still says Admin; the database no longer does.
       assert Scope.admin?(admin)
-      assert {:error, :unauthorized} = Listings.approve_listing(admin, pending, owner_url())
+
+      assert {:error, :unauthorized} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
+
       assert reload(pending).status == :pending
     end
   end
@@ -391,7 +410,8 @@ defmodule Jairojobs.ListingsModerationTest do
       before = reload(taken_down)
 
       # No Admin action brings it back.
-      assert {:error, :not_pending} = Listings.approve_listing(admin, taken_down, owner_url())
+      assert {:error, :not_pending} =
+               Listings.approve_listing(admin, taken_down, owner_url(), &public_url/1)
 
       assert {:error, :not_pending} =
                Listings.reject_listing(admin, taken_down, %{reason: @reason}, owner_url())
@@ -427,7 +447,8 @@ defmodule Jairojobs.ListingsModerationTest do
       live = published_listing(employer, admin)
 
       for scope <- non_admin_scopes(employer) do
-        assert {:error, :unauthorized} = Listings.approve_listing(scope, waiting, owner_url())
+        assert {:error, :unauthorized} =
+                 Listings.approve_listing(scope, waiting, owner_url(), &public_url/1)
 
         assert {:error, :unauthorized} =
                  Listings.reject_listing(scope, waiting, %{reason: @reason}, owner_url())
@@ -459,7 +480,8 @@ defmodule Jairojobs.ListingsModerationTest do
       waiting = pending_listing(employer)
 
       for scope <- non_admin_scopes(employer) do
-        assert {:error, :unauthorized} = Listings.approve_listing(scope, waiting, owner_url())
+        assert {:error, :unauthorized} =
+                 Listings.approve_listing(scope, waiting, owner_url(), &public_url/1)
       end
 
       assert reload(waiting).slug == nil
@@ -788,7 +810,8 @@ defmodule Jairojobs.ListingsModerationTest do
       pending = pending_listing(employer, title: "Barista (full-time)")
       setup_done()
 
-      assert {:ok, listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:ok, listing, :sent} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       email = sent_email()
       assert email.to == [{"", employer.user.email}]
@@ -797,7 +820,67 @@ defmodule Jairojobs.ListingsModerationTest do
       assert email.text_body =~ "Barista (full-time)"
       assert email.text_body =~ "is published"
       assert email.text_body =~ "https://jairojobs.test/my/listings/#{listing.id}"
+      # Since spec 005 it also links to the listing's public page (REQ-005-10).
+      assert email.text_body =~
+               "https://jairojobs.test/jobs/#{listing.region.slug}/#{listing.slug}"
+
       assert email.html_body == nil
+    end
+
+    # spec 005 — REQ-005-10, which amends REQ-004-9: the approval email gains the link to
+    # the public page, placed first, and keeps the link to My listings.
+    test "REQ-005-10: The approval email links to the public page", %{admin: admin} do
+      employer = employer_scope_fixture()
+      region = region_fixture(name: "Davao City")
+      pending = pending_listing(employer, title: "Barista (full-time)", region_id: region.id)
+      setup_done()
+
+      assert {:ok, listing, :sent} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
+
+      email = sent_email()
+      assert email.to == [{"", employer.user.email}]
+      assert email.subject == "Your listing is published: Barista (full-time)"
+
+      public = "https://jairojobs.test/jobs/davao-city/barista-full-time"
+      mine = "https://jairojobs.test/my/listings/#{listing.id}"
+
+      # It links to the listing's public page, and to the listing in My listings…
+      assert email.text_body =~ public
+      assert email.text_body =~ mine
+
+      # …each on a line of its own, the public one first.
+      lines = String.split(email.text_body, "\n")
+      assert Enum.find_index(lines, &(&1 == public)) < Enum.find_index(lines, &(&1 == mine))
+
+      # The public address never carries the listing's id (constitution §4.8).
+      refute public =~ listing.id
+
+      # It says what each link is for.
+      assert email.text_body =~ "Anyone can see it here. This is the link to share:"
+      assert email.text_body =~ "It stays up until you close it."
+    end
+
+    test "the other three emails to the owner still carry one link, to My listings",
+         %{employer: employer, admin: admin} do
+      live = published_listing(employer, admin)
+      waiting = pending_listing(employer)
+      setup_done()
+
+      {:ok, _edited, :sent} =
+        Listings.update_listing_as_admin(admin, live, %{area: "Lanang"}, owner_url())
+
+      {:ok, _taken_down, :sent} =
+        Listings.take_down_listing(admin, live, %{reason: @reason}, owner_url())
+
+      {:ok, _rejected, :sent} =
+        Listings.reject_listing(admin, waiting, %{reason: @reason}, owner_url())
+
+      for _ <- 1..3 do
+        assert_received {:email, email}
+        assert email.text_body =~ "https://jairojobs.test/my/listings/"
+        refute email.text_body =~ "/jobs/"
+      end
     end
 
     test "REQ-004-9: rejected email carries the reason", %{employer: employer, admin: admin} do
@@ -919,7 +1002,8 @@ defmodule Jairojobs.ListingsModerationTest do
                  owner_url()
                )
 
-      assert {:ok, live, :own_listing} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:ok, live, :own_listing} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
 
       assert {:ok, _taken_down, :own_listing} =
                Listings.take_down_listing(admin, live, %{reason: @reason}, owner_url())
@@ -935,7 +1019,9 @@ defmodule Jairojobs.ListingsModerationTest do
       pending = pending_listing(owner)
       setup_done()
 
-      assert {:ok, _listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:ok, _listing, :sent} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
+
       assert sent_email().to == [{"", owner.user.email}]
     end
 
@@ -956,7 +1042,9 @@ defmodule Jairojobs.ListingsModerationTest do
       assert demoted.role == :candidate
       setup_done()
 
-      assert {:ok, _listing, :sent} = Listings.approve_listing(admin, pending, owner_url())
+      assert {:ok, _listing, :sent} =
+               Listings.approve_listing(admin, pending, owner_url(), &public_url/1)
+
       assert sent_email().to == [{"", owner.user.email}]
     end
 

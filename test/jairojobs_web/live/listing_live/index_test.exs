@@ -23,7 +23,7 @@ defmodule JairojobsWeb.ListingLive.IndexTest do
     attrs = Map.merge(%{title: title, region_id: region.id}, Map.new(attrs))
     listing = listing_fixture(scope, complete_listing_attrs(attrs))
     {:ok, listing} = Listings.submit_listing(scope, listing, &admin_url/1)
-    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url())
+    {:ok, listing, _email} = Listings.approve_listing(admin, listing, owner_url(), &public_url/1)
     flush_emails()
     listing
   end

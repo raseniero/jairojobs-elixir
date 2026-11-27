@@ -81,7 +81,12 @@ defmodule Jairojobs.ListingsFixtures do
   """
   def approve_listing_fixture(%Listings.Listing{} = listing) do
     {:ok, listing, _email} =
-      Listings.approve_listing(AccountsFixtures.admin_scope_fixture(), listing, &owner_url/1)
+      Listings.approve_listing(
+        AccountsFixtures.admin_scope_fixture(),
+        listing,
+        &owner_url/1,
+        &public_url/1
+      )
 
     flush_emails()
     listing
@@ -124,6 +129,13 @@ defmodule Jairojobs.ListingsFixtures do
   end
 
   defp owner_url(listing), do: "https://jairojobs.test/my/listings/#{listing.id}"
+
+  @doc """
+  The full public address of a Published listing, as the Admin view passes it
+  to `Listings.approve_listing/4` for the email to the owner (REQ-005-10).
+  """
+  def public_url(listing),
+    do: "https://jairojobs.test/jobs/#{listing.region.slug}/#{listing.slug}"
 
   @doc """
   The address of a listing's Admin view, as the screens pass it to

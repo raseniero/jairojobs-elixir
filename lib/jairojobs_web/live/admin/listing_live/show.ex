@@ -224,7 +224,9 @@ defmodule JairojobsWeb.Admin.ListingLive.Show do
   def handle_event("approve", _params, socket) do
     %{current_scope: scope, listing: listing} = socket.assigns
 
-    case Listings.approve_listing(scope, listing, &owner_url/1) do
+    # The approval email links to the listing's public page, which the approval itself
+    # brings into being, and to the listing in My listings (REQ-005-10).
+    case Listings.approve_listing(scope, listing, &owner_url/1, &PublicAddress.listing_url/1) do
       {:ok, _listing, email} ->
         {:noreply,
          socket

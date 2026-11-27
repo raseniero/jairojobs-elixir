@@ -69,7 +69,7 @@ Edit : plus Business name and About the business (this listing only)
 Edit : **[ Save changes ]**   Cancel
 
 state "Email to the Employer" as MailEmployer <<email>>
-MailEmployer : Your listing is published
+MailEmployer : Your listing is published + link → its public page (005)
 MailEmployer : Your listing needs changes + the reason
 MailEmployer : Your listing was taken down + the reason
 MailEmployer : We edited your listing + what changed
