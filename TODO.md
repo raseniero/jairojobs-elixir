@@ -5,24 +5,24 @@ starts with a spec (`docs/README.md`).
 
 ## Checks still to do
 
-- **"Share" on a real phone, once the site is deployed** (spec 005, REQ-005-8). Open a
+- **"Share" on a real phone, now that the site is deployed** (spec 005, REQ-005-8). Open a
   listing on a phone, tap "Share", and see the phone's share sheet open with the job's
   title and its address. It cannot be done before deployment: phones allow the share
   sheet and copying only on a secure (https) address. Six cases passed in a simulated
   browser (spec 005 `tasks.md`, T16). Write the result in that `tasks.md`.
-- **The job details in a search engine's own checker, once the site is deployed**
+- **The job details in a search engine's own checker, now that the site is deployed**
   (spec 005, REQ-005-9). Put a listing's address through Google's Rich Results Test and
   see that it reads the job posting. So far the block has only been parsed as JSON and
   compared field by field in tests.
 
-## Before deploying
+## Before launch (the site is deployed at https://jairojobs.com since 2026-11-27)
 
-- **The site must be configured to answer at `jairojobs.com`.** The addresses in the
-  sitemap, in a page's stated address, in the link preview and in the approval email are
-  built from the address the site is configured with. On a dev machine that is
-  `localhost`. `robots.txt` already names `https://jairojobs.com/sitemap.xml`.
-- **Decide whether to deploy before specs 006 and 007.** After spec 005 a deployed site
-  shows listings that nobody can apply to yet. Raised with the owner; not decided.
+- **Email on jairojobs.com is not set up yet.** Sign-in links depend on it. Verify the domain
+  in Resend (DKIM and SPF records at GoDaddy), add `_dmarc` (`v=DMARC1; p=none;`), and create
+  a real `hello@jairojobs.com` mailbox (ADR-0005). Then sign up with a real address and see
+  the email arrive in the inbox.
+- **The site is live before specs 006 and 007** (owner's decision, 2026-11-27, while still in
+  development). Its listings cannot be applied to yet; decide when to announce it.
 
 ## Small things noticed (spec 005)
 
