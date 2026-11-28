@@ -82,10 +82,31 @@ Rules: the account must exist and have confirmed its email; demoting restores th
 user had before promotion (candidate by default); the last remaining admin cannot be
 demoted. The task prints one line and exits non-zero on failure.
 
-In production the same functions will be exposed through `Jairojobs.Release` once the
-release tooling lands (see `docs/specs/001-accounts-authentication/plan.md`).
+In production the same rules run through `Jairojobs.Release` (see "Production" below).
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
+## Production
+
+The site runs on Fly.io: app `jairojobs` in Singapore (`sin`, ADR-0003), with Fly Managed
+Postgres `jairojobs-db` on the Developer plan (ADR-0007). It answers at
+`https://jairojobs.com`; `www.jairojobs.com` and `jairojobs.fly.dev` redirect there
+(`REDIRECT_HOSTS` in `fly.toml`).
+
+```bash
+fly deploy -a jairojobs            # build, migrate (release_command), roll out
+fly logs -a jairojobs              # when something goes wrong
+fly secrets list -a jairojobs      # SECRET_KEY_BASE, DATABASE_URL, RESEND_API_KEY
+```
+
+Operator commands run inside the release:
+
+```bash
+fly ssh console -a jairojobs -C "/app/bin/jairojobs eval 'Jairojobs.Release.seed_regions()'"
+fly ssh console -a jairojobs -C "/app/bin/jairojobs eval 'Jairojobs.Release.promote_admin(\"someone@example.com\")'"
+fly ssh console -a jairojobs -C "/app/bin/jairojobs eval 'Jairojobs.Release.demote_admin(\"someone@example.com\")'"
+```
+
+The machine stops when idle and the database pauses after 15 minutes with no client, so
+the first request after a quiet spell takes 20-30 s.
 
 ## Learn more
 

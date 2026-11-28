@@ -50,10 +50,19 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
+  # Fly Managed Postgres, Developer plan (ADR-0007): the cluster pauses after 15 minutes
+  # with no client and takes 15-25 s to wake on the next connection. Connecting and
+  # waiting for a connection must outlast that, or the first request after a pause (and
+  # the migration step of a deploy) fails with "connection not available". The plan
+  # allows 20 connections in all, shared by every machine and the release command.
   config :jairojobs, Jairojobs.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
+    connect_timeout: 30_000,
+    handshake_timeout: 30_000,
+    queue_target: 20_000,
+    queue_interval: 40_000,
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
     socket_options: maybe_ipv6
@@ -73,6 +82,14 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
 
   config :jairojobs, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+
+  # Other hosts of the site, sent on to PHX_HOST (JairojobsWeb.Plugs.CanonicalHost),
+  # e.g. REDIRECT_HOSTS="www.jairojobs.com,jairojobs.fly.dev".
+  config :jairojobs,
+         :redirect_hosts,
+         System.get_env("REDIRECT_HOSTS", "")
+         |> String.split(",", trim: true)
+         |> Enum.map(&String.trim/1)
 
   config :jairojobs, JairojobsWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

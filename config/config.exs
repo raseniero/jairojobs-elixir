@@ -60,6 +60,10 @@ config :jairojobs, Jairojobs.Mailer, adapter: Swoosh.Adapters.Local
 # `Application.fetch_env!(:jairojobs, :mailer_from)` in notifiers; never hard-code a sender.
 config :jairojobs, :mailer_from, {"jairojobs", "hello@jairojobs.com"}
 
+# Hosts sent on to the endpoint's own host with a 301 (JairojobsWeb.Plugs.CanonicalHost).
+# Empty here; production sets REDIRECT_HOSTS in config/runtime.exs.
+config :jairojobs, :redirect_hosts, []
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

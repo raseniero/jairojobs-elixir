@@ -15,6 +15,10 @@ defmodule JairojobsWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  # Another of the site's hosts (www., fly.dev) goes to the configured one,
+  # before anything is served. See JairojobsWeb.Plugs.CanonicalHost.
+  plug JairojobsWeb.Plugs.CanonicalHost
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),

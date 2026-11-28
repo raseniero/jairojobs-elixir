@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-10-29
 **Supersedes:** —
-**Superseded by:** —
+**Superseded by:** ADR-0007, in part (database host: Fly Managed Postgres)
 
 ## Context
 
